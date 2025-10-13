@@ -1,0 +1,21 @@
+{
+  "configurations": [
+    {
+      "name": "Node: Current File",
+      "type": "node",
+      "request": "launch",
+      "program": "${file}",
+      "cwd": "${fileDirname}",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "TSX Node: Current File",
+      "type": "node",
+      "request": "launch",
+      "program": "${file}",
+      "runtimeExecutable": "tsx",
+      "cwd": "${fileDirname}",
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
+}
