@@ -3,6 +3,10 @@
     "allow": [
       "Bash(mkdir:*)",
       "Bash(mv:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(tree:*)",
+      "Bash(test:*)",
       "Bash(pnpm tsc:*)",
       "Bash(pnpm type-check:*)",
       "Bash(pnpm test:*)",
@@ -16,6 +20,6 @@
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
-    "additionalDirectories": ["../"]
+    "additionalDirectories": []
   }
 }
