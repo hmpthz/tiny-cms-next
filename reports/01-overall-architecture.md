@@ -142,116 +142,76 @@ Payload follows several core design principles:
 
 ### 2.1 High-Level Organization
 
+**Location:** `payload-main/`
+
 ```
 payload-monorepo/
-├── packages/                      # 41 npm packages
-│   ├── payload/                   # Core CMS (150K LOC)
-│   ├── next/                      # Next.js integration
-│   ├── ui/                        # Admin UI components
-│   ├── graphql/                   # GraphQL layer
-│   ├── translations/              # i18n system
-│   ├── sdk/                       # Client SDK
-│   ├── create-payload-app/        # CLI scaffolder
-│   │
-│   ├── db-*/                      # Database adapters (5)
-│   ├── drizzle/                   # Shared SQL adapter
-│   │
-│   ├── storage-*/                 # Storage adapters (6)
-│   │
-│   ├── richtext-*/                # Rich text editors (2)
-│   │
-│   ├── email-*/                   # Email adapters (2)
-│   │
-│   ├── plugin-*/                  # Plugins (11)
-│   │
-│   └── eslint-*/                  # Tooling
-│
-├── templates/                     # Starter templates
-│   ├── website/                   # Blog/website template
-│   ├── ecommerce/                 # E-commerce template
-│   └── blank/                     # Minimal template
-│
-├── examples/                      # Example projects
-│   ├── auth/
-│   ├── custom-components/
-│   ├── multi-tenant/
-│   ├── form-builder/
-│   └── ... (10+ examples)
-│
-├── test/                          # Test configurations
-│   ├── fields/                    # Field testing
-│   ├── collections/               # Collection testing
-│   ├── auth/                      # Auth testing
-│   └── ... (20+ test configs)
-│
-├── tools/                         # Monorepo tooling
-│   ├── scripts/                   # Build scripts
-│   ├── constants/                 # Shared constants
-│   └── releaser/                  # Release automation
-│
-├── docs/                          # Documentation
-│
-├── turbo.json                     # Turborepo config
-├── pnpm-workspace.yaml            # pnpm workspaces
-└── package.json                   # Root package
+├── packages/          # 41 npm packages (core, adapters, plugins, tooling)
+├── templates/         # Starter templates (website, ecommerce, blank)
+├── examples/          # Example projects (10+ examples)
+├── test/              # Test configurations (20+ test configs)
+├── tools/             # Monorepo tooling (scripts, releaser)
+└── docs/              # Documentation
 ```
 
 ### 2.2 Package Categories
 
+**Location:** All packages in `payload-main/packages/`
+
 **Category 1: Core Packages (7)**
-- `payload` - Core CMS logic
-- `next` - Next.js integration layer
-- `ui` - Admin UI components
-- `graphql` - GraphQL API generation
-- `translations` - Internationalization
-- `sdk` - TypeScript client SDK
-- `create-payload-app` - Project scaffolder
+- `payload/` - Core CMS logic
+- `next/` - Next.js integration layer
+- `ui/` - Admin UI components
+- `graphql/` - GraphQL API generation
+- `translations/` - Internationalization
+- `sdk/` - TypeScript client SDK
+- `create-payload-app/` - Project scaffolder
 
 **Category 2: Database Adapters (6)**
-- `db-postgres` - PostgreSQL via Drizzle ORM
-- `db-mongodb` - MongoDB via Mongoose
-- `db-sqlite` - SQLite via Drizzle
-- `db-vercel-postgres` - Vercel Postgres
-- `db-d1-sqlite` - Cloudflare D1
-- `drizzle` - Shared SQL adapter logic
+- `db-postgres/` - PostgreSQL via Drizzle ORM
+- `db-mongodb/` - MongoDB via Mongoose
+- `db-sqlite/` - SQLite via Drizzle
+- `db-vercel-postgres/` - Vercel Postgres
+- `db-d1-sqlite/` - Cloudflare D1
+- `drizzle/` - Shared SQL adapter logic
 
 **Category 3: Storage Adapters (6)**
-- `storage-s3` - Amazon S3 and S3-compatible
-- `storage-gcs` - Google Cloud Storage
-- `storage-azure` - Azure Blob Storage
-- `storage-vercel-blob` - Vercel Blob
-- `storage-uploadthing` - UploadThing
-- `storage-r2` - Cloudflare R2
+- `storage-s3/` - Amazon S3 and S3-compatible
+- `storage-gcs/` - Google Cloud Storage
+- `storage-azure/` - Azure Blob Storage
+- `storage-vercel-blob/` - Vercel Blob
+- `storage-uploadthing/` - UploadThing
+- `storage-r2/` - Cloudflare R2
 
 **Category 4: Rich Text Editors (2)** *(Not needed - use simple markdown editor)*
-- `richtext-lexical` - Facebook Lexical editor (~25K LOC)
-- `richtext-slate` - Slate.js editor (legacy, ~5K LOC)
+- `richtext-lexical/` - Facebook Lexical editor (~25K LOC)
+- `richtext-slate/` - Slate.js editor (legacy, ~5K LOC)
 
 **Category 5: Email Adapters (2)** *(Not needed - better-auth handles email)*
-- `email-nodemailer` - SMTP via Nodemailer
-- `email-resend` - Resend.com service
+- `email-nodemailer/` - SMTP via Nodemailer
+- `email-resend/` - Resend.com service
 
 **Category 6: Plugins (11)**
-- `plugin-cloud-storage` - Cloud storage integration
-- `plugin-seo` - SEO meta fields
-- `plugin-form-builder` - Form builder
-- `plugin-search` - Full-text search (Algolia, etc.)
-- `plugin-nested-docs` - Hierarchical documents
-- `plugin-redirects` - URL redirect management
-- `plugin-stripe` - Stripe integration
-- `plugin-sentry` - Sentry error tracking
-- `plugin-multi-tenant` - Multi-tenancy support
-- `plugin-ecommerce` - E-commerce functionality
-- `plugin-import-export` - Data import/export
+- `plugin-cloud-storage/` - Cloud storage integration
+- `plugin-seo/` - SEO meta fields
+- `plugin-form-builder/` - Form builder
+- `plugin-search/` - Full-text search (Algolia, etc.)
+- `plugin-nested-docs/` - Hierarchical documents
+- `plugin-redirects/` - URL redirect management
+- `plugin-stripe/` - Stripe integration
+- `plugin-sentry/` - Sentry error tracking
+- `plugin-multi-tenant/` - Multi-tenancy support
+- `plugin-ecommerce/` - E-commerce functionality
+- `plugin-import-export/` - Data import/export
 
-**Category 7: Tooling (5)**
-- `eslint-config` - Shared ESLint config
-- `eslint-plugin` - Custom ESLint rules
-- `admin-bar` - Frontend admin toolbar
-- `live-preview` - Live preview core
-- `live-preview-react` - React live preview
-- `live-preview-vue` - Vue live preview
-- `payload-cloud` - Payload Cloud integration
+**Category 7: Tooling (7)**
+- `eslint-config/` - Shared ESLint config
+- `eslint-plugin/` - Custom ESLint rules
+- `admin-bar/` - Frontend admin toolbar
+- `live-preview/` - Live preview core
+- `live-preview-react/` - React live preview
+- `live-preview-vue/` - Vue live preview
+- `payload-cloud/` - Payload Cloud integration
 
 ### 2.3 Dependencies Between Packages
 
@@ -678,11 +638,13 @@ Database Adapter (executes queries)
 - Access control at multiple levels
 - Automatic timestamp management
 
-**Lines of Code:** ~40,000 lines across:
-- `payload/src/collections/` (~15,000 lines)
-- `payload/src/fields/` (~25,000 lines)
+**Lines of Code:** ~40,000 lines
 
-**Referenced in:** Report #8 (Core Payload - Part 1)
+**Key Files:**
+- Collections: `payload-main/packages/payload/src/collections/`
+- Fields: `payload-main/packages/payload/src/fields/`
+
+**Referenced in:** Report #6 (Core Payload - Part 1: Architecture)
 
 ---
 
@@ -732,11 +694,13 @@ Database (Postgres, MongoDB, SQLite)
 - Versions system (`_v` tables)
 - Drafts system (queryDrafts)
 
-**Lines of Code:** ~30,000 lines across:
-- `drizzle/` (~10,000 lines)
-- `db-postgres/` (~8,000 lines)
-- `db-mongodb/` (~8,000 lines)
-- Other db adapters (~4,000 lines)
+**Lines of Code:** ~30,000 lines
+
+**Key Packages:**
+- Shared SQL logic: `payload-main/packages/drizzle/`
+- PostgreSQL: `payload-main/packages/db-postgres/`
+- MongoDB: `payload-main/packages/db-mongodb/`
+- SQLite: `payload-main/packages/db-sqlite/`
 
 **Referenced in:** Report #2 (Database Packages)
 
@@ -797,9 +761,11 @@ Token Management (jose library)
 6. Return user + token
 ```
 
-**Lines of Code:** ~10,000 lines in `payload/src/auth/`
+**Lines of Code:** ~10,000 lines
 
-**Referenced in:** Report #9 (Core Payload - Part 2: Auth)
+**Key Files:** `payload-main/packages/payload/src/auth/`
+
+**Referenced in:** Report #7 (Core Payload - Part 2: Auth)
 
 ---
 
@@ -855,10 +821,12 @@ If Where query:
 ```
 
 **Lines of Code:** ~12,000 lines
-- Access control: ~3,000 lines
-- Hook system: ~9,000 lines
 
-**Referenced in:** Report #11 (Core Payload - Part 4: Access & Hooks)
+**Key Files:**
+- Access control: `payload-main/packages/payload/src/auth/operations/access.ts`
+- Hooks: `payload-main/packages/payload/src/collections/operations/` (various hook execution)
+
+**Referenced in:** Report #9 (Core Payload - Part 4: Access & Hooks)
 
 ---
 
@@ -921,9 +889,11 @@ Field Transform (read/write)
 - Filter options
 - Custom population depth
 
-**Lines of Code:** ~25,000 lines in `payload/src/fields/`
+**Lines of Code:** ~25,000 lines
 
-**Referenced in:** Report #10 (Core Payload - Part 3: Fields)
+**Key Files:** `payload-main/packages/payload/src/fields/`
+
+**Referenced in:** Report #8 (Core Payload - Part 3: Fields)
 
 ---
 
@@ -978,9 +948,11 @@ Payload Core
 - Validation feedback
 - Auto-save functionality
 
-**Lines of Code:** ~40,000 lines in `packages/ui/`
+**Lines of Code:** ~40,000 lines
 
-**Referenced in:** Report #12 (UI Package)
+**Key Package:** `payload-main/packages/ui/`
+
+**Referenced in:** Report #10 (UI Package)
 
 ---
 
@@ -1043,9 +1015,11 @@ const posts = await payload.find({ collection: 'posts' })
 - GraphQL integration
 - Hot Module Reloading support
 
-**Lines of Code:** ~15,000 lines in `packages/next/`
+**Lines of Code:** ~15,000 lines
 
-**Referenced in:** Report #13 (Next.js Integration)
+**Key Package:** `payload-main/packages/next/`
+
+**Referenced in:** Report #11 (Next.js Integration)
 
 ---
 
@@ -1098,7 +1072,9 @@ interface StorageAdapter {
 - Custom filename generation
 - CDN integration
 
-**Lines of Code:** ~8,000 lines across storage packages
+**Lines of Code:** ~8,000 lines
+
+**Key Packages:** `payload-main/packages/storage-*` (s3, gcs, azure, vercel-blob, r2, uploadthing)
 
 **Referenced in:** Report #3 (Storage Packages)
 
@@ -1140,10 +1116,12 @@ Rendering (custom or default)
 - Collaboration support (via Yjs)
 
 **Lines of Code:** ~30,000 lines
-- `richtext-lexical/` (~25,000 lines)
-- `richtext-slate/` (~5,000 lines)
 
-**Referenced in:** Report #5 (Rich Text Packages)
+**Key Packages:**
+- Lexical: `payload-main/packages/richtext-lexical/`
+- Slate: `payload-main/packages/richtext-slate/`
+
+**Referenced in:** Not analyzed separately (mentioned in other reports)
 
 ---
 

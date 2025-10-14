@@ -13,7 +13,9 @@ This report analyzes Payload CMS's storage architecture, focusing on the cloud s
 ### 1. plugin-cloud-storage (Core Coordinator)
 
 **Purpose**: Central plugin that orchestrates cloud storage across all adapters
-**Location**: `/payload-main/packages/plugin-cloud-storage/`
+
+**Location:** `payload-main/packages/plugin-cloud-storage/`
+
 **Version**: 3.59.1
 
 #### Dependencies
@@ -28,31 +30,13 @@ This report analyzes Payload CMS's storage architecture, focusing on the cloud s
 #### Directory Structure
 ```
 plugin-cloud-storage/
-├── src/
-│   ├── index.ts                    # Main export
-│   ├── plugin.ts                   # Plugin implementation
-│   ├── types.ts                    # Core type definitions
-│   ├── hooks/
-│   │   ├── beforeChange.ts        # Handles file uploads
-│   │   ├── afterDelete.ts         # Handles file deletion
-│   │   └── afterRead.ts           # Generates URLs on read
-│   ├── fields/
-│   │   └── getFields.ts           # Injects fields (url, sizes, prefix)
-│   ├── admin/
-│   │   ├── index.ts
-│   │   └── fields/getFields.ts    # Admin-specific fields
-│   ├── client/
-│   │   └── createClientUploadHandler.tsx  # Client-side upload factory
-│   ├── utilities/
-│   │   ├── getFilePrefix.ts       # Determines file prefix
-│   │   ├── getIncomingFiles.ts    # Extracts files from request
-│   │   └── initClientUploads.ts   # Initializes client uploads
-│   └── exports/
-│       ├── client.ts              # Client exports
-│       └── utilities.ts           # Utility exports
-├── package.json
-├── tsconfig.json
-└── [d.ts files for s3, gcs, azure]
+└── src/
+    ├── hooks/        (beforeChange, afterDelete, afterRead)
+    ├── fields/       (Field injection)
+    ├── admin/        (Admin-specific fields)
+    ├── client/       (Client-side upload handler factory)
+    ├── utilities/    (Helper functions)
+    └── exports/      (Client and utility exports)
 ```
 
 ---
@@ -60,7 +44,9 @@ plugin-cloud-storage/
 ### 2. storage-s3 (Primary Focus)
 
 **Purpose**: Amazon S3 and S3-compatible storage adapter
-**Location**: `/payload-main/packages/storage-s3/`
+
+**Location:** `payload-main/packages/storage-s3/`
+
 **Version**: 3.59.1
 
 #### Dependencies
@@ -76,19 +62,11 @@ plugin-cloud-storage/
 #### Directory Structure
 ```
 storage-s3/
-├── src/
-│   ├── index.ts                     # Main plugin & adapter factory
-│   ├── handleUpload.ts              # Upload implementation
-│   ├── handleDelete.ts              # Delete implementation
-│   ├── generateURL.ts               # Public URL generation
-│   ├── generateSignedURL.ts         # Pre-signed URL handler
-│   ├── staticHandler.ts             # File serving handler
-│   ├── client/
-│   │   └── S3ClientUploadHandler.ts # Client-side upload handler
-│   └── exports/
-│       └── client.ts                # Client exports
-├── package.json
-└── tsconfig.json
+└── src/
+    ├── Main files           (index, handleUpload, handleDelete, generateURL,
+    │                         generateSignedURL, staticHandler)
+    ├── client/              (Client-side upload handler)
+    └── exports/             (Client exports)
 ```
 
 ---
@@ -96,30 +74,30 @@ storage-s3/
 ### 3. Other Storage Adapters (Brief)
 
 #### storage-azure
+- **Location:** `payload-main/packages/storage-azure/`
 - **Purpose**: Azure Blob Storage adapter
 - **Dependencies**: `@azure/storage-blob: ^12.11.0`, `@azure/abort-controller: ^1.1.0`
-- **Structure**: Similar to S3 (handleUpload, handleDelete, staticHandler)
 
 #### storage-gcs
+- **Location:** `payload-main/packages/storage-gcs/`
 - **Purpose**: Google Cloud Storage adapter
 - **Dependencies**: `@google-cloud/storage: ^7.7.0`
-- **Structure**: Similar to S3
 
 #### storage-r2
+- **Location:** `payload-main/packages/storage-r2/`
 - **Purpose**: Cloudflare R2 adapter
 - **Dependencies**: No external storage SDK (uses Cloudflare Workers bindings)
-- **Structure**: Minimal implementation using R2 bucket bindings
 - **Note**: Designed for Cloudflare Workers environment
 
 #### storage-uploadthing
+- **Location:** `payload-main/packages/storage-uploadthing/`
 - **Purpose**: UploadThing service adapter
 - **Dependencies**: `uploadthing: 7.3.0`
-- **Structure**: Similar to S3
 
 #### storage-vercel-blob
+- **Location:** `payload-main/packages/storage-vercel-blob/`
 - **Purpose**: Vercel Blob Storage adapter
 - **Dependencies**: `@vercel/blob: ^0.22.3`
-- **Structure**: Similar to S3
 
 ---
 

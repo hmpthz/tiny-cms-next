@@ -1,5 +1,7 @@
 # Payload Auth System Analysis
 
+**Location:** `payload-main/packages/payload/src/auth/`
+
 **Report Purpose**: Understand Payload's authentication system architecture to guide migration to better-auth.
 
 ---
@@ -8,67 +10,21 @@
 
 ```
 auth/
-├── baseFields/                  # Auth-related database fields
-│   ├── auth.ts                 # Base: resetPasswordToken, resetPasswordExpiration, salt, hash
-│   ├── email.ts                # Email field configuration
-│   ├── username.ts             # Username field (optional)
-│   ├── apiKey.ts               # API key fields (enableAPIKey, apiKey, apiKeyIndex)
-│   ├── sessions.ts             # Session array field
-│   ├── verification.ts         # Email verification (_verified, _verificationToken)
-│   └── accountLock.ts          # Login attempts tracking (loginAttempts, lockUntil)
-│
-├── operations/                  # Core auth operations (business logic)
-│   ├── login.ts                # Main login orchestration
-│   ├── logout.ts               # Session removal
-│   ├── forgotPassword.ts       # Generate reset token
-│   ├── resetPassword.ts        # Password reset with token
-│   ├── verifyEmail.ts          # Email verification
-│   ├── refresh.ts              # JWT/session refresh
-│   ├── registerFirstUser.ts    # Initial user setup
-│   ├── me.ts                   # Get current user
-│   ├── auth.ts                 # Main auth orchestrator (runs strategies)
-│   ├── access.ts               # Get user permissions
-│   └── local/                  # Local strategy implementations
-│       ├── login.ts
-│       ├── forgotPassword.ts
-│       ├── resetPassword.ts
-│       ├── verifyEmail.ts
-│       └── unlock.ts
-│
-├── strategies/                  # Authentication strategies
-│   ├── jwt.ts                  # JWT validation strategy
-│   ├── apiKey.ts               # API key validation strategy
-│   └── local/                  # Username/password strategy
-│       ├── authenticate.ts      # Password verification (pbkdf2)
-│       ├── generatePasswordSaltHash.ts
-│       ├── incrementLoginAttempts.ts
-│       ├── resetLoginAttempts.ts
-│       └── register.ts
-│
-├── endpoints/                   # HTTP route handlers
-│   ├── login.ts
-│   ├── logout.ts
-│   ├── forgotPassword.ts
-│   ├── resetPassword.ts
-│   ├── verifyEmail.ts
-│   ├── refresh.ts
-│   ├── registerFirstUser.ts
-│   ├── me.ts
-│   └── unlock.ts
-│
-├── jwt.ts                      # JWT signing (jose library, HS256)
-├── sessions.ts                 # Session management utilities
-├── cookies.ts                  # Cookie generation and parsing
-├── executeAuthStrategies.ts    # Strategy execution loop
-├── executeAccess.ts            # Access control checks
-├── getAuthFields.ts            # Dynamic field injection
-├── getFieldsToSign.ts          # JWT payload builder
-├── extractJWT.ts               # Extract JWT from cookies/headers
-├── types.ts                    # Auth type definitions
-└── crypto.ts                   # Encryption utilities
+├── baseFields/         (Auth-related database fields: email, username, apiKey, sessions, verification, accountLock)
+├── operations/         (Core auth operations: login, logout, forgotPassword, resetPassword, verifyEmail, refresh, registerFirstUser, me, auth, access)
+├── strategies/         (Authentication strategies: jwt, apiKey, local password verification)
+├── endpoints/          (HTTP route handlers: login, logout, forgotPassword, resetPassword, verifyEmail, refresh, registerFirstUser, me, unlock)
+├── jwt.ts              (JWT signing with jose library, HS256)
+├── sessions.ts         (Session management utilities)
+├── cookies.ts          (Cookie generation and parsing)
+├── executeAuthStrategies.ts  (Strategy execution loop)
+├── executeAccess.ts    (Access control checks)
+├── getAuthFields.ts    (Dynamic field injection)
+├── getFieldsToSign.ts  (JWT payload builder)
+├── extractJWT.ts       (Extract JWT from cookies/headers)
+├── types.ts            (Auth type definitions)
+└── crypto.ts           (Encryption utilities)
 ```
-
-**Key Files Count**: 70+ TypeScript files
 
 ---
 

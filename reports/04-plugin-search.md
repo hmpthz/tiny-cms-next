@@ -2,6 +2,8 @@
 
 ## Package Summary
 
+**Location:** `payload-main/packages/plugin-search/`
+
 The `@payloadcms/plugin-search` is a core plugin that provides fast, database-backed search functionality across multiple collections in Payload CMS. Instead of relying on external search services (like Algolia), it creates a dedicated `search` collection that maintains synchronized search indexes for specified collections.
 
 **Key Features:**
@@ -14,8 +16,6 @@ The `@payloadcms/plugin-search` is a core plugin that provides fast, database-ba
 - Admin UI integration with reindex buttons
 
 **Version:** 3.59.1
-**License:** MIT
-**Keywords:** payload, cms, plugin, search, algolia
 
 ---
 
@@ -23,51 +23,13 @@ The `@payloadcms/plugin-search` is a core plugin that provides fast, database-ba
 
 ```
 plugin-search/
-├── package.json                          # Package configuration and dependencies
-├── tsconfig.json                         # TypeScript configuration
-├── README.md                             # Package documentation
-├── LICENSE.md                            # MIT license
-├── .swcrc                                # SWC compiler configuration
-├── .prettierignore                       # Prettier ignore rules
-├── .gitignore                            # Git ignore rules
-├── images/                               # Plugin images/assets
 └── src/
-    ├── index.ts                          # Main plugin entry point
-    ├── types.ts                          # Core TypeScript type definitions
-    ├── exports/
-    │   ├── client.ts                     # Client-side component exports
-    │   └── types.ts                      # Type exports
-    ├── Search/
-    │   ├── index.ts                      # Search collection generator
-    │   ├── hooks/
-    │   │   ├── syncWithSearch.ts         # AfterChange hook wrapper
-    │   │   └── deleteFromSearch.ts       # BeforeDelete hook
-    │   └── ui/
-    │       ├── LinkToDoc/
-    │       │   ├── index.tsx             # Server component
-    │       │   └── index.client.tsx      # Client component for doc links
-    │       └── ReindexButton/
-    │           ├── index.tsx             # Server component
-    │           ├── index.client.tsx      # Client component with modal
-    │           ├── types.ts              # Button component types
-    │           └── ReindexButtonLabel/
-    │               └── index.tsx         # Button label component
-    └── utilities/
-        ├── syncDocAsSearchIndex.ts       # Core sync logic
-        └── generateReindexHandler.ts     # Reindex API endpoint handler
-
-Test Directory:
-test/plugin-search/
-├── config.ts                             # Test configuration
-├── int.spec.ts                           # Integration tests (600 lines)
-├── shared.ts                             # Shared test constants
-├── collections/
-│   ├── Pages.ts                          # Test Pages collection
-│   ├── Posts.ts                          # Test Posts collection (with trash support)
-│   └── Users.ts                          # Test Users collection
-└── seed/
-    └── index.ts                          # Test data seeding
+    ├── Search/             (Collection generator, hooks, UI components)
+    ├── utilities/          (syncDocAsSearchIndex, generateReindexHandler)
+    └── exports/            (Client and type exports)
 ```
+
+**Tests:** `payload-main/test/plugin-search/`
 
 ---
 

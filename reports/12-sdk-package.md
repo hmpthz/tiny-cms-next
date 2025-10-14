@@ -51,6 +51,8 @@ The Payload SDK is a **type-safe REST API client** that provides a fully typed i
 
 ## Package Overview
 
+**Location:** `payload-main/packages/sdk/`
+
 ### Basic Information
 
 ```json
@@ -105,42 +107,35 @@ export { PayloadSDK } from './index.js'
 ## Directory Structure
 
 ```
-packages/sdk/
-├── package.json                      # Package configuration
-├── tsconfig.json                     # TypeScript configuration
-├── .swcrc                            # SWC compiler configuration
-├── eslint.config.js                  # ESLint configuration
-├── README.md                         # Documentation
-├── license.md                        # MIT license
-└── src/                              # Source code (24 files)
-    ├── index.ts                      # Main SDK class and exports
-    ├── types.ts                      # Core type definitions
-    ├── collections/                  # Collection operations (9 files)
-    │   ├── find.ts                  # Query multiple documents
-    │   ├── findByID.ts              # Query single document
-    │   ├── create.ts                # Create document
-    │   ├── update.ts                # Update document(s)
-    │   ├── delete.ts                # Delete document(s)
-    │   ├── count.ts                 # Count documents
-    │   ├── findVersions.ts          # Query version history
-    │   ├── findVersionByID.ts       # Get specific version
-    │   └── restoreVersion.ts        # Restore version
-    ├── globals/                      # Global operations (5 files)
-    │   ├── findOne.ts               # Get global data
-    │   ├── update.ts                # Update global data
-    │   ├── findVersions.ts          # Query global versions
-    │   ├── findVersionByID.ts       # Get specific global version
-    │   └── restoreVersion.ts        # Restore global version
-    ├── auth/                         # Authentication operations (6 files)
-    │   ├── login.ts                 # User login
-    │   ├── me.ts                    # Get current user
-    │   ├── refreshToken.ts          # Refresh JWT token
-    │   ├── forgotPassword.ts        # Password reset request
-    │   ├── resetPassword.ts         # Reset password with token
-    │   └── verifyEmail.ts           # Email verification
-    └── utilities/                    # Helper functions (2 files)
-        ├── buildSearchParams.ts     # Query string builder
-        └── resolveFileFromOptions.ts # File handling utility
+sdk/src/
+├── index.ts                      # Main SDK class and exports
+├── types.ts                      # Core type definitions
+├── collections/                  # Collection operations (9 files)
+│   ├── find.ts                  # Query multiple documents
+│   ├── findByID.ts              # Query single document
+│   ├── create.ts                # Create document
+│   ├── update.ts                # Update document(s)
+│   ├── delete.ts                # Delete document(s)
+│   ├── count.ts                 # Count documents
+│   ├── findVersions.ts          # Query version history
+│   ├── findVersionByID.ts       # Get specific version
+│   └── restoreVersion.ts        # Restore version
+├── globals/                      # Global operations (5 files)
+│   ├── findOne.ts               # Get global data
+│   ├── update.ts                # Update global data
+│   ├── findVersions.ts          # Query global versions
+│   ├── findVersionByID.ts       # Get specific global version
+│   └── restoreVersion.ts        # Restore global version
+├── auth/                         # Authentication operations (6 files)
+│   ├── login.ts                 # User login
+│   ├── me.ts                    # Get current user
+│   ├── refreshToken.ts          # Refresh JWT token
+│   ├── forgotPassword.ts        # Password reset request
+│   ├── resetPassword.ts         # Reset password with token
+│   └── verifyEmail.ts           # Email verification
+└── utilities/                    # Helper functions (2 files)
+    ├── buildSearchParams.ts     # Query string builder
+    └── resolveFileFromOptions.ts # File handling utility
 ```
 
 **File Distribution:**

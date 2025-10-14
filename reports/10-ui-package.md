@@ -15,23 +15,25 @@ The `@payloadcms/ui` package is a comprehensive React-based admin UI system buil
 
 ## 1. Package Overview
 
+**Location:** `payload-main/packages/ui/`
+
 ### 1.1 Directory Structure
 
 ```
-packages/ui/src/
-├── @types/           # TypeScript declarations
-├── assets/           # Static assets (images, icons)
+ui/src/
 ├── elements/         # 121 reusable UI components
-├── exports/          # Entry points (client, shared, rsc)
 ├── fields/           # 32 field type components
 ├── forms/            # Form system (state, validation, hooks)
-├── graphics/         # SVG graphics components
-├── hooks/            # 20+ custom React hooks
-├── icons/            # 33 icon components
 ├── providers/        # 32 context providers
-├── scss/             # Global styles (~1,070 lines)
+├── views/            # 6 view components (List, Edit, etc.)
+├── hooks/            # 20+ custom React hooks
 ├── utilities/        # 55 utility functions
-└── views/            # 6 view components (List, Edit, etc.)
+├── exports/          # Entry points (client, shared, rsc)
+├── scss/             # Global styles (~1,070 lines)
+├── graphics/         # SVG graphics components
+├── icons/            # 33 icon components
+├── assets/           # Static assets (images, icons)
+└── @types/           # TypeScript declarations
 ```
 
 ### 1.2 Dependencies

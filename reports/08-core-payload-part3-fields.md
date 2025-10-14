@@ -1,5 +1,7 @@
 # Payload CMS Field System Analysis
 
+**Location:** `payload-main/packages/payload/src/fields/`
+
 **Report Date:** 2025-10-14
 **Scope:** Comprehensive analysis of Payload's field type system, validation, hooks, and patterns for tiny-cms implementation
 

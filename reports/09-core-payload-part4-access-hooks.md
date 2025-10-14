@@ -1,5 +1,7 @@
 # Core Payload Analysis Part 4: Access Control and Hooks System
 
+**Location:** `payload-main/packages/payload/src/` (auth/, collections/, fields/, utilities/)
+
 **Analysis Date**: 2025-10-14
 **Payload Version**: 3.x (analyzed from source)
 **Focus**: Access control architecture, hooks system, and their integration

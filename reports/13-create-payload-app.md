@@ -19,46 +19,20 @@
 
 ## 1. Package Overview
 
+**Location:** `payload-main/packages/create-payload-app/`
+
 ### 1.1 Directory Structure
 
 ```
-packages/create-payload-app/
-├── bin/
-│   └── cli.js                    # Entry point for CLI
+create-payload-app/
+├── bin/                      # CLI entry point (cli.js)
 ├── src/
-│   ├── index.ts                  # Main export
-│   ├── main.ts                   # Core CLI logic
-│   ├── types.ts                  # TypeScript types
-│   ├── lib/                      # Core functionality
-│   │   ├── configure-payload-config.ts
-│   │   ├── configure-plugin-project.ts
-│   │   ├── create-project.ts
-│   │   ├── download-example.ts
-│   │   ├── download-template.ts
-│   │   ├── examples.ts
-│   │   ├── generate-secret.ts
-│   │   ├── get-package-manager.ts
-│   │   ├── init-next.ts
-│   │   ├── install-packages.ts
-│   │   ├── manage-env-files.ts
-│   │   ├── parse-project-name.ts
-│   │   ├── parse-template.ts
-│   │   ├── replacements.ts
-│   │   ├── select-db.ts
-│   │   ├── templates.ts
-│   │   ├── update-payload-in-project.ts
-│   │   └── wrap-next-config.ts
-│   ├── utils/                    # Utility functions
-│   │   ├── casing.ts
-│   │   ├── copy-recursive-sync.ts
-│   │   ├── getLatestPackageVersion.ts
-│   │   ├── git.ts
-│   │   ├── log.ts
-│   │   └── messages.ts
-│   └── scripts/                  # Build scripts
-│       └── pack-template-files.ts
-├── package.json
-└── tsconfig.json
+│   ├── index.ts              # Main export
+│   ├── main.ts               # Core CLI logic
+│   ├── types.ts              # TypeScript types
+│   ├── lib/                  # Core functionality (18 files)
+│   ├── utils/                # Utility functions (6 files)
+│   └── scripts/              # Build scripts (pack-template-files.ts)
 ```
 
 ### 1.2 Dependencies

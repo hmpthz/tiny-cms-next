@@ -10,42 +10,20 @@ The `@payloadcms/next` package (~16,244 lines of code, 186 TypeScript files) is 
 
 ## 1. Package Overview
 
+**Location:** `payload-main/packages/next/`
+
 ### 1.1 Directory Structure
 
 ```
-packages/next/src/
-├── auth/                    # Server actions for auth (login, logout, refresh)
-├── elements/                # Server components for admin UI elements
-│   ├── DocumentHeader/      # Document edit header with tabs
-│   ├── FormHeader/          # Form headers
-│   ├── Logo/                # Customizable logo component
-│   └── Nav/                 # Navigation components
-├── exports/                 # Package entry points
-│   ├── auth.ts              # Auth server actions
-│   ├── client.ts            # Client-side exports
-│   ├── layouts.ts           # Layout components
-│   ├── routes.ts            # Route handlers (REST/GraphQL)
-│   ├── rsc.ts               # React Server Component exports
-│   ├── templates.ts         # Page templates
-│   ├── utilities.ts         # Server utilities
-│   └── views.ts             # View components
-├── layouts/                 # Root layouts
-│   └── Root/                # Main application layout
-├── routes/                  # Next.js route handlers
-│   ├── graphql/             # GraphQL endpoint
-│   └── rest/                # REST API endpoint + OG image
+next/src/
+├── auth/                    # Server actions for auth
+├── elements/                # Server components (DocumentHeader, Logo, Nav)
+├── layouts/                 # Root layout component
+├── routes/                  # Route handlers (REST, GraphQL, OG image)
 ├── templates/               # Page templates (Default, Minimal)
-├── utilities/               # Core utilities
-│   ├── initReq.ts           # Request initialization
-│   ├── selectiveCache.ts    # React cache wrapper
-│   ├── getPayloadHMR.ts     # HMR-aware Payload instance
-│   └── handleServerFunctions.ts  # Server function router
-├── views/                   # Admin view components
-│   ├── Root/                # Root page with routing logic
-│   ├── Document/            # Document edit views
-│   ├── List/                # List/collection views
-│   ├── Login/               # Auth views
-│   └── [20+ other views]
+├── utilities/               # Core utilities (initReq, selectiveCache, etc.)
+├── views/                   # Admin view components (Root, Document, List, Login, etc.)
+├── exports/                 # Package entry points
 ├── withPayload.js           # Next.js config wrapper
 └── index.js                 # Main entry point
 ```

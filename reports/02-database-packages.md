@@ -46,6 +46,9 @@ This report analyzes the database-related packages in PayloadCMS, with deep focu
 ## 1. @payloadcms/db-postgres (DETAILED ANALYSIS)
 
 ### Package Information
+
+**Location:** `payload-main/packages/db-postgres/`
+
 - **Version**: 3.59.1
 - **Description**: The officially supported Postgres database adapter for Payload
 - **Main Dependencies**:
@@ -58,23 +61,8 @@ This report analyzes the database-related packages in PayloadCMS, with deep focu
 ### Directory Structure
 ```
 db-postgres/
-├── src/
-│   ├── index.ts                    (Main entry point)
-│   ├── types.ts                    (TypeScript definitions)
-│   ├── connect.ts                  (Connection management)
-│   ├── drizzle-proxy/              (Drizzle re-exports)
-│   │   ├── index.ts
-│   │   ├── pg-core.ts
-│   │   ├── node-postgres.ts
-│   │   └── relations.ts
-│   ├── exports/
-│   │   ├── types-deprecated.ts
-│   │   └── migration-utils.ts
-│   └── predefinedMigrations/       (Version migration scripts)
-│       └── relationships-v2-v3.ts
-├── scripts/
-│   └── renamePredefinedMigrations.ts
-└── package.json
+├── src/                         (Main source, connection, types, proxies)
+└── scripts/                     (Migration utilities)
 ```
 
 ### Key Implementation Details
@@ -295,6 +283,9 @@ The PostgreSQL adapter exposes these to the Payload core:
 ## 2. @payloadcms/drizzle (DETAILED ANALYSIS)
 
 ### Package Information
+
+**Location:** `payload-main/packages/drizzle/`
+
 - **Version**: 3.59.1
 - **Description**: A library of shared functions used by different payload database adapters
 - **Main Dependencies**:
@@ -306,127 +297,19 @@ The PostgreSQL adapter exposes these to the Payload core:
 ### Directory Structure
 ```
 drizzle/
-├── src/
-│   ├── index.ts                        (Main exports)
-│   ├── types.ts                        (Core type definitions)
-│   │
-│   ├── queries/                        (Query building)
-│   │   ├── buildQuery.ts              (Main query builder)
-│   │   ├── buildAndOrConditions.ts    (WHERE clause)
-│   │   ├── buildOrderBy.ts            (ORDER BY)
-│   │   ├── parseParams.ts             (Parse query params)
-│   │   ├── operatorMap.ts             (SQL operators)
-│   │   ├── getTableColumnFromPath.ts
-│   │   ├── addJoinTable.ts
-│   │   └── sanitizeQueryValue.ts
-│   │
-│   ├── schema/                         (Schema generation)
-│   │   ├── build.ts                   (Main schema builder)
-│   │   ├── buildRawSchema.ts          (Abstract schema)
-│   │   ├── buildDrizzleRelations.ts   (Relations)
-│   │   ├── traverseFields.ts          (Field traversal)
-│   │   └── idToUUID.ts
-│   │
-│   ├── postgres/                       (Postgres-specific)
-│   │   ├── init.ts                    (Initialization)
-│   │   ├── execute.ts                 (SQL execution)
-│   │   ├── insert.ts                  (Insert operations)
-│   │   ├── deleteWhere.ts
-│   │   ├── countDistinct.ts
-│   │   ├── createDatabase.ts
-│   │   ├── dropDatabase.ts
-│   │   ├── createExtensions.ts
-│   │   ├── createJSONQuery/           (JSON querying)
-│   │   │   └── index.ts
-│   │   ├── schema/
-│   │   │   ├── buildDrizzleTable.ts   (Table builder)
-│   │   │   ├── setColumnID.ts         (ID column setup)
-│   │   │   └── geometryColumn.ts
-│   │   └── predefinedMigrations/      (v2->v3 migrations)
-│   │
-│   ├── sqlite/                         (SQLite-specific)
-│   │   ├── init.ts
-│   │   ├── execute.ts
-│   │   ├── insert.ts
-│   │   ├── deleteWhere.ts
-│   │   ├── schema/
-│   │   │   └── buildDrizzleTable.ts
-│   │   └── createJSONQuery/
-│   │
-│   ├── transactions/                   (Transaction management)
-│   │   ├── beginTransaction.ts
-│   │   ├── commitTransaction.ts
-│   │   └── rollbackTransaction.ts
-│   │
-│   ├── transform/                      (Data transformation)
-│   │   ├── read/                      (DB → Payload)
-│   │   │   ├── index.ts
-│   │   │   ├── relationship.ts
-│   │   │   ├── hasManyNumber.ts
-│   │   │   ├── hasManyText.ts
-│   │   │   └── traverseFields.ts
-│   │   └── write/                     (Payload → DB)
-│   │       ├── index.ts
-│   │       ├── relationships.ts
-│   │       ├── numbers.ts
-│   │       ├── texts.ts
-│   │       ├── array.ts
-│   │       ├── blocks.ts
-│   │       └── traverseFields.ts
-│   │
-│   ├── upsertRow/                      (Row upsert logic)
-│   │   ├── index.ts
-│   │   ├── insertArrays.ts
-│   │   ├── deleteExistingArrayRows.ts
-│   │   └── deleteExistingRowsByPath.ts
-│   │
-│   ├── utilities/                      (Helper functions)
-│   │   ├── buildCreateMigration.ts
-│   │   ├── buildIndexName.ts
-│   │   ├── createSchemaGenerator.ts
-│   │   ├── executeSchemaHooks.ts
-│   │   ├── extendDrizzleTable.ts
-│   │   ├── getTransaction.ts
-│   │   ├── createRelationshipMap.ts
-│   │   └── pushDevSchema.ts
-│   │
-│   ├── CRUD Operations (Top level)
-│   │   ├── find.ts
-│   │   ├── findOne.ts
-│   │   ├── findDistinct.ts
-│   │   ├── create.ts
-│   │   ├── updateOne.ts
-│   │   ├── updateMany.ts
-│   │   ├── deleteOne.ts
-│   │   ├── deleteMany.ts
-│   │   ├── count.ts
-│   │   └── upsert.ts
-│   │
-│   ├── Global Operations
-│   │   ├── createGlobal.ts
-│   │   ├── findGlobal.ts
-│   │   └── updateGlobal.ts
-│   │
-│   ├── Version Operations
-│   │   ├── createVersion.ts
-│   │   ├── createGlobalVersion.ts
-│   │   ├── findVersions.ts
-│   │   ├── findGlobalVersions.ts
-│   │   ├── updateVersion.ts
-│   │   ├── updateGlobalVersion.ts
-│   │   ├── countVersions.ts
-│   │   ├── countGlobalVersions.ts
-│   │   └── deleteVersions.ts
-│   │
-│   └── Migration Operations
-│       ├── migrate.ts
-│       ├── migrateDown.ts
-│       ├── migrateFresh.ts
-│       ├── migrateRefresh.ts
-│       ├── migrateReset.ts
-│       └── migrateStatus.ts
-│
-└── package.json
+└── src/
+    ├── queries/              (Query building: buildQuery, parseParams, operatorMap)
+    ├── schema/               (Schema generation: buildRawSchema, build, traverseFields)
+    ├── postgres/             (Postgres-specific: init, execute, schema building)
+    ├── sqlite/               (SQLite-specific implementations)
+    ├── transactions/         (Transaction management)
+    ├── transform/            (Data transformations: read, write)
+    ├── upsertRow/            (Row upsert logic)
+    ├── utilities/            (Helper functions)
+    ├── CRUD Operations       (create, find, update, delete, count)
+    ├── Global Operations     (createGlobal, findGlobal, updateGlobal)
+    ├── Version Operations    (createVersion, findVersions, etc.)
+    └── Migration Operations  (migrate, migrateDown, etc.)
 ```
 
 ### Key Implementation Details
@@ -967,6 +850,9 @@ export const buildDrizzleTable = ({
 ## 3. @payloadcms/db-mongodb (BRIEF ANALYSIS)
 
 ### Package Information
+
+**Location:** `payload-main/packages/db-mongodb/`
+
 - **Version**: 3.59.1
 - **Main Dependencies**:
   - `mongoose@8.15.1` - MongoDB ODM
@@ -980,18 +866,10 @@ export const buildDrizzleTable = ({
 4. **Aggregation pipelines** for complex queries
 5. **No separate locales/relationships tables** - Uses embedded documents
 
-### Directory Structure (Simplified)
+### Directory Structure
 ```
 db-mongodb/
-├── src/
-│   ├── index.ts                (Main adapter)
-│   ├── connect.ts              (MongoDB connection)
-│   ├── init.ts                 (Schema initialization)
-│   ├── CRUD operations         (find, create, update, delete)
-│   ├── queries/                (Query building with aggregation)
-│   ├── transactions/           (MongoDB transactions)
-│   └── utilities/
-└── package.json
+└── src/          (Main adapter, connection, schema init, CRUD, queries, transactions)
 ```
 
 ### Key Differences
@@ -1014,6 +892,9 @@ We're using PostgreSQL, not MongoDB, so this adapter is not needed for our simpl
 ## 4. @payloadcms/db-sqlite (BRIEF ANALYSIS)
 
 ### Package Information
+
+**Location:** `payload-main/packages/db-sqlite/`
+
 - **Version**: 3.59.1
 - **Main Dependencies**:
   - `@payloadcms/drizzle@workspace:*`
@@ -1031,17 +912,6 @@ We're using PostgreSQL, not MongoDB, so this adapter is not needed for our simpl
 5. No geometry column support
 6. No PostgreSQL extensions
 
-### Directory Structure
-```
-db-sqlite/
-├── src/
-│   ├── index.ts
-│   ├── types.ts
-│   ├── connect.ts
-│   └── drizzle-proxy/
-└── package.json
-```
-
 **Implementation**: ~90% shared with db-postgres through @payloadcms/drizzle
 
 ### Why Not Relevant
@@ -1052,6 +922,9 @@ We're using PostgreSQL for production. SQLite might be useful for testing but no
 ## 5. @payloadcms/db-vercel-postgres (BRIEF ANALYSIS)
 
 ### Package Information
+
+**Location:** `payload-main/packages/db-vercel-postgres/`
+
 - **Version**: 3.59.1
 - **Main Dependencies**:
   - `@payloadcms/drizzle@workspace:*`
@@ -1075,6 +948,9 @@ Unless we're deploying to Vercel specifically, standard db-postgres is better. T
 ## 6. @payloadcms/db-d1-sqlite (BRIEF ANALYSIS)
 
 ### Package Information
+
+**Location:** `payload-main/packages/db-d1-sqlite/`
+
 - **Version**: 3.59.1
 - **Main Dependencies**:
   - `@payloadcms/drizzle@workspace:*`

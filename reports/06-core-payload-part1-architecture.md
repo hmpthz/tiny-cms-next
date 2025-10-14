@@ -1,6 +1,9 @@
 # Core Payload Package Analysis - Part 1: Core Architecture and Collections
 
 **Package:** `packages/payload` (v3.59.1)
+
+**Location:** `payload-main/packages/payload/`
+
 **Analysis Date:** 2025-10-14
 **Total TypeScript Files:** 582
 **Main Entry:** `src/index.ts` (1742 lines)
@@ -27,67 +30,33 @@ The core Payload package (`packages/payload`) is a **massive, highly abstracted 
 
 ## 1. Package Structure Overview
 
-### 1.1 Complete Directory Tree
+### 1.1 Directory Structure
 
 ```
 packages/payload/
-├── src/
-│   ├── admin/              # Admin UI components & types
-│   │   ├── elements/
-│   │   ├── fields/
-│   │   ├── forms/
-│   │   ├── functions/
-│   │   └── views/
-│   ├── auth/               # Authentication system
-│   │   ├── baseFields/     # Default auth fields (email, password, etc)
-│   │   ├── endpoints/      # Auth REST endpoints
-│   │   ├── operations/     # Auth operations (login, logout, etc)
-│   │   └── strategies/     # Auth strategies (JWT, API Key, local)
-│   ├── bin/                # CLI tools
-│   │   └── generateImportMap/
-│   ├── collections/        # Collections system (core!)
-│   │   ├── config/         # Collection configuration & types
-│   │   ├── endpoints/      # Collection REST endpoints
-│   │   └── operations/     # CRUD operations
-│   │       ├── local/      # Local API implementations
-│   │       └── utilities/
-│   ├── config/             # Configuration system
-│   │   └── orderable/
-│   ├── database/           # Database abstraction layer
-│   │   ├── migrations/     # Migration system
-│   │   └── queryValidation/
-│   ├── duplicateDocument/  # Document duplication feature
-│   ├── email/              # Email adapter system
-│   ├── errors/             # Custom error types
-│   ├── exports/            # Package exports
-│   │   └── i18n/
-│   ├── fields/             # Field system (core!)
-│   │   ├── baseFields/     # Built-in field types
-│   │   ├── config/         # Field configuration
-│   │   └── hooks/          # Field lifecycle hooks
-│   ├── folders/            # Folder organization system
-│   ├── globals/            # Global configuration entities
-│   │   ├── config/
-│   │   ├── endpoints/
-│   │   └── operations/
-│   ├── locked-documents/   # Document locking for concurrent editing
-│   ├── preferences/        # User preferences system
-│   ├── query-presets/      # Saved query presets
-│   ├── queues/             # Job queue system
-│   │   ├── config/
-│   │   ├── endpoints/
-│   │   └── operations/
-│   ├── translations/       # i18n system
-│   ├── types/              # Core TypeScript types
-│   ├── uploads/            # File upload system
-│   ├── utilities/          # Helper functions
-│   │   ├── dependencies/
-│   │   └── telemetry/
-│   └── versions/           # Versioning & drafts system
-│       ├── drafts/
-│       └── schedule/
-├── package.json
-└── tsconfig.json
+└── src/
+    ├── admin/              (Admin UI components & types)
+    ├── auth/               (Authentication system: baseFields, endpoints, operations, strategies)
+    ├── bin/                (CLI tools)
+    ├── collections/        (Collections system: config, endpoints, operations)
+    ├── config/             (Configuration system)
+    ├── database/           (Database abstraction: migrations, queryValidation)
+    ├── duplicateDocument/  (Document duplication)
+    ├── email/              (Email adapter system)
+    ├── errors/             (Custom error types)
+    ├── exports/            (Package exports)
+    ├── fields/             (Field system: baseFields, config, hooks)
+    ├── folders/            (Folder organization)
+    ├── globals/            (Global configuration entities)
+    ├── locked-documents/   (Document locking)
+    ├── preferences/        (User preferences)
+    ├── query-presets/      (Saved query presets)
+    ├── queues/             (Job queue system)
+    ├── translations/       (i18n system)
+    ├── types/              (Core TypeScript types)
+    ├── uploads/            (File upload system)
+    ├── utilities/          (Helper functions)
+    └── versions/           (Versioning & drafts: drafts, schedule)
 ```
 
 ### 1.2 Package.json Analysis

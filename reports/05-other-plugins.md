@@ -12,6 +12,8 @@ Payload CMS provides various optional plugins that extend core functionality for
 
 ### Package Summary
 
+**Location:** `payload-main/packages/plugin-ecommerce/`
+
 - **Version**: 3.59.1
 - **Dependencies**: `@payloadcms/ui`, `@payloadcms/translations`, `qs-esm`, `stripe` (dev)
 - **Purpose**: Full-featured e-commerce system with products, carts, orders, payments
@@ -20,25 +22,13 @@ Payload CMS provides various optional plugins that extend core functionality for
 
 ```
 plugin-ecommerce/
-├── src/
-│   ├── index.ts                  # Main plugin entry
-│   ├── collections/
-│   │   ├── addresses/            # Shipping/billing addresses
-│   │   ├── carts/                # Shopping cart management
-│   │   ├── orders/               # Order processing
-│   │   ├── products/             # Product catalog
-│   │   ├── transactions/         # Payment transactions
-│   │   └── variants/             # Product variants (sizes, colors, etc.)
-│   ├── payments/
-│   │   └── adapters/
-│   │       └── stripe/           # Stripe payment integration
-│   ├── fields/                   # Custom field types (price, variants, etc.)
-│   ├── ui/                       # React components for admin UI
-│   ├── endpoints/                # API endpoints (initiate payment, confirm order)
-│   ├── currencies/               # Currency support
-│   ├── utilities/                # Helper functions
-│   └── translations/             # i18n support
-└── package.json
+└── src/
+    ├── collections/      (addresses, carts, orders, products, transactions, variants)
+    ├── payments/adapters/ (Stripe integration)
+    ├── fields/           (Custom field types)
+    ├── ui/               (Admin UI components)
+    ├── endpoints/        (API endpoints)
+    └── currencies/       (Currency support)
 ```
 
 ### What It Does
@@ -92,6 +82,8 @@ export const ecommercePlugin =
 
 ### Package Summary
 
+**Location:** `payload-main/packages/plugin-form-builder/`
+
 - **Version**: 3.59.1
 - **Dependencies**: `@payloadcms/ui`, `escape-html`
 - **Purpose**: Dynamic form creation and submission handling
@@ -100,21 +92,10 @@ export const ecommercePlugin =
 
 ```
 plugin-form-builder/
-├── src/
-│   ├── index.ts                      # Main plugin entry
-│   ├── collections/
-│   │   ├── Forms/                    # Form definitions
-│   │   │   ├── index.ts              # Form collection
-│   │   │   └── fields.ts             # Form field types
-│   │   └── FormSubmissions/          # Submission storage
-│   ├── utilities/                    # Helper functions
-│   │   ├── getPaymentTotal.js
-│   │   └── handlePaymentWebhook.js
-│   ├── mocks/                        # Mock data for testing
-│   └── exports/
-│       ├── types.ts
-│       └── client.ts
-└── package.json
+└── src/
+    ├── collections/  (Forms, FormSubmissions)
+    ├── utilities/    (Payment helpers)
+    └── exports/      (Types, client)
 ```
 
 ### What It Does
@@ -187,6 +168,8 @@ export const formBuilderPlugin =
 
 ### Package Summary
 
+**Location:** `payload-main/packages/plugin-import-export/`
+
 - **Version**: 3.59.1
 - **Dependencies**: `@payloadcms/ui`, `@payloadcms/translations`, `csv-parse`, `csv-stringify`, `@faceless-ui/modal`, `qs-esm`
 - **Purpose**: Bulk import/export of collection data via CSV
@@ -195,25 +178,10 @@ export const formBuilderPlugin =
 
 ```
 plugin-import-export/
-├── src/
-│   ├── index.ts                          # Main plugin entry
-│   ├── getExportCollection.ts            # Creates Export Jobs collection
-│   ├── export/
-│   │   ├── flattenObject.ts              # Flatten nested data for CSV
-│   │   ├── getSelect.ts                  # Field selection
-│   │   ├── getCustomFieldFunctions.ts    # Custom field handlers
-│   │   └── getCreateExportCollectionTask.ts  # Background job
-│   ├── utilities/
-│   │   ├── collectDisabledFieldPaths.ts  # Find disabled fields
-│   │   ├── getFlattenedFieldKeys.ts      # Get field keys
-│   │   ├── getvalueAtPath.ts             # Access nested values
-│   │   ├── removeDisabledFields.ts       # Filter fields
-│   │   └── setNestedValue.ts             # Set nested values
-│   ├── translations/                     # i18n support
-│   └── exports/
-│       ├── rsc.ts                        # Server components
-│       └── types.ts
-└── package.json
+└── src/
+    ├── export/       (CSV flattening, field selection)
+    ├── utilities/    (Field path helpers)
+    └── exports/      (Server components, types)
 ```
 
 ### What It Does
@@ -291,6 +259,8 @@ export const importExportPlugin =
 
 ### Package Summary
 
+**Location:** `payload-main/packages/plugin-multi-tenant/`
+
 - **Version**: 3.59.1
 - **Dependencies**: `@payloadcms/ui`, `@payloadcms/translations`, `chalk`
 - **Purpose**: Multi-tenancy support for SaaS applications
@@ -299,27 +269,14 @@ export const importExportPlugin =
 
 ```
 plugin-multi-tenant/
-├── src/
-│   ├── index.ts                          # Main plugin entry
-│   ├── defaults.ts                       # Default configuration
-│   ├── fields/
-│   │   ├── tenantField/                  # Single tenant selector
-│   │   └── tenantsArrayField/            # Multiple tenant selector
-│   ├── filters/
-│   │   └── filterDocumentsByTenants.ts   # Query filtering
-│   ├── hooks/
-│   │   └── afterTenantDelete.ts          # Cleanup on tenant deletion
-│   ├── endpoints/
-│   │   └── getTenantOptionsEndpoint.ts   # API for tenant options
-│   ├── providers/                        # React context providers
-│   ├── components/                       # Admin UI components
-│   ├── utilities/
-│   │   ├── addCollectionAccess.ts        # Access control
-│   │   ├── addFilterOptionsToFields.ts   # Field filtering
-│   │   ├── combineFilters.ts             # Filter composition
-│   │   └── miniChalk.ts                  # Logging
-│   └── translations/
-└── package.json
+└── src/
+    ├── fields/       (Tenant selectors)
+    ├── filters/      (Query filtering)
+    ├── hooks/        (Tenant deletion cleanup)
+    ├── endpoints/    (Tenant options API)
+    ├── providers/    (React context)
+    ├── components/   (Admin UI)
+    └── utilities/    (Access control, filters)
 ```
 
 ### What It Does
@@ -386,6 +343,8 @@ export const multiTenantPlugin =
 
 ### Package Summary
 
+**Location:** `payload-main/packages/plugin-nested-docs/`
+
 - **Version**: 3.59.1
 - **Dependencies**: None (only dev dependencies)
 - **Purpose**: Hierarchical document organization with breadcrumbs
@@ -394,20 +353,10 @@ export const multiTenantPlugin =
 
 ```
 plugin-nested-docs/
-├── src/
-│   ├── index.ts                              # Main plugin entry
-│   ├── types.ts                              # Type definitions
-│   ├── fields/
-│   │   ├── parent.ts                         # Parent relationship field
-│   │   ├── breadcrumbs.ts                    # Breadcrumb array field
-│   │   └── parentFilterOptions.ts            # Prevent circular refs
-│   ├── hooks/
-│   │   ├── populateBreadcrumbsBeforeChange.ts   # Auto-update breadcrumbs
-│   │   ├── resaveChildren.ts                    # Update child docs
-│   │   └── resaveSelfAfterCreate.ts             # Self-update after creation
-│   └── utilities/
-│       └── getParents.ts                     # Traverse parent chain
-└── package.json
+└── src/
+    ├── fields/      (Parent, breadcrumbs fields)
+    ├── hooks/       (Breadcrumb auto-update, child resaving)
+    └── utilities/   (Parent chain traversal)
 ```
 
 ### What It Does
@@ -491,20 +440,11 @@ export const nestedDocsPlugin =
 
 ### Package Summary
 
+**Location:** `payload-main/packages/plugin-redirects/`
+
 - **Version**: 3.59.1
 - **Dependencies**: None (only dev dependencies)
 - **Purpose**: URL redirect management (301, 302, 307, 308)
-
-### Directory Structure
-
-```
-plugin-redirects/
-├── src/
-│   ├── index.ts                  # Main plugin entry
-│   ├── types.ts                  # Type definitions
-│   └── redirectTypes.ts          # Redirect type definitions
-└── package.json
-```
 
 ### What It Does
 
@@ -604,22 +544,11 @@ const redirects = await payload.find({ collection: 'redirects' })
 
 ### Package Summary
 
+**Location:** `payload-main/packages/plugin-sentry/`
+
 - **Version**: 3.59.1
 - **Dependencies**: `@sentry/nextjs@^8.33.1`, `@sentry/types@^8.33.1`
 - **Purpose**: Error tracking and monitoring with Sentry
-
-### Directory Structure
-
-```
-plugin-sentry/
-├── src/
-│   ├── index.ts                      # Main plugin entry
-│   ├── types.ts                      # Type definitions
-│   └── exports/
-│       └── client.ts                 # Client components
-│           └── AdminErrorBoundary.tsx
-└── package.json
-```
 
 ### What It Does
 
@@ -705,6 +634,8 @@ Sentry.init({ dsn: '...' })
 
 ### Package Summary
 
+**Location:** `payload-main/packages/plugin-seo/`
+
 - **Version**: 3.59.1
 - **Dependencies**: `@payloadcms/ui`, `@payloadcms/translations`
 - **Purpose**: SEO metadata management with preview
@@ -713,23 +644,10 @@ Sentry.init({ dsn: '...' })
 
 ```
 plugin-seo/
-├── src/
-│   ├── index.tsx                         # Main plugin entry
-│   ├── types.ts                          # Type definitions
-│   ├── defaults.ts                       # Default values
-│   ├── fields/
-│   │   ├── MetaTitle/                    # Title field component
-│   │   ├── MetaDescription/              # Description field
-│   │   ├── MetaImage/                    # OG image field
-│   │   ├── Overview/                     # SEO overview widget
-│   │   └── Preview/                      # SERP preview component
-│   ├── ui/                               # Shared UI components
-│   ├── translations/                     # i18n
-│   └── exports/
-│       ├── types.ts
-│       ├── fields.ts
-│       └── client.ts
-└── package.json
+└── src/
+    ├── fields/      (MetaTitle, MetaDescription, MetaImage, Overview, Preview)
+    ├── ui/          (Shared UI components)
+    └── exports/     (Types, fields, client)
 ```
 
 ### What It Does
@@ -841,6 +759,8 @@ export const metadata = {
 
 ### Package Summary
 
+**Location:** `payload-main/packages/plugin-stripe/`
+
 - **Version**: 3.59.1
 - **Dependencies**: `@payloadcms/ui`, `@payloadcms/translations`, `stripe@^10.2.0`, `lodash.get`, `uuid`
 - **Purpose**: Stripe payment integration and webhook handling
@@ -849,25 +769,12 @@ export const metadata = {
 
 ```
 plugin-stripe/
-├── src/
-│   ├── index.ts                      # Main plugin entry
-│   ├── types.ts                      # Type definitions
-│   ├── admin.ts                      # Admin UI configuration
-│   ├── fields/
-│   │   └── getFields.ts              # Stripe-related fields
-│   ├── hooks/
-│   │   ├── createNewInStripe.ts      # Create in Stripe on doc create
-│   │   ├── syncExistingWithStripe.ts # Sync doc updates to Stripe
-│   │   └── deleteFromStripe.ts       # Delete from Stripe
-│   ├── routes/
-│   │   ├── webhooks.ts               # Stripe webhook handler
-│   │   └── rest.ts                   # Stripe REST API proxy
-│   ├── webhooks/
-│   │   └── syncStripeToPayload.ts    # Update docs from webhooks
-│   ├── utilities/
-│   │   └── stripeProxy.ts            # Proxy Stripe API calls
-│   └── ui/                           # Admin UI components
-└── package.json
+└── src/
+    ├── hooks/       (Stripe sync hooks)
+    ├── routes/      (Webhooks, REST proxy)
+    ├── webhooks/    (Payload sync)
+    ├── fields/      (Stripe fields)
+    └── utilities/   (Stripe proxy)
 ```
 
 ### What It Does
