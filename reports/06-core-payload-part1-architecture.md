@@ -92,7 +92,7 @@ packages/payload/
 
 ### 1.2 Package.json Analysis
 
-**Location:** `/Users/harrell/Documents/tiny-cms-next/payload-main/packages/payload/package.json`
+**Location:** `packages/payload/package.json`
 
 **Key Dependencies:**
 ```json

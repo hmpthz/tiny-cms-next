@@ -223,11 +223,11 @@ payload-monorepo/
 - `storage-uploadthing` - UploadThing
 - `storage-r2` - Cloudflare R2
 
-**Category 4: Rich Text Editors (2)**
-- `richtext-lexical` - Facebook Lexical editor
-- `richtext-slate` - Slate.js editor (legacy)
+**Category 4: Rich Text Editors (2)** *(Not needed - use simple markdown editor)*
+- `richtext-lexical` - Facebook Lexical editor (~25K LOC)
+- `richtext-slate` - Slate.js editor (legacy, ~5K LOC)
 
-**Category 5: Email Adapters (2)**
+**Category 5: Email Adapters (2)** *(Not needed - better-auth handles email)*
 - `email-nodemailer` - SMTP via Nodemailer
 - `email-resend` - Resend.com service
 
@@ -2129,101 +2129,93 @@ export default async function PostsPage() {
 
 ## 8. Reference to Other Reports
 
-This overview synthesizes information from 14 detailed package reports:
+This overview synthesizes information from 13 detailed package reports:
 
 **Report #2: Database Packages** (`02-database-packages.md`)
 - In-depth analysis of `db-postgres`, `drizzle`, `db-mongodb`
 - Schema generation, query building, transaction management
-- Complexity analysis and bloat identification
-- Recommendations for simplified database layer
+- ~10,000+ lines of code across database adapters
+- Complexity analysis: **~70% of code supports features we don't need** (versions, drafts, localization, relationships, separate tables for arrays)
+- Recommendations: Use kysely directly, single table per collection with JSONB for complex data
 
 **Report #3: Storage Packages** (`03-storage-packages.md`)
-- Analysis of 6 storage adapters (S3, GCS, Azure, Vercel Blob, R2, UploadThing)
-- Storage adapter interface and patterns
+- Analysis of `plugin-cloud-storage` and 6 storage adapters
+- Storage adapter interface and patterns (S3, GCS, Azure, Vercel Blob, R2, UploadThing)
 - Image processing and file handling
-- Simplification recommendations
+- Simplification: Use Supabase Storage directly with simple adapter (~100 lines vs 1000+)
 
-**Report #4: Email Packages** (`04-email-packages.md`)
-- Email adapter system (`nodemailer`, `resend`)
-- Email adapter interface
-- Integration with auth system
-- Why to skip for tiny-cms (use better-auth)
+**Report #4: Plugin Search** (`04-plugin-search.md`)
+- Search plugin architecture (~1,000 LOC)
+- Database-backed search with sync hooks
+- The one plugin worth considering
+- **Better option:** PostgreSQL Full-Text Search (~100 lines, no data duplication)
 
-**Report #5: Rich Text Packages** (`05-richtext-packages.md`)
-- Lexical and Slate editor analysis
-- Rich text field architecture
-- Block system and custom features
-- Simplification: use simple markdown editor
-
-**Report #6: Plugin: Search** (`06-plugin-search.md`)
-- Search plugin architecture
-- Algolia and other provider integration
-- Plugin pattern analysis
-- The one plugin to keep
-
-**Report #7: Other Plugins** (`07-other-plugins.md`)
-- SEO, Form Builder, Redirects, Nested Docs, Stripe, etc.
+**Report #5: Other Plugins** (`05-other-plugins.md`)
+- Analysis of 9 plugins: ecommerce, form-builder, import-export, multi-tenant, nested-docs, redirects, sentry, SEO, stripe
 - Plugin capabilities and patterns
-- Why most plugins are unnecessary
-- Plugin system complexity
+- **All unnecessary for tiny-cms** - better to use Next.js built-ins or external services
+- Plugin system complexity analysis
 
-**Report #8: Core Payload - Part 1: Architecture** (`08-core-payload-part1-architecture.md`)
-- Core package structure (~150K LOC)
-- Initialization flow
-- Config system
+**Report #6: Core Payload - Part 1: Architecture** (`06-core-payload-part1-architecture.md`)
+- Core package structure (~150K LOC across 582 files)
+- Initialization flow (13 steps)
+- Config system and plugin application
 - Collections and CRUD operations
 - Query system and pagination
-- Versions and drafts
-- Localization
+- Versions and drafts (we don't need)
+- Localization (we don't need)
 - Globals system
 
-**Report #9: Core Payload - Part 2: Auth** (`09-core-payload-part2-auth.md`)
+**Report #7: Core Payload - Part 2: Auth** (`07-core-payload-part2-auth.md`)
 - Authentication system (~10K LOC)
 - JWT and API key strategies
 - Password reset and email verification
 - Session management
-- Why to replace with better-auth
+- **Why to replace with better-auth** - too complex, better-auth is more feature-complete
 
-**Report #10: Core Payload - Part 3: Fields** (`10-core-payload-part3-fields.md`)
-- 30+ field types analysis
+**Report #8: Core Payload - Part 3: Fields** (`08-core-payload-part3-fields.md`)
+- 30+ field types analysis (~25K LOC)
 - Field validation and hooks
 - Complex fields (blocks, arrays, relationships)
 - Field-level access control
-- Simplification recommendations
+- **Simplification: Reduce from 30 to 8 field types**
 
-**Report #11: Core Payload - Part 4: Access & Hooks** (`11-core-payload-part4-access-hooks.md`)
-- Multi-level access control
+**Report #9: Core Payload - Part 4: Access & Hooks** (`09-core-payload-part4-access-hooks.md`)
+- Multi-level access control (~12K LOC)
 - Hook system with 10+ execution points
-- Permission system
-- Document-level security
-- Hook execution order
+- Permission system and row-level security
+- **Simplification: Reduce from 10+ to 2-3 hook points**
 
-**Report #12: UI Package** (`12-ui-package.md`)
+**Report #10: UI Package** (`10-ui-package.md`)
 - Admin UI architecture (~40K LOC)
 - React components and form generation
 - Custom component system
-- Why to build custom UI instead
+- **Why to build custom UI instead** - too opinionated, custom UI with shadcn/ui is simpler
 
-**Report #13: Next.js Integration** (`13-next-integration.md`)
-- `@payloadcms/next` package analysis
+**Report #11: Next.js Integration** (`11-next-integration.md`)
+- `@payloadcms/next` package analysis (~15K LOC)
 - REST API generation
 - Admin UI mounting
 - Server component integration
-- Import map generation
+- Import map generation (for HMR)
+- **Keep pattern, simplify implementation**
+
+**Report #12: SDK Package** (`12-sdk-package.md`)
+- TypeScript client SDK for frontend use
+- Type-safe client with auto-completion
+- **Not needed** - use fetch directly with generated types
+
+**Report #13: Create Payload App** (`13-create-payload-app.md`)
+- CLI scaffolding tool
+- Template system
+- **Keep concept** - build simple CLI for tiny-cms
 
 **Report #14: Remaining Packages** (`14-remaining-packages.md`)
-- GraphQL package
-- SDK package
-- Translations package
+- GraphQL package (we don't need)
+- Translations package (next-intl is better)
 - Tooling packages (ESLint, CLI)
-- Live preview packages
-- Payload Cloud integration
-
-**Report #15: Test Overview** (`15-test-overview.md`)
-- Test structure and organization
-- Unit, integration, and E2E tests
-- Test complexity
-- Coverage analysis
+- Live preview packages (too complex)
+- Payload Cloud integration (not relevant)
 
 ---
 

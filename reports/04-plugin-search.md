@@ -77,7 +77,7 @@ test/plugin-search/
 
 The plugin follows Payload's standard plugin pattern, implementing the plugin factory pattern:
 
-**File:** `/Users/harrell/Documents/tiny-cms-next/payload-main/packages/plugin-search/src/index.ts`
+**File:** `packages/plugin-search/src/index.ts`
 
 ```typescript
 // Lines 11-91
@@ -139,7 +139,7 @@ The plugin extends Payload through three key mechanisms:
 
 ## Configuration Options
 
-**File:** `/Users/harrell/Documents/tiny-cms-next/payload-main/packages/plugin-search/src/types.ts`
+**File:** `packages/plugin-search/src/types.ts`
 
 ```typescript
 // Lines 32-65
@@ -226,7 +226,7 @@ searchPlugin({
 
 ## Search Collection Structure
 
-**File:** `/Users/harrell/Documents/tiny-cms-next/payload-main/packages/plugin-search/src/Search/index.ts`
+**File:** `packages/plugin-search/src/Search/index.ts`
 
 The plugin generates a `search` collection with default fields:
 
@@ -313,7 +313,7 @@ The plugin uses **synchronous, real-time indexing** triggered by collection life
 
 ### AfterChange Hook
 
-**File:** `/Users/harrell/Documents/tiny-cms-next/payload-main/packages/plugin-search/src/utilities/syncDocAsSearchIndex.ts`
+**File:** `packages/plugin-search/src/utilities/syncDocAsSearchIndex.ts`
 
 The core sync logic handles both create and update operations:
 
@@ -476,7 +476,7 @@ export const syncDocAsSearchIndex = async ({
 
 ### BeforeDelete Hook
 
-**File:** `/Users/harrell/Documents/tiny-cms-next/payload-main/packages/plugin-search/src/Search/hooks/deleteFromSearch.ts`
+**File:** `packages/plugin-search/src/Search/hooks/deleteFromSearch.ts`
 
 ```typescript
 // Lines 3-28
@@ -520,7 +520,7 @@ export const deleteFromSearch: DeleteFromSearch =
 
 ### Reindex Endpoint Handler
 
-**File:** `/Users/harrell/Documents/tiny-cms-next/payload-main/packages/plugin-search/src/utilities/generateReindexHandler.ts`
+**File:** `packages/plugin-search/src/utilities/generateReindexHandler.ts`
 
 ```typescript
 // Lines 21-182
@@ -626,11 +626,11 @@ export const generateReindexHandler =
 
 ### Reindex Button
 
-**Server Component:** `/Users/harrell/Documents/tiny-cms-next/payload-main/packages/plugin-search/src/Search/ui/ReindexButton/index.tsx`
+**Server Component:** `packages/plugin-search/src/Search/ui/ReindexButton/index.tsx`
 
 Resolves collection labels for display.
 
-**Client Component:** `/Users/harrell/Documents/tiny-cms-next/payload-main/packages/plugin-search/src/Search/ui/ReindexButton/index.client.tsx`
+**Client Component:** `packages/plugin-search/src/Search/ui/ReindexButton/index.client.tsx`
 
 ```typescript
 // Lines 22-149
@@ -692,7 +692,7 @@ export const ReindexButtonClient: React.FC<ReindexButtonProps> = ({
 
 ### Link to Doc Component
 
-**File:** `/Users/harrell/Documents/tiny-cms-next/payload-main/packages/plugin-search/src/Search/ui/LinkToDoc/index.client.tsx`
+**File:** `packages/plugin-search/src/Search/ui/LinkToDoc/index.client.tsx`
 
 ```typescript
 // Lines 7-56
@@ -893,7 +893,7 @@ Return original document (unchanged)
 
 ### Integration Tests
 
-**File:** `/Users/harrell/Documents/tiny-cms-next/payload-main/test/plugin-search/int.spec.ts` (600 lines)
+**File:** `test/plugin-search/int.spec.ts` (600 lines)
 
 **Test Scenarios:**
 
@@ -1254,25 +1254,25 @@ This gives us:
 ## File Reference Summary
 
 **Core Plugin Files:**
-- `/Users/harrell/Documents/tiny-cms-next/payload-main/packages/plugin-search/src/index.ts` - Plugin entry point (92 lines)
-- `/Users/harrell/Documents/tiny-cms-next/payload-main/packages/plugin-search/src/types.ts` - Type definitions (100 lines)
-- `/Users/harrell/Documents/tiny-cms-next/payload-main/packages/plugin-search/src/Search/index.ts` - Collection generator (117 lines)
+- `packages/plugin-search/src/index.ts` - Plugin entry point (92 lines)
+- `packages/plugin-search/src/types.ts` - Type definitions (100 lines)
+- `packages/plugin-search/src/Search/index.ts` - Collection generator (117 lines)
 
 **Sync Logic:**
-- `/Users/harrell/Documents/tiny-cms-next/payload-main/packages/plugin-search/src/utilities/syncDocAsSearchIndex.ts` - Core sync (261 lines)
-- `/Users/harrell/Documents/tiny-cms-next/payload-main/packages/plugin-search/src/Search/hooks/syncWithSearch.ts` - Hook wrapper (7 lines)
-- `/Users/harrell/Documents/tiny-cms-next/payload-main/packages/plugin-search/src/Search/hooks/deleteFromSearch.ts` - Delete hook (29 lines)
+- `packages/plugin-search/src/utilities/syncDocAsSearchIndex.ts` - Core sync (261 lines)
+- `packages/plugin-search/src/Search/hooks/syncWithSearch.ts` - Hook wrapper (7 lines)
+- `packages/plugin-search/src/Search/hooks/deleteFromSearch.ts` - Delete hook (29 lines)
 
 **Reindex:**
-- `/Users/harrell/Documents/tiny-cms-next/payload-main/packages/plugin-search/src/utilities/generateReindexHandler.ts` - Bulk reindex (183 lines)
+- `packages/plugin-search/src/utilities/generateReindexHandler.ts` - Bulk reindex (183 lines)
 
 **UI Components:**
-- `/Users/harrell/Documents/tiny-cms-next/payload-main/packages/plugin-search/src/Search/ui/ReindexButton/index.client.tsx` - Reindex button (150 lines)
-- `/Users/harrell/Documents/tiny-cms-next/payload-main/packages/plugin-search/src/Search/ui/LinkToDoc/index.client.tsx` - Doc link (57 lines)
+- `packages/plugin-search/src/Search/ui/ReindexButton/index.client.tsx` - Reindex button (150 lines)
+- `packages/plugin-search/src/Search/ui/LinkToDoc/index.client.tsx` - Doc link (57 lines)
 
 **Tests:**
-- `/Users/harrell/Documents/tiny-cms-next/payload-main/test/plugin-search/int.spec.ts` - Integration tests (600 lines)
-- `/Users/harrell/Documents/tiny-cms-next/payload-main/test/plugin-search/config.ts` - Test config (108 lines)
+- `test/plugin-search/int.spec.ts` - Integration tests (600 lines)
+- `test/plugin-search/config.ts` - Test config (108 lines)
 
 **Total Plugin LOC:** ~1,000 lines (excluding tests)
 **Simplified Version:** ~100-200 lines with PostgreSQL FTS

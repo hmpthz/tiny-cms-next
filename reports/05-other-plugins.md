@@ -54,7 +54,7 @@ The ecommerce plugin transforms Payload into a full e-commerce platform by addin
 
 ### Key Features
 
-**From `/Users/harrell/Documents/tiny-cms-next/payload-main/packages/plugin-ecommerce/src/index.ts`:**
+**From `packages/plugin-ecommerce/src/index.ts`:**
 
 ```typescript
 // Lines 22-24
@@ -121,7 +121,7 @@ plugin-form-builder/
 
 Enables creation of dynamic forms with submission handling:
 
-**From `/Users/harrell/Documents/tiny-cms-next/payload-main/packages/plugin-form-builder/src/index.ts`:**
+**From `packages/plugin-form-builder/src/index.ts`:**
 
 ```typescript
 // Lines 11-39
@@ -218,7 +218,7 @@ plugin-import-export/
 
 ### What It Does
 
-**From `/Users/harrell/Documents/tiny-cms-next/payload-main/packages/plugin-import-export/src/index.ts`:**
+**From `packages/plugin-import-export/src/index.ts`:**
 
 ```typescript
 // Lines 20-80
@@ -324,7 +324,7 @@ plugin-multi-tenant/
 
 ### What It Does
 
-**From `/Users/harrell/Documents/tiny-cms-next/payload-main/packages/plugin-multi-tenant/src/index.ts`:**
+**From `packages/plugin-multi-tenant/src/index.ts`:**
 
 ```typescript
 // Lines 21-80
@@ -412,7 +412,7 @@ plugin-nested-docs/
 
 ### What It Does
 
-**From `/Users/harrell/Documents/tiny-cms-next/payload-main/packages/plugin-nested-docs/src/index.ts`:**
+**From `packages/plugin-nested-docs/src/index.ts`:**
 
 ```typescript
 // Lines 15-70
@@ -508,7 +508,7 @@ plugin-redirects/
 
 ### What It Does
 
-**From `/Users/harrell/Documents/tiny-cms-next/payload-main/packages/plugin-redirects/src/index.ts`:**
+**From `packages/plugin-redirects/src/index.ts`:**
 
 ```typescript
 // Lines 8-10
@@ -623,7 +623,7 @@ plugin-sentry/
 
 ### What It Does
 
-**From `/Users/harrell/Documents/tiny-cms-next/payload-main/packages/plugin-sentry/src/index.ts`:**
+**From `packages/plugin-sentry/src/index.ts`:**
 
 ```typescript
 // Lines 29-60
@@ -734,7 +734,7 @@ plugin-seo/
 
 ### What It Does
 
-**From `/Users/harrell/Documents/tiny-cms-next/payload-main/packages/plugin-seo/src/index.tsx`:**
+**From `packages/plugin-seo/src/index.tsx`:**
 
 ```typescript
 // Lines 20-56
@@ -872,7 +872,7 @@ plugin-stripe/
 
 ### What It Does
 
-**From `/Users/harrell/Documents/tiny-cms-next/payload-main/packages/plugin-stripe/src/index.ts`:**
+**From `packages/plugin-stripe/src/index.ts`:**
 
 ```typescript
 // Lines 14-80
