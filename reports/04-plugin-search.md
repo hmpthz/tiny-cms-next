@@ -7,6 +7,7 @@
 The `@payloadcms/plugin-search` is a core plugin that provides fast, database-backed search functionality across multiple collections in Payload CMS. Instead of relying on external search services (like Algolia), it creates a dedicated `search` collection that maintains synchronized search indexes for specified collections.
 
 **Key Features:**
+
 - Automatic synchronization of document changes to search index
 - Support for localized search across multiple languages
 - Draft/published state handling
@@ -56,7 +57,7 @@ export const searchPlugin =
     const labels = Object.fromEntries(
       collections
         .filter(({ slug }) => incomingPluginConfig.collections?.includes(slug))
-        .map((collection) => [collection.slug, collection.labels])
+        .map((collection) => [collection.slug, collection.labels]),
     )
 
     // 3. Add hooks to search-enabled collections
@@ -78,10 +79,7 @@ export const searchPlugin =
     // 4. Add the search collection
     return {
       ...config,
-      collections: [
-        ...collectionsWithSearchHooks,
-        generateSearchCollection(pluginConfig),
-      ],
+      collections: [...collectionsWithSearchHooks, generateSearchCollection(pluginConfig)],
     }
   }
 ```
@@ -312,7 +310,10 @@ export const syncDocAsSearchIndex = async ({
   // Apply beforeSync transformation
   if (typeof beforeSync === 'function') {
     const docToSyncWith = await payload.findByID({
-      id, collection, locale: syncLocale, req
+      id,
+      collection,
+      locale: syncLocale,
+      req,
     })
     dataToSave = await beforeSync({
       originalDoc: docToSyncWith,
@@ -400,13 +401,12 @@ export const syncDocAsSearchIndex = async ({
       // Delete if draft (when deleteDrafts enabled)
       if (deleteDrafts && status === 'draft') {
         // Check if published version exists
-        const { docs: [docWithPublish] } = await payload.find({
+        const {
+          docs: [docWithPublish],
+        } = await payload.find({
           collection,
           where: {
-            and: [
-              { _status: { equals: 'published' } },
-              { id: { equals: id } }
-            ]
+            and: [{ _status: { equals: 'published' } }, { id: { equals: id } }],
           },
         })
 
@@ -498,18 +498,13 @@ export const generateReindexHandler =
     // 2. Validate permissions
     const accessResults = await getAccessResults({ req })
     const searchAccessResults = accessResults.collections?.[searchSlug]
-    const permissions = [
-      searchAccessResults.delete,
-      searchAccessResults.update
-    ]
+    const permissions = [searchAccessResults.delete, searchAccessResults.update]
     if (!permissions.every(Boolean)) {
       return Response.json({ message: 'Not allowed' }, { status: 401 })
     }
 
     // 3. Validate collections
-    const collectionsAreValid = collections.every(
-      col => searchCollections.includes(col)
-    )
+    const collectionsAreValid = collections.every((col) => searchCollections.includes(col))
     if (!collectionsAreValid) {
       return Response.json({ message: 'Invalid collections' }, { status: 400 })
     }
@@ -561,10 +556,12 @@ export const generateReindexHandler =
       await Promise.all(promises)
       await commitTransaction(req)
 
-      return Response.json({
-        message: `Successfully reindexed ${collections.join(', ')}`
-      }, { status: 200 })
-
+      return Response.json(
+        {
+          message: `Successfully reindexed ${collections.join(', ')}`,
+        },
+        { status: 200 },
+      )
     } catch (err: any) {
       await killTransaction(req)
       return Response.json({ message: err.message }, { status: 500 })
@@ -692,6 +689,7 @@ Displays a clickable link to the original document from search results.
 ### Database Adapter Independence
 
 The plugin is **database-agnostic**. It:
+
 - Uses Payload's Local API (not direct database queries)
 - Relies on standard collection operations (create, find, update, delete)
 - Works with any database adapter (MongoDB, PostgreSQL, SQLite)
@@ -753,7 +751,7 @@ const syncLocale = locale || req.locale
 await payload.create({
   collection: searchSlug,
   data: { ...dataToSave, priority: defaultPriority },
-  locale: syncLocale,  // Locale-specific document
+  locale: syncLocale, // Locale-specific document
   req,
 })
 ```
@@ -844,6 +842,7 @@ Return original document (unchanged)
 ```
 
 **Analysis:**
+
 - Minimal dependencies (only UI and Next.js integration)
 - No external search service dependencies (Algolia, Elasticsearch, etc.)
 - No database-specific dependencies (works with all adapters)
@@ -896,6 +895,7 @@ Return original document (unchanged)
 From `test/plugin-search/collections/`:
 
 **Posts.ts:**
+
 ```typescript
 {
   slug: 'posts',
@@ -912,6 +912,7 @@ From `test/plugin-search/collections/`:
 ```
 
 **Pages.ts:**
+
 ```typescript
 {
   slug: 'pages',
@@ -977,12 +978,14 @@ From `test/plugin-search/collections/`:
 ### Why PostgreSQL FTS?
 
 Current plugin creates a separate `search` collection, which:
+
 - Duplicates data (title stored in both original and search collection)
 - Requires separate queries (find in search, then fetch from original)
 - Adds complexity with sync logic
 - Uses more database storage
 
 **PostgreSQL offers built-in full-text search:**
+
 - Native `tsvector` and `tsquery` types
 - Automatic index maintenance with triggers
 - Language-specific stemming and ranking
@@ -1017,6 +1020,7 @@ ORDER BY ts_rank(
 ### Implementation Strategy
 
 1. **Add Search Field to Collections**
+
    ```typescript
    {
      name: '_searchVector',
@@ -1034,6 +1038,7 @@ ORDER BY ts_rank(
    ```
 
 2. **Custom Postgres Trigger** (executed on collection creation)
+
    ```sql
    CREATE TRIGGER posts_search_update
    BEFORE INSERT OR UPDATE ON posts
@@ -1043,22 +1048,23 @@ ORDER BY ts_rank(
    ```
 
 3. **Search API Endpoint**
+
    ```typescript
    // Custom endpoint
    app.post('/api/search', async (req, res) => {
      const { query, collections } = req.body
 
      const results = await Promise.all(
-       collections.map(collection =>
+       collections.map((collection) =>
          payload.find({
            collection,
            where: {
              _searchVector: {
-               search: query // Custom operator for FTS
-             }
-           }
-         })
-       )
+               search: query, // Custom operator for FTS
+             },
+           },
+         }),
+       ),
      )
 
      return res.json({ results: results.flat() })
@@ -1096,12 +1102,14 @@ ORDER BY ts_rank(
 ### Trade-offs
 
 **Pros:**
+
 - Much simpler code
 - Better performance
 - Native database feature
 - No data duplication
 
 **Cons:**
+
 - PostgreSQL-specific (not database-agnostic)
 - Less flexible than custom solution
 - Requires raw SQL for advanced features
@@ -1114,12 +1122,14 @@ ORDER BY ts_rank(
 ### Option 1: Simplified Plugin (Keep Pattern, Reduce Complexity)
 
 **Keep:**
+
 - Core sync logic (afterChange/beforeDelete hooks)
 - Basic search collection with title + excerpt
 - Simple priority field (static numbers only)
 - Basic beforeSync hook
 
 **Remove:**
+
 - Admin UI components
 - Bulk reindex endpoint
 - Transaction support
@@ -1131,12 +1141,14 @@ ORDER BY ts_rank(
 **Estimated LOC:** ~200 lines (vs current 800+)
 
 **Pros:**
+
 - Database-agnostic
 - Familiar Payload patterns
 - Easy to understand
 - Flexible for future changes
 
 **Cons:**
+
 - Still maintains duplicate data
 - Still requires sync logic
 - More code than PostgreSQL FTS
@@ -1144,6 +1156,7 @@ ORDER BY ts_rank(
 ### Option 2: PostgreSQL Full-Text Search (Recommended)
 
 **Implementation:**
+
 1. Add hidden `_searchVector` field to searchable collections
 2. Create PostgreSQL trigger on collection creation
 3. Add custom search endpoint
@@ -1152,6 +1165,7 @@ ORDER BY ts_rank(
 **Estimated LOC:** ~100 lines
 
 **Pros:**
+
 - Simplest solution
 - Best performance
 - No data duplication
@@ -1159,6 +1173,7 @@ ORDER BY ts_rank(
 - Automatic index maintenance
 
 **Cons:**
+
 - Locks us into PostgreSQL
 - Requires custom SQL
 - Different from Payload conventions
@@ -1166,6 +1181,7 @@ ORDER BY ts_rank(
 ### Recommendation: **Use PostgreSQL FTS**
 
 **Rationale:**
+
 1. Our project is already committed to PostgreSQL
 2. We're building a **tiny** CMS - simplicity is key
 3. PostgreSQL FTS is production-ready and battle-tested
@@ -1174,6 +1190,7 @@ ORDER BY ts_rank(
 6. No data duplication concerns
 
 **Implementation Priority:**
+
 - **Phase 1**: Basic FTS with simple text search
 - **Phase 2**: Add ranking/priority
 - **Phase 3**: Add multi-collection search
@@ -1182,11 +1199,13 @@ ORDER BY ts_rank(
 ### Hybrid Approach (If Flexibility Needed)
 
 Create a **simple search abstraction** that:
+
 - Defaults to PostgreSQL FTS
 - Falls back to collection-based search for other DBs
 - Uses strategy pattern to swap implementations
 
 This gives us:
+
 - Simplicity of PostgreSQL FTS for our use case
 - Future-proofing if we need to support other databases
 - Clean abstraction layer
@@ -1216,23 +1235,28 @@ This gives us:
 ## File Reference Summary
 
 **Core Plugin Files:**
+
 - `packages/plugin-search/src/index.ts` - Plugin entry point (92 lines)
 - `packages/plugin-search/src/types.ts` - Type definitions (100 lines)
 - `packages/plugin-search/src/Search/index.ts` - Collection generator (117 lines)
 
 **Sync Logic:**
+
 - `packages/plugin-search/src/utilities/syncDocAsSearchIndex.ts` - Core sync (261 lines)
 - `packages/plugin-search/src/Search/hooks/syncWithSearch.ts` - Hook wrapper (7 lines)
 - `packages/plugin-search/src/Search/hooks/deleteFromSearch.ts` - Delete hook (29 lines)
 
 **Reindex:**
+
 - `packages/plugin-search/src/utilities/generateReindexHandler.ts` - Bulk reindex (183 lines)
 
 **UI Components:**
+
 - `packages/plugin-search/src/Search/ui/ReindexButton/index.client.tsx` - Reindex button (150 lines)
 - `packages/plugin-search/src/Search/ui/LinkToDoc/index.client.tsx` - Doc link (57 lines)
 
 **Tests:**
+
 - `test/plugin-search/int.spec.ts` - Integration tests (600 lines)
 - `test/plugin-search/config.ts` - Test config (108 lines)
 
@@ -1246,6 +1270,7 @@ This gives us:
 The `@payloadcms/plugin-search` is a production-quality plugin that provides comprehensive search functionality. However, for a tiny CMS focused on simplicity:
 
 **Recommendation: Implement PostgreSQL Full-Text Search**
+
 - Simpler (100 vs 1000 lines)
 - Faster (single query)
 - Native feature
@@ -1253,6 +1278,7 @@ The `@payloadcms/plugin-search` is a production-quality plugin that provides com
 - Automatic maintenance
 
 If database-agnostic is required, implement a simplified version that removes:
+
 - UI components
 - Bulk reindex
 - Complex edge case handling

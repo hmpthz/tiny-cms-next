@@ -5,6 +5,7 @@
 This report analyzes the database-related packages in PayloadCMS, with deep focus on `db-postgres` and `drizzle` packages, which form the foundation of the PostgreSQL adapter system. The architecture follows a clear separation of concerns where database-specific adapters (db-postgres, db-sqlite, etc.) rely on a shared `drizzle` package that provides database-agnostic operations.
 
 **Key Finding**: The database layer is highly abstracted with extensive bloat for features we don't need in our simplified CMS. The complexity comes from supporting:
+
 - Multiple database engines (Postgres, SQLite, MongoDB)
 - Versions and drafts systems
 - Localization (multiple languages)
@@ -18,6 +19,7 @@ This report analyzes the database-related packages in PayloadCMS, with deep focu
 ## Package Overview
 
 ### Package Dependency Graph
+
 ```
 @payloadcms/db-postgres (PostgreSQL adapter)
   └─ @payloadcms/drizzle (Shared SQL adapter logic)
@@ -59,6 +61,7 @@ This report analyzes the database-related packages in PayloadCMS, with deep focu
   - `uuid@10.0.0` - ID generation
 
 ### Directory Structure
+
 ```
 db-postgres/
 ├── src/                         (Main source, connection, types, proxies)
@@ -93,6 +96,7 @@ export function postgresAdapter(args: Args) {
 ```
 
 **Imports all operations from `@payloadcms/drizzle`** (Lines 3-42):
+
 - CRUD operations: create, find, update, delete
 - Versioning: createVersion, findVersions, countVersions
 - Transactions: beginTransaction, commitTransaction, rollbackTransaction
@@ -100,12 +104,14 @@ export function postgresAdapter(args: Args) {
 - Query building: buildQuery, operatorMap
 
 **PostgreSQL-specific imports from `@payloadcms/drizzle/postgres`** (Lines 43-56):
+
 - init, execute, insert, deleteWhere
 - createDatabase, dropDatabase, createExtensions
 - createJSONQuery, countDistinct
 - requireDrizzleKit (for migrations)
 
 **Creates adapter with extensive configuration** (Lines 99-213):
+
 - Connection pooling setup
 - Schema generation
 - Migration directory
@@ -121,31 +127,32 @@ export function postgresAdapter(args: Args) {
 ```typescript
 // Lines 23-79: Configuration arguments
 export type Args = {
-  afterSchemaInit?: PostgresSchemaHook[]    // Schema customization
-  allowIDOnCreate?: boolean                 // Custom ID support
-  beforeSchemaInit?: PostgresSchemaHook[]   // Pre-schema hooks
-  blocksAsJSON?: boolean                    // Store blocks as JSON
+  afterSchemaInit?: PostgresSchemaHook[] // Schema customization
+  allowIDOnCreate?: boolean // Custom ID support
+  beforeSchemaInit?: PostgresSchemaHook[] // Pre-schema hooks
+  blocksAsJSON?: boolean // Store blocks as JSON
   disableCreateDatabase?: boolean
-  extensions?: string[]                     // PostgreSQL extensions
-  idType?: 'serial' | 'uuid'               // ID strategy
-  localesSuffix?: string                   // i18n support
+  extensions?: string[] // PostgreSQL extensions
+  idType?: 'serial' | 'uuid' // ID strategy
+  localesSuffix?: string // i18n support
   migrationDir?: string
-  pool: PoolConfig                         // Connection pool config
-  prodMigrations?: Migration[]             // Production migrations
-  readReplicas?: string[]                  // Read replica support
-  schemaName?: string                      // Custom schema name
+  pool: PoolConfig // Connection pool config
+  prodMigrations?: Migration[] // Production migrations
+  readReplicas?: string[] // Read replica support
+  schemaName?: string // Custom schema name
   transactionOptions?: false | PgTransactionConfig
-  versionsSuffix?: string                  // Versions table suffix
-  relationshipsSuffix?: string             // Relationships table suffix
+  versionsSuffix?: string // Versions table suffix
+  relationshipsSuffix?: string // Relationships table suffix
 }
 ```
 
 **Adapter Type** (Lines 93-98):
+
 ```typescript
 export type PostgresAdapter = {
-  drizzle: Drizzle                  // Drizzle ORM instance
-  pg: PgDependency                  // node-postgres dependency
-  pool: Pool                        // Connection pool
+  drizzle: Drizzle // Drizzle ORM instance
+  pg: PgDependency // node-postgres dependency
+  pool: Pool // Connection pool
   poolOptions: PoolConfig
 } & BasePostgresAdapter
 ```
@@ -160,10 +167,9 @@ Extends Payload's DatabaseAdapter interface with PostgreSQL-specific properties.
 **Connection Features**:
 
 1. **Connection with Auto-Reconnect** (Lines 10-45):
+
 ```typescript
-const connectWithReconnect = async function ({
-  adapter, pool, reconnect = false
-}) {
+const connectWithReconnect = async function ({ adapter, pool, reconnect = false }) {
   if (!reconnect) {
     result = await pool.connect()
   } else {
@@ -186,6 +192,7 @@ const connectWithReconnect = async function ({
 ```
 
 2. **Drizzle Initialization** (Lines 56-79):
+
 ```typescript
 if (!this.pool) {
   this.pool = new this.pg.Pool(this.poolOptions)
@@ -205,6 +212,7 @@ if (this.readReplicaOptions) {
 ```
 
 3. **Auto Database Creation** (Lines 88-106):
+
 ```typescript
 catch (error) {
   if (err.message?.match(/database .* does not exist/i) && !this.disableCreateDatabase) {
@@ -219,16 +227,20 @@ catch (error) {
 ```
 
 4. **Development Schema Push** (Lines 116-123):
+
 ```typescript
 // Only push schema if not in production
-if (process.env.NODE_ENV !== 'production' &&
-    process.env.PAYLOAD_MIGRATING !== 'true' &&
-    this.push !== false) {
+if (
+  process.env.NODE_ENV !== 'production' &&
+  process.env.PAYLOAD_MIGRATING !== 'true' &&
+  this.push !== false
+) {
   await pushDevSchema(this as unknown as DrizzleAdapter)
 }
 ```
 
 5. **Production Migrations** (Lines 129-131):
+
 ```typescript
 if (process.env.NODE_ENV === 'production' && this.prodMigrations) {
   await this.migrate({ migrations: this.prodMigrations })
@@ -240,11 +252,13 @@ if (process.env.NODE_ENV === 'production' && this.prodMigrations) {
 The PostgreSQL adapter exposes these to the Payload core:
 
 **Exported Functions**:
+
 - `postgresAdapter(args: Args)` - Factory function
 - `geometryColumn` - Custom geometry column type
 - `sql` - SQL template literal from drizzle-orm
 
 **Drizzle Proxy Exports** (for custom schema):
+
 - `@payloadcms/db-postgres/drizzle` - Drizzle instance access
 - `@payloadcms/db-postgres/drizzle/pg-core` - PostgreSQL column types
 - `@payloadcms/db-postgres/drizzle/node-postgres` - Node-postgres driver
@@ -253,6 +267,7 @@ The PostgreSQL adapter exposes these to the Payload core:
 ### What's Needed vs Bloated
 
 **ESSENTIAL for our CMS**:
+
 - Basic connection management
 - CRUD operations (create, find, update, delete)
 - Simple query building
@@ -260,10 +275,11 @@ The PostgreSQL adapter exposes these to the Payload core:
 - Connection pooling
 
 **BLOAT we don't need**:
-- Versions system (separate _v tables)
+
+- Versions system (separate \_v tables)
 - Drafts system
-- Localization support (separate _locales tables)
-- Relationships system (separate _rels tables)
+- Localization support (separate \_locales tables)
+- Relationships system (separate \_rels tables)
 - Migration system complexity
 - Read replicas support
 - Multiple ID types (serial vs uuid)
@@ -274,6 +290,7 @@ The PostgreSQL adapter exposes these to the Payload core:
 - Blocks as JSON option
 
 **Complexity Metrics**:
+
 - Total lines in main files: ~400
 - Dependencies: 7 npm packages
 - Bloat estimation: ~60% of code supports features we don't need
@@ -295,6 +312,7 @@ The PostgreSQL adapter exposes these to the Payload core:
   - `dequal@2.0.3` - Deep equality checks
 
 ### Directory Structure
+
 ```
 drizzle/
 └── src/
@@ -332,6 +350,7 @@ export const buildRawSchema = ({
 **Process**:
 
 1. **Create table names** (Lines 25-39):
+
 ```typescript
 adapter.payload.config.collections.forEach((collection) => {
   createTableName({ adapter, config: collection })
@@ -348,6 +367,7 @@ adapter.payload.config.collections.forEach((collection) => {
 ```
 
 2. **Build collection tables** (Lines 41-90):
+
 ```typescript
 adapter.payload.config.collections.forEach((collection) => {
   const tableName = adapter.tableNameMap.get(toSnakeCase(collection.slug))
@@ -363,7 +383,7 @@ adapter.payload.config.collections.forEach((collection) => {
   // Build versions table if enabled
   if (collection.versions) {
     const versionsTableName = adapter.tableNameMap.get(
-      `_${toSnakeCase(collection.slug)}${adapter.versionsSuffix}`
+      `_${toSnakeCase(collection.slug)}${adapter.versionsSuffix}`,
     )
     buildTable({
       adapter,
@@ -386,10 +406,11 @@ adapter.payload.config.collections.forEach((collection) => {
 **Key Steps**:
 
 1. **Initialize table structure** (Lines 92-114):
+
 ```typescript
 const columns: Record<string, RawColumn> = baseColumns
 const indexes: Record<string, RawIndex> = baseIndexes
-const localesColumns: Record<string, RawColumn> = {}  // For i18n
+const localesColumns: Record<string, RawColumn> = {} // For i18n
 const relationships: Set<string> = rootRelationships || new Set()
 const relationsToBuild: RelationMap = new Map()
 
@@ -397,6 +418,7 @@ const idColType: IDType = setColumnID({ adapter, columns, fields })
 ```
 
 2. **Traverse fields to build columns** (Lines 116-146):
+
 ```typescript
 const {
   hasLocalizedField,
@@ -419,6 +441,7 @@ const {
 ```
 
 3. **Add timestamps** (Lines 157-177):
+
 ```typescript
 if (timestamps) {
   columns.createdAt = {
@@ -435,18 +458,19 @@ if (timestamps) {
 ```
 
 4. **Create locales table** (Lines 188-275):
-If any fields are localized, creates a separate `_locales` table with foreign key to parent.
+   If any fields are localized, creates a separate `_locales` table with foreign key to parent.
 
 5. **Create texts table** (Lines 333-428):
-For fields with `hasMany: true` (array of strings), creates a separate `_texts` table.
+   For fields with `hasMany: true` (array of strings), creates a separate `_texts` table.
 
 6. **Create numbers table** (Lines 430-520):
-For numeric array fields, creates a separate `_numbers` table.
+   For numeric array fields, creates a separate `_numbers` table.
 
 7. **Create relationships table** (Lines 522-698):
-For relationship fields, creates a `_rels` table with polymorphic relationship support.
+   For relationship fields, creates a `_rels` table with polymorphic relationship support.
 
 **Example relationships table structure**:
+
 ```typescript
 const relationshipColumns: Record<string, RawColumn> = {
   id: { type: 'serial', primaryKey: true },
@@ -508,6 +532,7 @@ export const buildQuery = function buildQuery({
 
 **Operator Map** (`src/queries/operatorMap.ts`):
 Maps Payload operators to SQL:
+
 ```typescript
 export const operatorMap: Operators = {
   equals: eq,
@@ -528,6 +553,7 @@ export const operatorMap: Operators = {
 #### 4. CRUD Operations
 
 **Find Operation** (`src/find.ts`):
+
 ```typescript
 // Lines 9-46
 export const find: Find = async function find(
@@ -565,6 +591,7 @@ export const find: Find = async function find(
 ```
 
 **Create Operation** (`src/create.ts`):
+
 ```typescript
 // Lines 10-36
 export const create: Create = async function create(
@@ -644,6 +671,7 @@ export const beginTransaction: BeginTransaction = async function beginTransactio
 ```
 
 **How it works**:
+
 1. Drizzle's transaction API requires passing `tx` object around
 2. Payload's architecture doesn't pass transaction objects
 3. Solution: Store transaction in a sessions map with UUID key
@@ -673,7 +701,7 @@ export const init: Init = async function init(this: BasePostgresAdapter) {
   if (this.payload.config.localization) {
     this.enums.enum__locales = this.pgSchema.enum(
       '_locales',
-      this.payload.config.localization.locales.map(({ code }) => code)
+      this.payload.config.localization.locales.map(({ code }) => code),
     )
   }
 
@@ -720,10 +748,7 @@ export const buildDrizzleTable = ({
         if ('locale' in column) {
           columns[key] = adapter.enums.enum__locales(column.name)
         } else {
-          adapter.enums[column.enumName] = adapter.pgSchema.enum(
-            column.enumName,
-            column.options
-          )
+          adapter.enums[column.enumName] = adapter.pgSchema.enum(column.enumName, column.options)
           columns[key] = adapter.enums[column.enumName](column.name)
         }
         break
@@ -779,10 +804,9 @@ export const buildDrizzleTable = ({
           name: rawForeignKey.name,
           columns: rawForeignKey.columns.map((col) => cols[col]),
           foreignColumns: rawForeignKey.foreignColumns.map(
-            (col) => adapter.tables[col.table][col.name]
+            (col) => adapter.tables[col.table][col.name],
           ),
-        })
-        .onDelete(rawForeignKey.onDelete)
+        }).onDelete(rawForeignKey.onDelete)
       }
     }
 
@@ -790,17 +814,14 @@ export const buildDrizzleTable = ({
   }
 
   // Create final Drizzle table
-  adapter.tables[rawTable.name] = adapter.pgSchema.table(
-    rawTable.name,
-    columns,
-    extraConfig
-  )
+  adapter.tables[rawTable.name] = adapter.pgSchema.table(rawTable.name, columns, extraConfig)
 }
 ```
 
 ### Interface/API for Database Adapters
 
 **Exports for db-postgres** (`src/exports/postgres.ts`):
+
 - init, execute, insert, deleteWhere
 - createDatabase, dropDatabase, createExtensions
 - createJSONQuery, countDistinct
@@ -808,9 +829,11 @@ export const buildDrizzleTable = ({
 - columnToCodeConverter, buildDrizzleTable
 
 **Exports for db-sqlite** (`src/exports/sqlite.ts`):
+
 - Similar set but SQLite-specific implementations
 
 **Main exports** (`src/index.ts`):
+
 - All CRUD operations
 - Transaction functions
 - Migration functions
@@ -821,6 +844,7 @@ export const buildDrizzleTable = ({
 ### What's Needed vs Bloated
 
 **ESSENTIAL**:
+
 - Basic CRUD operations (create, find, update, delete, count)
 - Query building (buildQuery, parseParams, operatorMap)
 - Simple schema building (columns, indexes, foreign keys)
@@ -828,11 +852,12 @@ export const buildDrizzleTable = ({
 - Connection utilities
 
 **BLOAT**:
+
 - **Versions system** - Entire separate tables and operations
 - **Drafts system** - queryDrafts, draft-related queries
-- **Localization** - Separate _locales tables, locale-aware queries
-- **Relationships system** - Complex _rels tables, polymorphic support
-- **Array fields** - Separate _texts and _numbers tables
+- **Localization** - Separate \_locales tables, locale-aware queries
+- **Relationships system** - Complex \_rels tables, polymorphic support
+- **Array fields** - Separate \_texts and \_numbers tables
 - **Migration system** - Multiple migration strategies
 - **Schema hooks** - beforeSchemaInit/afterSchemaInit
 - **Jobs system** - updateJobs operations
@@ -841,6 +866,7 @@ export const buildDrizzleTable = ({
 - **Upsert complexity** - shouldUseOptimizedUpsertRow, multiple strategies
 
 **Complexity Metrics**:
+
 - Total TypeScript files: ~120+
 - Lines of code: ~8,000+
 - Bloat estimation: **~70% of code supports features we don't need**
@@ -867,6 +893,7 @@ export const buildDrizzleTable = ({
 5. **No separate locales/relationships tables** - Uses embedded documents
 
 ### Directory Structure
+
 ```
 db-mongodb/
 └── src/          (Main adapter, connection, schema init, CRUD, queries, transactions)
@@ -875,11 +902,13 @@ db-mongodb/
 ### Key Differences
 
 **No SQL Table Complexity**:
-- No separate _locales, _rels, _texts, _numbers tables
+
+- No separate \_locales, \_rels, \_texts, \_numbers tables
 - Uses MongoDB's nested document structure
 - Relationships stored as ObjectIds or embedded docs
 
 **Query Building**:
+
 - Uses MongoDB aggregation pipeline
 - No SQL joins - uses $lookup
 - Simpler than SQL query building
@@ -905,6 +934,7 @@ We're using PostgreSQL, not MongoDB, so this adapter is not needed for our simpl
 ### Architecture
 
 **Nearly identical to db-postgres** but:
+
 1. Uses SQLite-specific column types
 2. Uses LibSQL client instead of node-postgres
 3. Different JSON query syntax (json_extract vs ->)
@@ -915,6 +945,7 @@ We're using PostgreSQL, not MongoDB, so this adapter is not needed for our simpl
 **Implementation**: ~90% shared with db-postgres through @payloadcms/drizzle
 
 ### Why Not Relevant
+
 We're using PostgreSQL for production. SQLite might be useful for testing but not for our core CMS.
 
 ---
@@ -935,12 +966,14 @@ We're using PostgreSQL for production. SQLite might be useful for testing but no
 ### Architecture
 
 **Nearly identical to db-postgres** but:
+
 1. Uses `@vercel/postgres` SDK for connection
 2. Optimized for Vercel's hosted Postgres
 3. Supports Vercel's connection pooling
 4. Otherwise shares all code with db-postgres
 
 ### Why Not Relevant
+
 Unless we're deploying to Vercel specifically, standard db-postgres is better. This is a deployment-specific optimization.
 
 ---
@@ -960,11 +993,13 @@ Unless we're deploying to Vercel specifically, standard db-postgres is better. T
 ### Architecture
 
 **SQLite adapter for Cloudflare D1**:
+
 1. Uses Cloudflare D1 as SQLite backend
 2. Optimized for edge computing
 3. Similar to db-sqlite but for Cloudflare Workers
 
 ### Why Not Relevant
+
 We're using PostgreSQL, not Cloudflare D1. Not relevant for our CMS.
 
 ---
@@ -974,18 +1009,20 @@ We're using PostgreSQL, not Cloudflare D1. Not relevant for our CMS.
 ### How Adapters Integrate
 
 1. **Payload Core** (`payload` package):
+
    ```typescript
    interface DatabaseAdapter {
      name: string
      init: (payload: Payload) => Promise<DatabaseAdapter>
      connect: (options?: ConnectOptions) => Promise<void>
      create: (args: CreateArgs) => Promise<Document>
-     find: (args: FindArgs) => Promise<{ docs: Document[], totalDocs: number }>
+     find: (args: FindArgs) => Promise<{ docs: Document[]; totalDocs: number }>
      // ... all CRUD operations
    }
    ```
 
 2. **Adapter Registration**:
+
    ```typescript
    // In payload.config.ts
    export default buildConfig({
@@ -997,6 +1034,7 @@ We're using PostgreSQL, not Cloudflare D1. Not relevant for our CMS.
    ```
 
 3. **Initialization Flow**:
+
    ```
    Payload.init()
      → adapter.init(payload)
@@ -1040,7 +1078,7 @@ db: postgresAdapter({
         }),
       })
       return schema
-    }
+    },
   ],
 })
 ```
@@ -1054,6 +1092,7 @@ db: postgresAdapter({
 **Unit Tests**: Not prominent in these packages
 
 **Integration Tests**: Located in `/test/` directories
+
 - Testing CRUD operations
 - Testing query building
 - Testing transactions
@@ -1061,13 +1100,14 @@ db: postgresAdapter({
 - Testing relationships
 
 **Example Test Structure**:
+
 ```typescript
 // test/fields/int.spec.ts
 describe('Fields', () => {
   it('should create collection', async () => {
     const doc = await payload.create({
       collection: 'posts',
-      data: { title: 'Test' }
+      data: { title: 'Test' },
     })
     expect(doc.id).toBeDefined()
   })
@@ -1222,16 +1262,19 @@ Total: ~1,000 lines vs current ~10,000 lines
 ### Key Files with Line Numbers
 
 **db-postgres/src/index.ts**:
+
 - Lines 68-89: Adapter configuration setup
 - Lines 99-213: Database adapter creation with all operations
 
 **db-postgres/src/connect.ts**:
+
 - Lines 10-45: Auto-reconnect logic
 - Lines 56-79: Drizzle initialization and read replicas
 - Lines 88-106: Auto database creation
 - Lines 116-131: Dev schema push and production migrations
 
 **drizzle/src/schema/build.ts**:
+
 - Lines 69-91: Table initialization
 - Lines 188-275: Locales table creation
 - Lines 333-428: Texts table for array fields
@@ -1239,18 +1282,23 @@ Total: ~1,000 lines vs current ~10,000 lines
 - Lines 522-698: Relationships table
 
 **drizzle/src/queries/buildQuery.ts**:
+
 - Lines 41-95: Main query builder
 
 **drizzle/src/create.ts**:
+
 - Lines 10-36: Create operation using upsertRow
 
 **drizzle/src/transactions/beginTransaction.ts**:
+
 - Lines 7-66: Transaction session management
 
 **drizzle/src/postgres/init.ts**:
+
 - Lines 11-45: Schema initialization process
 
 **drizzle/src/postgres/schema/buildDrizzleTable.ts**:
+
 - Lines 39-204: Convert RawTable to Drizzle table
 
 ---
@@ -1265,6 +1313,7 @@ The PayloadCMS database layer is a sophisticated, well-architected system design
 - **Version, drafts, and localization** systems are completely unnecessary
 
 For our CMS, we should:
+
 1. **Use db-postgres as inspiration**, not implementation
 2. **Build a minimal adapter** (~1,000 lines vs ~10,000)
 3. **Use JSONB for complex data** instead of separate tables

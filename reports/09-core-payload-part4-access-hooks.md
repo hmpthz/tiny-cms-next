@@ -26,6 +26,7 @@ Payload implements a comprehensive, multi-layered access control system with a p
 ### Key Findings
 
 **Access Control Strengths:**
+
 - Multi-level granularity (collection, field, operation)
 - Support for both boolean and query-based access (Where constraints)
 - Admin access control separate from API access
@@ -33,6 +34,7 @@ Payload implements a comprehensive, multi-layered access control system with a p
 - Field-level read/update access controls
 
 **Hooks System Strengths:**
+
 - Comprehensive coverage of document lifecycle
 - Async support throughout
 - Rich context passed to all hooks
@@ -40,6 +42,7 @@ Payload implements a comprehensive, multi-layered access control system with a p
 - Proper execution order with error handling
 
 **Integration Strengths:**
+
 - Access control and hooks work together seamlessly
 - Request context propagates through all layers
 - User context available in all hooks
@@ -70,12 +73,11 @@ export type AccessArgs<TData = any> = {
 }
 
 // Access function signature
-export type Access<TData = any> = (
-  args: AccessArgs<TData>
-) => AccessResult | Promise<AccessResult>
+export type Access<TData = any> = (args: AccessArgs<TData>) => AccessResult | Promise<AccessResult>
 ```
 
 **Key Design Decision**: Access functions can return:
+
 - `true` - Full access granted
 - `false` - Access denied
 - `Where` object - Conditional access based on query constraints
@@ -90,8 +92,8 @@ access: {
 
     return {
       author: {
-        equals: user.id
-      }
+        equals: user.id,
+      },
     }
   }
 }
@@ -116,6 +118,7 @@ export type CollectionConfig = {
 ```
 
 Operations supported:
+
 - `create` - Create new documents
 - `read` - Query documents
 - `update` - Modify documents
@@ -151,7 +154,7 @@ export type FieldBase = {
 }
 
 export type FieldAccess<TData = any, TSiblingData = any> = (
-  args: FieldAccessArgs<TData, TSiblingData>
+  args: FieldAccessArgs<TData, TSiblingData>,
 ) => boolean | Promise<boolean>
 
 export type FieldAccessArgs<TData = any, TSiblingData = any> = {
@@ -272,9 +275,8 @@ export async function getAccessResults({ req }: GetAccessResultsArgs) {
   const { payload, user } = req
 
   const isLoggedIn = !!user
-  const userCollectionConfig = user && user.collection
-    ? payload?.collections?.[user.collection]?.config
-    : null
+  const userCollectionConfig =
+    user && user.collection ? payload?.collections?.[user.collection]?.config : null
 
   // Check admin access
   if (userCollectionConfig && payload.config.admin.user === user?.collection) {
@@ -297,7 +299,7 @@ export async function getAccessResults({ req }: GetAccessResultsArgs) {
         req,
       })
       results.collections![collection.slug] = collectionPolicy
-    })
+    }),
   )
 
   return sanitizePermissions(results)
@@ -311,8 +313,7 @@ export async function getAccessResults({ req }: GetAccessResultsArgs) {
 ```typescript
 // From /packages/payload/src/auth/defaultAccess.ts
 
-export const defaultAccess = ({ req: { user } }: { req: PayloadRequest }): boolean =>
-  Boolean(user)
+export const defaultAccess = ({ req: { user } }: { req: PayloadRequest }): boolean => Boolean(user)
 ```
 
 Simple but effective: require authentication by default.
@@ -338,8 +339,8 @@ access: {
     // Users only see their tenant's data
     return {
       tenant: {
-        equals: user.tenant
-      }
+        equals: user.tenant,
+      },
     }
   }
 }
@@ -377,7 +378,7 @@ export function combineQueries(query1: Where, query2: Where): Where {
   if (!query2) return query1
 
   return {
-    and: [query1, query2]
+    and: [query1, query2],
   }
 }
 ```
@@ -390,48 +391,54 @@ From `/packages/payload/src/query-presets/access.ts` - the query presets system:
 
 ```typescript
 export const getAccess = (config: Config): Record<Operation, Access> =>
-  operations.reduce((acc, operation) => {
-    acc[operation] = async (args) => {
-      const { req } = args
+  operations.reduce(
+    (acc, operation) => {
+      acc[operation] = async (args) => {
+        const { req } = args
 
-      const collectionAccess = config?.queryPresets?.access?.[operation]
-        ? await config.queryPresets.access[operation](args)
-        : defaultCollectionAccess?.[operation]
-          ? defaultCollectionAccess[operation](args)
-          : true
+        const collectionAccess = config?.queryPresets?.access?.[operation]
+          ? await config.queryPresets.access[operation](args)
+          : defaultCollectionAccess?.[operation]
+            ? defaultCollectionAccess[operation](args)
+            : true
 
-      // If collection-level access is false, deny
-      if (collectionAccess === false) {
-        return false
-      }
+        // If collection-level access is false, deny
+        if (collectionAccess === false) {
+          return false
+        }
 
-      // Create operation doesn't need document-level checks
-      if (operation === 'create') {
-        return collectionAccess
-      }
+        // Create operation doesn't need document-level checks
+        if (operation === 'create') {
+          return collectionAccess
+        }
 
-      // Build query for document-level access
-      return {
-        and: [
-          {
-            or: [
-              // User-specific access
-              ...(req?.user ? [{
-                and: [
-                  { [`access.${operation}.users`]: { in: [req.user.id] } },
-                  { [`access.${operation}.constraint`]: {
-                    in: ['onlyMe', 'specificUsers']
-                  } }
-                ]
-              }] : []),
-              // Everyone access
-              {
-                [`access.${operation}.constraint`]: { equals: 'everyone' }
-              },
-              // Custom constraints
-              ...(await Promise.all(
-                (config?.queryPresets?.constraints?.[operation] || [])
-                  .map(async (constraint) => {
+        // Build query for document-level access
+        return {
+          and: [
+            {
+              or: [
+                // User-specific access
+                ...(req?.user
+                  ? [
+                      {
+                        and: [
+                          { [`access.${operation}.users`]: { in: [req.user.id] } },
+                          {
+                            [`access.${operation}.constraint`]: {
+                              in: ['onlyMe', 'specificUsers'],
+                            },
+                          },
+                        ],
+                      },
+                    ]
+                  : []),
+                // Everyone access
+                {
+                  [`access.${operation}.constraint`]: { equals: 'everyone' },
+                },
+                // Custom constraints
+                ...(await Promise.all(
+                  (config?.queryPresets?.constraints?.[operation] || []).map(async (constraint) => {
                     const constraintAccess = constraint.access
                       ? await constraint.access(args)
                       : undefined
@@ -442,29 +449,31 @@ export const getAccess = (config: Config): Record<Operation, Access> =>
                           ? [constraintAccess]
                           : constraintAccess === false
                             ? [{ id: { equals: null } }] // No matches
-                            : []
-                        ),
+                            : []),
                         {
                           [`access.${operation}.constraint`]: {
-                            equals: constraint.value
-                          }
-                        }
-                      ]
+                            equals: constraint.value,
+                          },
+                        },
+                      ],
                     }
-                  })
-              ))
-            ]
-          },
-          ...(typeof collectionAccess === 'object' ? [collectionAccess] : [])
-        ]
+                  }),
+                )),
+              ],
+            },
+            ...(typeof collectionAccess === 'object' ? [collectionAccess] : []),
+          ],
+        }
       }
-    }
 
-    return acc
-  }, {} as Record<Operation, Access>)
+      return acc
+    },
+    {} as Record<Operation, Access>,
+  )
 ```
 
 This demonstrates a sophisticated multi-level access pattern with:
+
 - Collection-level base access
 - Document-level constraints stored in the document itself
 - User-specific permissions
@@ -506,7 +515,7 @@ export const promise = async ({
 
     if (!canReadField) {
       allowDefaultValue = false
-      delete siblingDoc[field.name!]  // Remove field from result
+      delete siblingDoc[field.name!] // Remove field from result
     }
   }
 
@@ -606,7 +615,7 @@ export async function getEntityPolicies(args: Args) {
       })
     } else {
       // Default: require login
-      (policies as any)[operation] = {
+      ;(policies as any)[operation] = {
         permission: !!user,
       }
     }
@@ -656,7 +665,7 @@ const executeFieldPolicies = async ({
           await createAccessPromise({
             access: field.access[operation],
             accessLevel: 'field',
-            disableWhere: true,  // Fields can't use Where constraints
+            disableWhere: true, // Fields can't use Where constraints
             operation,
             policiesObj: mutablePolicies[field.name],
           })
@@ -673,7 +682,7 @@ const executeFieldPolicies = async ({
             fields: field.fields,
             operation,
             policiesObj: mutablePolicies[field.name],
-            ...args
+            ...args,
           })
         }
 
@@ -682,7 +691,7 @@ const executeFieldPolicies = async ({
           await handleBlockPolicies(field, mutablePolicies, args)
         }
       }
-    })
+    }),
   )
 }
 ```
@@ -726,6 +735,7 @@ const executeFieldPolicies = async ({
 ### 1. Hook Architecture
 
 Payload provides hooks at three levels:
+
 1. **Collection hooks** - Lifecycle events for documents
 2. **Field hooks** - Per-field transformations
 3. **Global hooks** (implied but not extensively implemented)
@@ -870,13 +880,14 @@ export const createOperation = async (incomingArgs: Arguments) => {
     // 2. beforeOperation - Collection
     if (args.collection.config.hooks.beforeOperation?.length) {
       for (const hook of args.collection.config.hooks.beforeOperation) {
-        args = (await hook({
-          args,
-          collection: args.collection.config,
-          context: args.req.context,
-          operation: 'create',
-          req: args.req,
-        })) || args
+        args =
+          (await hook({
+            args,
+            collection: args.collection.config,
+            context: args.req.context,
+            operation: 'create',
+            req: args.req,
+          })) || args
       }
     }
 
@@ -907,26 +918,28 @@ export const createOperation = async (incomingArgs: Arguments) => {
     // 6. beforeValidate - Collection
     if (collectionConfig.hooks.beforeValidate?.length) {
       for (const hook of collectionConfig.hooks.beforeValidate) {
-        data = (await hook({
-          collection: collectionConfig,
-          context: req.context,
-          data,
-          operation: 'create',
-          req,
-        })) || data
+        data =
+          (await hook({
+            collection: collectionConfig,
+            context: req.context,
+            data,
+            operation: 'create',
+            req,
+          })) || data
       }
     }
 
     // 7. beforeChange - Collection
     if (collectionConfig.hooks?.beforeChange?.length) {
       for (const hook of collectionConfig.hooks.beforeChange) {
-        data = (await hook({
-          collection: collectionConfig,
-          context: req.context,
-          data,
-          operation: 'create',
-          req,
-        })) || data
+        data =
+          (await hook({
+            collection: collectionConfig,
+            context: req.context,
+            data,
+            operation: 'create',
+            req,
+          })) || data
       }
     }
 
@@ -966,19 +979,20 @@ export const createOperation = async (incomingArgs: Arguments) => {
     result = await afterRead({
       collection: collectionConfig,
       doc: result,
-      operation: 'read',  // Note: afterRead after create
+      operation: 'read', // Note: afterRead after create
       req,
     })
 
     // 13. afterRead - Collection
     if (collectionConfig.hooks?.afterRead?.length) {
       for (const hook of collectionConfig.hooks.afterRead) {
-        result = (await hook({
-          collection: collectionConfig,
-          context: req.context,
-          doc: result,
-          req,
-        })) || result
+        result =
+          (await hook({
+            collection: collectionConfig,
+            context: req.context,
+            doc: result,
+            req,
+          })) || result
       }
     }
 
@@ -995,15 +1009,16 @@ export const createOperation = async (incomingArgs: Arguments) => {
     // 15. afterChange - Collection
     if (collectionConfig.hooks?.afterChange?.length) {
       for (const hook of collectionConfig.hooks.afterChange) {
-        result = (await hook({
-          collection: collectionConfig,
-          context: req.context,
-          data,
-          doc: result,
-          operation: 'create',
-          previousDoc: {},
-          req,
-        })) || result
+        result =
+          (await hook({
+            collection: collectionConfig,
+            context: req.context,
+            data,
+            doc: result,
+            operation: 'create',
+            previousDoc: {},
+            req,
+          })) || result
       }
     }
 
@@ -1174,7 +1189,7 @@ export const findOperation = async (incomingArgs: Arguments) => {
 
 ```typescript
 export type BeforeOperationHook = (args: {
-  args?: any  // Original operation arguments
+  args?: any // Original operation arguments
   collection: SanitizedCollectionConfig
   context: RequestContext
   operation: HookOperationType
@@ -1185,12 +1200,14 @@ export type BeforeOperationHook = (args: {
 **Purpose**: Modify operation arguments before anything else runs.
 
 **Use cases**:
+
 - Add/modify query parameters
 - Set default values based on context
 - Logging/analytics
 - Request validation
 
 **Example**:
+
 ```typescript
 beforeOperation: [
   async ({ args, operation, req }) => {
@@ -1202,15 +1219,12 @@ beforeOperation: [
 
       // Filter by tenant
       args.where = {
-        and: [
-          args.where || {},
-          { tenant: { equals: req.user.tenant } }
-        ]
+        and: [args.where || {}, { tenant: { equals: req.user.tenant } }],
       }
     }
 
     return args
-  }
+  },
 ]
 ```
 
@@ -1230,11 +1244,13 @@ export type BeforeValidateHook<T = any> = (args: {
 **Purpose**: Transform data before validation runs.
 
 **Use cases**:
+
 - Set computed fields
 - Normalize data format
 - Add server-generated values
 
 **Example**:
+
 ```typescript
 beforeValidate: [
   async ({ data, operation, req }) => {
@@ -1249,7 +1265,7 @@ beforeValidate: [
     }
 
     return data
-  }
+  },
 ]
 ```
 
@@ -1271,12 +1287,14 @@ export type BeforeChangeHook<T = any> = (args: {
 **Key difference from beforeValidate**: Validation has already run, so data is known to be valid.
 
 **Use cases**:
+
 - Hash passwords
 - Generate tokens
 - Encrypt sensitive fields
 - Update timestamps
 
 **Example**:
+
 ```typescript
 beforeChange: [
   async ({ data, operation, originalDoc }) => {
@@ -1285,21 +1303,19 @@ beforeChange: [
       data.lastModified = new Date()
 
       // Build change log
-      const changes = Object.keys(data).filter(
-        key => data[key] !== originalDoc[key]
-      )
+      const changes = Object.keys(data).filter((key) => data[key] !== originalDoc[key])
 
       data.changeLog = [
         ...(originalDoc.changeLog || []),
         {
           timestamp: new Date(),
-          fields: changes
-        }
+          fields: changes,
+        },
       ]
     }
 
     return data
-  }
+  },
 ]
 ```
 
@@ -1309,10 +1325,10 @@ beforeChange: [
 export type AfterChangeHook<T = any> = (args: {
   collection: SanitizedCollectionConfig
   context: RequestContext
-  data: Partial<T>  // Input data
-  doc: T            // Saved document
+  data: Partial<T> // Input data
+  doc: T // Saved document
   operation: 'create' | 'update'
-  previousDoc: T    // Document before change
+  previousDoc: T // Document before change
   req: PayloadRequest
 }) => any
 ```
@@ -1320,6 +1336,7 @@ export type AfterChangeHook<T = any> = (args: {
 **Purpose**: Side effects after successful database write.
 
 **Use cases**:
+
 - Send notifications
 - Update related documents
 - Clear caches
@@ -1327,6 +1344,7 @@ export type AfterChangeHook<T = any> = (args: {
 - Trigger webhooks
 
 **Example**:
+
 ```typescript
 afterChange: [
   async ({ doc, operation, previousDoc, req }) => {
@@ -1335,7 +1353,7 @@ afterChange: [
       await sendEmail({
         to: doc.author,
         subject: 'Document created',
-        body: `Your document "${doc.title}" has been created`
+        body: `Your document "${doc.title}" has been created`,
       })
     }
 
@@ -1346,7 +1364,7 @@ afterChange: [
     await cache.del(`doc:${doc.id}`)
 
     return doc
-  }
+  },
 ]
 ```
 
@@ -1365,6 +1383,7 @@ export type BeforeReadHook<T = any> = (args: {
 **Purpose**: Transform document before field access control.
 
 **Use cases**:
+
 - Decrypt sensitive fields
 - Add computed properties
 - Modify data based on context
@@ -1387,12 +1406,14 @@ export type AfterReadHook<T = any> = (args: {
 **Purpose**: Final transformation before returning to client.
 
 **Use cases**:
+
 - Format data for client
 - Add virtual fields
 - Mask sensitive data
 - Calculate derived values
 
 **Example**:
+
 ```typescript
 afterRead: [
   async ({ doc, req }) => {
@@ -1408,7 +1429,7 @@ afterRead: [
     }
 
     return doc
-  }
+  },
 ]
 ```
 
@@ -1426,18 +1447,20 @@ export type BeforeDeleteHook = (args: {
 **Purpose**: Validate or prepare before deletion.
 
 **Use cases**:
+
 - Prevent deletion based on rules
 - Archive before delete
 - Check dependencies
 
 **Example**:
+
 ```typescript
 beforeDelete: [
   async ({ id, collection, req }) => {
     // Check if document has dependencies
     const dependents = await req.payload.find({
       collection: 'related',
-      where: { parent: { equals: id } }
+      where: { parent: { equals: id } },
     })
 
     if (dependents.totalDocs > 0) {
@@ -1450,10 +1473,10 @@ beforeDelete: [
       data: {
         originalId: id,
         collection: collection.slug,
-        archivedAt: new Date()
-      }
+        archivedAt: new Date(),
+      },
     })
-  }
+  },
 ]
 ```
 
@@ -1472,19 +1495,21 @@ export type AfterDeleteHook<T = any> = (args: {
 **Purpose**: Cleanup after successful deletion.
 
 **Use cases**:
+
 - Delete related documents
 - Clear caches
 - Send notifications
 - Clean up files
 
 **Example**:
+
 ```typescript
 afterDelete: [
   async ({ doc, id, req }) => {
     // Delete related documents
     await req.payload.delete({
       collection: 'comments',
-      where: { post: { equals: id } }
+      where: { post: { equals: id } },
     })
 
     // Delete uploaded files
@@ -1499,18 +1524,16 @@ afterDelete: [
     await sendEmail({
       to: doc.author,
       subject: 'Document deleted',
-      body: `Your document "${doc.title}" has been deleted`
+      body: `Your document "${doc.title}" has been deleted`,
     })
-  }
+  },
 ]
 ```
 
 #### 3.9 afterOperation Hook
 
 ```typescript
-export type AfterOperationHook = (
-  arg: AfterOperationArg
-) => Promise<Result> | Result
+export type AfterOperationHook = (arg: AfterOperationArg) => Promise<Result> | Result
 
 export type AfterOperationArg = {
   collection: SanitizedCollectionConfig
@@ -1524,11 +1547,13 @@ export type AfterOperationArg = {
 **Purpose**: Final hook after everything else completes.
 
 **Use cases**:
+
 - Analytics/logging
 - Transform final result
 - Trigger background jobs
 
 **Example**:
+
 ```typescript
 afterOperation: [
   async ({ operation, result, args, req }) => {
@@ -1537,19 +1562,19 @@ afterOperation: [
       operation,
       collection: args.collection.slug,
       user: req.user?.id,
-      result: operation === 'find' ? result.totalDocs : result.id
+      result: operation === 'find' ? result.totalDocs : result.id,
     })
 
     // Queue background job
     if (operation === 'create') {
       await queue.add('process-document', {
         documentId: result.id,
-        collection: args.collection.slug
+        collection: args.collection.slug,
       })
     }
 
     return result
-  }
+  },
 ]
 ```
 
@@ -1571,6 +1596,7 @@ Executed in `/packages/payload/src/fields/hooks/beforeValidate/promise.ts`.
 **Purpose**: Set field defaults, transform values before validation.
 
 **Example**:
+
 ```typescript
 {
   name: 'slug',
@@ -1627,6 +1653,7 @@ if ('hooks' in field && field.hooks?.beforeChange) {
 **Key Pattern**: Hook can return undefined to leave value unchanged.
 
 **Example**:
+
 ```typescript
 {
   name: 'password',
@@ -1686,6 +1713,7 @@ if (triggerHooks && 'hooks' in field && field.hooks?.afterRead) {
 **Purpose**: Transform field value after read, access control, and population.
 
 **Example**:
+
 ```typescript
 {
   name: 'content',
@@ -1714,6 +1742,7 @@ Executed in `/packages/payload/src/fields/hooks/afterChange/promise.ts`.
 **Purpose**: Side effects after field value saved.
 
 **Example**:
+
 ```typescript
 {
   name: 'status',
@@ -1772,7 +1801,7 @@ export type RequestContext = {
 beforeOperation: [
   async ({ context, req }) => {
     context.startTime = Date.now()
-  }
+  },
 ]
 
 // Usage in afterOperation
@@ -1781,7 +1810,7 @@ afterOperation: [
     const duration = Date.now() - (context.startTime as number)
     logger.info(`Operation took ${duration}ms`)
     return result
-  }
+  },
 ]
 ```
 
@@ -1796,7 +1825,7 @@ beforeChange: [
       data.lastModifiedBy = req.user.id
     }
     return data
-  }
+  },
 ]
 ```
 
@@ -1814,12 +1843,12 @@ afterChange: [
         action: 'document-created',
         documentId: doc.id,
         userId: req.user?.id,
-        timestamp: new Date()
-      }
+        timestamp: new Date(),
+      },
     })
 
     return doc
-  }
+  },
 ]
 ```
 
@@ -1869,12 +1898,12 @@ hooks: {
       await logger.error({
         error: error.message,
         stack: error.stack,
-        context
+        context,
       })
 
       // Optionally modify error response
       return result
-    }
+    },
   ]
 }
 ```
@@ -1898,7 +1927,7 @@ beforeChange: [
     }
 
     return data
-  }
+  },
 ]
 ```
 
@@ -1913,11 +1942,11 @@ beforeChange: [
     const [user, settings] = await Promise.all([
       req.payload.findByID({
         collection: 'users',
-        id: req.user.id
+        id: req.user.id,
       }),
       req.payload.findGlobal({
-        slug: 'settings'
-      })
+        slug: 'settings',
+      }),
     ])
 
     // Use results
@@ -1925,7 +1954,7 @@ beforeChange: [
     data.siteUrl = settings.siteUrl
 
     return data
-  }
+  },
 ]
 ```
 
@@ -1945,29 +1974,27 @@ beforeChange: [
 #### 8.2 Common Pitfalls
 
 1. **Performance**: Sequential execution can be slow
+
    ```typescript
    // BAD: Sequential
    afterChange: [
      async ({ doc }) => {
-       await sendEmail(doc)  // Waits
-       await updateCache(doc)  // Waits
-       await syncToSearch(doc)  // Waits
-     }
+       await sendEmail(doc) // Waits
+       await updateCache(doc) // Waits
+       await syncToSearch(doc) // Waits
+     },
    ]
 
    // GOOD: Parallel
    afterChange: [
      async ({ doc }) => {
-       await Promise.all([
-         sendEmail(doc),
-         updateCache(doc),
-         syncToSearch(doc)
-       ])
-     }
+       await Promise.all([sendEmail(doc), updateCache(doc), syncToSearch(doc)])
+     },
    ]
    ```
 
 2. **Infinite loops**: Careful with hooks that trigger other operations
+
    ```typescript
    // BAD: Can cause infinite loop
    afterChange: [
@@ -1996,6 +2023,7 @@ beforeChange: [
    ```
 
 3. **Error handling**: Don't swallow errors
+
    ```typescript
    // BAD: Silent failure
    afterChange: [
@@ -2007,7 +2035,7 @@ beforeChange: [
          console.error(err)
        }
        return doc
-     }
+     },
    ]
 
    // GOOD: Let it fail or queue retry
@@ -2020,7 +2048,7 @@ beforeChange: [
          await queue.add('send-email', { docId: doc.id })
        }
        return doc
-     }
+     },
    ]
    ```
 
@@ -2035,13 +2063,13 @@ beforeChange: [
 ```typescript
 access: {
   read: async ({ req, id }) => {
-    if (!id) return !!req.user  // Listing: require auth
+    if (!id) return !!req.user // Listing: require auth
 
     // Fetch document to check state
     const doc = await req.payload.findByID({
       collection: 'posts',
       id,
-      overrideAccess: true
+      overrideAccess: true,
     })
 
     // Published posts are public
@@ -2052,8 +2080,8 @@ access: {
     // Draft posts only visible to author
     return {
       author: {
-        equals: req.user?.id
-      }
+        equals: req.user?.id,
+      },
     }
   }
 }
@@ -2102,8 +2130,8 @@ fields: [
       read: ({ doc, req }) => {
         // Only staff can read internal notes
         return req.user?.role === 'staff'
-      }
-    }
+      },
+    },
   },
   {
     name: 'sensitiveData',
@@ -2119,11 +2147,11 @@ fields: [
 
             // Or has admin permission
             return req.user?.role === 'admin'
-          }
-        }
-      }
-    ]
-  }
+          },
+        },
+      },
+    ],
+  },
 ]
 ```
 
@@ -2158,20 +2186,23 @@ fields: [
 
 ```typescript
 // API endpoint receives request
-POST /api/posts
+POST / api / posts
 
 // 1. Create local request with context
-const req = await createLocalReq({
-  context: { source: 'api', ipAddress: req.ip },
-  user: authenticatedUser
-}, payload)
+const req = await createLocalReq(
+  {
+    context: { source: 'api', ipAddress: req.ip },
+    user: authenticatedUser,
+  },
+  payload,
+)
 
 // 2. Context available in all hooks
 beforeOperation: [
   async ({ context, req }) => {
-    console.log(context.source)  // 'api'
+    console.log(context.source) // 'api'
     context.operationId = generateId()
-  }
+  },
 ]
 
 // 3. Context propagates to nested operations
@@ -2181,10 +2212,10 @@ afterChange: [
       collection: 'activity-log',
       data: {
         documentId: doc.id,
-        operationId: context.operationId  // From parent
-      }
+        operationId: context.operationId, // From parent
+      },
     })
-  }
+  },
 ]
 
 // 4. Context available in field hooks
@@ -2195,7 +2226,7 @@ field: {
         if (context.source === 'import') {
           // Skip validation for imports
         }
-      }
+      },
     ]
   }
 }
@@ -2270,16 +2301,16 @@ hooks: {
 const result = await payload.create({
   collection: 'posts',
   data: { title: 'Test' },
-  user: adminUser,  // Set user context
-  context: { reason: 'admin-action' }
+  user: adminUser, // Set user context
+  context: { reason: 'admin-action' },
 })
 
 // User available in all hooks
 beforeChange: [
   async ({ data, req }) => {
-    console.log(req.user.id)  // adminUser.id
-    console.log(req.context.reason)  // 'admin-action'
-  }
+    console.log(req.user.id) // adminUser.id
+    console.log(req.context.reason) // 'admin-action'
+  },
 ]
 ```
 
@@ -2298,13 +2329,13 @@ hooks: {
           action: 'document-modified',
           documentId: doc.id,
           userId: req.user?.id,
-          timestamp: new Date()
+          timestamp: new Date(),
         },
-        overrideAccess: true  // Bypass access control
+        overrideAccess: true, // Bypass access control
       })
 
       return doc
-    }
+    },
   ]
 }
 ```
@@ -2319,7 +2350,7 @@ beforeOperation: [
       args.overrideAccess = true
     }
     return args
-  }
+  },
 ]
 ```
 
@@ -2338,14 +2369,14 @@ export const Posts: CollectionConfig = {
       if (!req.user) return false
 
       if (req.user.role === 'admin') {
-        return true  // Admins see all
+        return true // Admins see all
       }
 
       // Users see their tenant's posts
       return {
         tenant: {
-          equals: req.user.tenant
-        }
+          equals: req.user.tenant,
+        },
       }
     },
 
@@ -2362,12 +2393,9 @@ export const Posts: CollectionConfig = {
 
       // Check ownership
       return {
-        and: [
-          { tenant: { equals: req.user.tenant } },
-          { author: { equals: req.user.id } }
-        ]
+        and: [{ tenant: { equals: req.user.tenant } }, { author: { equals: req.user.id } }],
       }
-    }
+    },
   },
 
   hooks: {
@@ -2379,7 +2407,7 @@ export const Posts: CollectionConfig = {
           args.data.author = req.user.id
         }
         return args
-      }
+      },
     ],
 
     // Validate tenant hasn't changed
@@ -2397,7 +2425,7 @@ export const Posts: CollectionConfig = {
         data.lastModifiedAt = new Date()
 
         return data
-      }
+      },
     ],
 
     // Audit logging after successful change
@@ -2415,17 +2443,15 @@ export const Posts: CollectionConfig = {
             documentId: doc.id,
             userId: req.user?.id,
             tenant: doc.tenant,
-            changes: operation === 'update'
-              ? calculateChanges(previousDoc, doc)
-              : null,
-            timestamp: new Date()
+            changes: operation === 'update' ? calculateChanges(previousDoc, doc) : null,
+            timestamp: new Date(),
           },
           overrideAccess: true,
-          context: { skipAudit: true }  // Prevent infinite loop
+          context: { skipAudit: true }, // Prevent infinite loop
         })
 
         return doc
-      }
+      },
     ],
 
     // Soft delete logging
@@ -2435,7 +2461,7 @@ export const Posts: CollectionConfig = {
         const doc = await req.payload.findByID({
           collection: 'posts',
           id,
-          overrideAccess: true
+          overrideAccess: true,
         })
 
         // Archive document
@@ -2445,24 +2471,24 @@ export const Posts: CollectionConfig = {
             ...doc,
             originalId: id,
             deletedBy: req.user?.id,
-            deletedAt: new Date()
+            deletedAt: new Date(),
           },
-          overrideAccess: true
+          overrideAccess: true,
         })
-      }
-    ]
+      },
+    ],
   },
 
   fields: [
     {
       name: 'title',
       type: 'text',
-      required: true
+      required: true,
     },
     {
       name: 'content',
       type: 'richText',
-      required: true
+      required: true,
     },
     {
       name: 'tenant',
@@ -2470,11 +2496,11 @@ export const Posts: CollectionConfig = {
       required: true,
       access: {
         // Tenant field is read-only after creation
-        update: () => false
+        update: () => false,
       },
       admin: {
-        readOnly: true
-      }
+        readOnly: true,
+      },
     },
     {
       name: 'author',
@@ -2482,18 +2508,18 @@ export const Posts: CollectionConfig = {
       relationTo: 'users',
       required: true,
       access: {
-        update: () => false  // Author cannot be changed
-      }
+        update: () => false, // Author cannot be changed
+      },
     },
     {
       name: 'internalNotes',
       type: 'textarea',
       access: {
         read: ({ req }) => req.user?.role === 'admin',
-        update: ({ req }) => req.user?.role === 'admin'
-      }
-    }
-  ]
+        update: ({ req }) => req.user?.role === 'admin',
+      },
+    },
+  ],
 }
 
 // Helper function
@@ -2505,7 +2531,7 @@ function calculateChanges(before: any, after: any): any[] {
       changes.push({
         field: key,
         before: before[key],
-        after: after[key]
+        after: after[key],
       })
     }
   }
@@ -2515,6 +2541,7 @@ function calculateChanges(before: any, after: any): any[] {
 ```
 
 This example demonstrates:
+
 - Multi-level access control (collection + field)
 - Query-based access (Where constraints)
 - Role-based permissions
@@ -2546,10 +2573,12 @@ type FieldAccess = (args: FieldAccessArgs) => boolean | Promise<boolean>
 **Opportunity**: Unify signatures, consider supporting Where for fields
 
 **Pros**:
+
 - Consistent API
 - More powerful field-level access
 
 **Cons**:
+
 - Complexity - how to combine field Where with collection Where?
 - Performance - would need to filter at field level in app, not DB
 
@@ -2581,10 +2610,12 @@ access: {
 ```
 
 **Pros**:
+
 - Less code duplication
 - One place to define access logic
 
 **Cons**:
+
 - Admin access is conceptually different from API access
 - Mixing concerns makes code harder to understand
 
@@ -2633,9 +2664,11 @@ hooks: {
 ```
 
 **Pros**:
+
 - Better performance for independent hooks
 
 **Cons**:
+
 - More complex API
 - Need to identify which hooks can be parallel
 
@@ -2652,7 +2685,7 @@ beforeChange: [
       // Only for create
     }
     return data
-  }
+  },
 ]
 ```
 
@@ -2668,10 +2701,12 @@ hooks: {
 ```
 
 **Pros**:
+
 - More explicit
 - Skip unnecessary hooks
 
 **Cons**:
+
 - More verbose config
 - Breaking change
 
@@ -2684,8 +2719,8 @@ hooks: {
 ```typescript
 beforeChange: [
   async ({ data }) => {
-    throw new Error('Validation failed')  // No context
-  }
+    throw new Error('Validation failed') // No context
+  },
 ]
 ```
 
@@ -2700,9 +2735,9 @@ beforeChange: [
       operation,
       collection: 'posts',
       userId: req.user?.id,
-      field: 'title'
+      field: 'title',
     })
-  }
+  },
 ]
 ```
 
@@ -2743,13 +2778,16 @@ await payload.transaction(async (req) => {
 **Current State**: Manual context setup
 
 ```typescript
-const req = await createLocalReq({
-  context: {
-    source: 'api',
-    userId: user.id,
-    // ... manual setup
-  }
-}, payload)
+const req = await createLocalReq(
+  {
+    context: {
+      source: 'api',
+      userId: user.id,
+      // ... manual setup
+    },
+  },
+  payload,
+)
 ```
 
 **Opportunity**: Context builder
@@ -2769,6 +2807,7 @@ const req = await createLocalReq(payload)
 #### 4.1 Essential Features (Keep)
 
 **Access Control**:
+
 - ✅ Multi-level access (collection, field, operation)
 - ✅ Query-based access (Where constraints)
 - ✅ Async access functions
@@ -2776,6 +2815,7 @@ const req = await createLocalReq(payload)
 - ✅ Override capability
 
 **Hooks**:
+
 - ✅ beforeOperation / afterOperation
 - ✅ beforeValidate / beforeChange / afterChange
 - ✅ beforeRead / afterRead
@@ -2788,16 +2828,19 @@ const req = await createLocalReq(payload)
 #### 4.2 Nice-to-Have Features (Consider Simplifying)
 
 **Access Control**:
+
 - ⚠️ Admin access (could reuse read)
 - ⚠️ Unlock access (niche feature)
 - ⚠️ Query presets (complex, limited use)
 
 **Hooks**:
+
 - ⚠️ Auth-specific hooks (could be generic)
 - ⚠️ beforeDuplicate (niche feature)
 - ⚠️ afterError (rarely used)
 
 **Integration**:
+
 - ⚠️ Lock documents (complex, limited use)
 - ⚠️ Version-specific access (adds complexity)
 
@@ -2810,6 +2853,7 @@ const req = await createLocalReq(payload)
 #### 1.1 Core Access System
 
 **Implement**:
+
 ```typescript
 // Simple 3-level access
 type Access = {
@@ -2846,6 +2890,7 @@ type AccessContext = {
 ```
 
 **Skip**:
+
 - Unlock access
 - ReadVersions access (until versioning implemented)
 - Query presets (too complex for v1)
@@ -2853,6 +2898,7 @@ type AccessContext = {
 #### 1.2 Core Hooks System
 
 **Implement (Priority 1)**:
+
 ```typescript
 hooks: {
   // High-value hooks
@@ -2864,6 +2910,7 @@ hooks: {
 ```
 
 **Implement (Priority 2)**:
+
 ```typescript
 hooks: {
   beforeValidate?: Hook[]  // Set defaults
@@ -2873,6 +2920,7 @@ hooks: {
 ```
 
 **Skip for v1**:
+
 - beforeOperation / afterOperation (too generic)
 - Auth-specific hooks (not needed yet)
 - beforeDuplicate (niche)
@@ -2881,6 +2929,7 @@ hooks: {
 #### 1.3 Field Hooks
 
 **Implement**:
+
 ```typescript
 field: {
   hooks: {
@@ -2891,6 +2940,7 @@ field: {
 ```
 
 **Skip for v1**:
+
 - beforeValidate (can use beforeChange)
 - afterChange (can use collection afterChange)
 - beforeDuplicate (niche)
@@ -2938,7 +2988,7 @@ describe('Access Control', () => {
   test('boolean access - granted', async () => {
     const result = await payload.find({
       collection: 'posts',
-      user: authenticatedUser
+      user: authenticatedUser,
     })
     expect(result.docs.length).toBeGreaterThan(0)
   })
@@ -2947,28 +2997,26 @@ describe('Access Control', () => {
     await expect(
       payload.find({
         collection: 'posts',
-        user: null
-      })
+        user: null,
+      }),
     ).rejects.toThrow(Forbidden)
   })
 
   test('query-based access - filters results', async () => {
     const result = await payload.find({
       collection: 'posts',
-      user: tenantUser
+      user: tenantUser,
     })
 
     // All results should be from user's tenant
-    expect(result.docs.every(
-      doc => doc.tenant === tenantUser.tenant
-    )).toBe(true)
+    expect(result.docs.every((doc) => doc.tenant === tenantUser.tenant)).toBe(true)
   })
 
   test('field access - removes unauthorized fields', async () => {
     const doc = await payload.findByID({
       collection: 'posts',
       id: postId,
-      user: regularUser
+      user: regularUser,
     })
 
     expect(doc.internalNotes).toBeUndefined()
@@ -2983,7 +3031,7 @@ describe('Hooks', () => {
   test('beforeChange - transforms data', async () => {
     const result = await payload.create({
       collection: 'posts',
-      data: { title: 'Test' }
+      data: { title: 'Test' },
     })
 
     // Hook should have set slug
@@ -2993,13 +3041,13 @@ describe('Hooks', () => {
   test('afterChange - side effects', async () => {
     await payload.create({
       collection: 'posts',
-      data: { title: 'Test' }
+      data: { title: 'Test' },
     })
 
     // Hook should have created audit log
     const logs = await payload.find({
       collection: 'audit-logs',
-      where: { action: { equals: 'create' } }
+      where: { action: { equals: 'create' } },
     })
 
     expect(logs.totalDocs).toBeGreaterThan(0)
@@ -3011,29 +3059,24 @@ describe('Hooks', () => {
     await payload.create({
       collection: 'test-collection',
       data: { value: 'test' },
-      context: { captureOrder: order }
+      context: { captureOrder: order },
     })
 
-    expect(order).toEqual([
-      'beforeValidate',
-      'beforeChange',
-      'afterRead',
-      'afterChange'
-    ])
+    expect(order).toEqual(['beforeValidate', 'beforeChange', 'afterRead', 'afterChange'])
   })
 
   test('hook error rolls back transaction', async () => {
     await expect(
       payload.create({
         collection: 'posts',
-        data: { triggerError: true }
-      })
+        data: { triggerError: true },
+      }),
     ).rejects.toThrow()
 
     // Document should not exist
     const result = await payload.find({
       collection: 'posts',
-      where: { triggerError: { equals: true } }
+      where: { triggerError: { equals: true } },
     })
 
     expect(result.totalDocs).toBe(0)
@@ -3094,18 +3137,21 @@ Payload's access control and hooks system is comprehensive and powerful, providi
 ### Implementation Priority
 
 **Phase 1 (Essential)**:
+
 - Collection-level access (boolean + Where)
 - Field-level read access
 - beforeChange / afterChange hooks
 - afterRead hook
 
 **Phase 2 (Important)**:
+
 - Field-level update access
 - beforeRead hook
 - Delete hooks
 - Field hooks
 
 **Phase 3 (Nice-to-have)**:
+
 - beforeValidate hook
 - Admin access
 - Advanced patterns

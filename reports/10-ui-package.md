@@ -5,6 +5,7 @@
 The `@payloadcms/ui` package is a comprehensive React-based admin UI system built for Next.js with React Server Components (RSC) support. It's a large, production-grade package (~580 TypeScript files, ~240 SCSS files) that provides a complete admin interface for managing content.
 
 **Key Characteristics:**
+
 - **Size**: Large and complex (~580 TS files)
 - **Architecture**: React 19 + Next.js 15 + RSC
 - **Complexity**: High - includes 32+ providers, extensive form state management
@@ -39,11 +40,13 @@ ui/src/
 ### 1.2 Dependencies
 
 **Core Framework:**
+
 - `react`: ^19.0.0
 - `next`: ^15.2.3
-- `payload`: workspace:*
+- `payload`: workspace:\*
 
 **UI Libraries:**
+
 - `@faceless-ui/modal`: Modal management
 - `@faceless-ui/scroll-info`: Scroll tracking
 - `@faceless-ui/window-info`: Window size tracking
@@ -54,6 +57,7 @@ ui/src/
 - `@monaco-editor/react`: Code editor
 
 **Utilities:**
+
 - `date-fns`: Date manipulation
 - `qs-esm`: Query string parsing
 - `dequal`: Deep equality checks
@@ -65,6 +69,7 @@ ui/src/
 **Multi-Stage Build Process:**
 
 1. **SWC Compilation**: TypeScript → JavaScript
+
    ```bash
    swc ./src -d dist --config-file .swcrc
    ```
@@ -84,6 +89,7 @@ ui/src/
    ```
 
 **Export Strategy:**
+
 - `/` (default): Client components (`'use client'`)
 - `/shared`: Utilities usable in both client/server
 - `/rsc`: React Server Components
@@ -96,6 +102,7 @@ ui/src/
 ### 2.1 Component Organization
 
 **Hierarchy:**
+
 ```
 Views (List, Edit)
   └─> Elements (Table, DocumentFields)
@@ -136,6 +143,7 @@ Views (List, Edit)
 **No Formal Design System**: Uses ad-hoc SCSS files
 
 **Styling Approach:**
+
 - SCSS modules co-located with components
 - Global styles in `src/scss/`
   - `vars.scss`: CSS variables (~192 lines)
@@ -145,25 +153,16 @@ Views (List, Edit)
   - `z-index.scss`: Z-index scale
 
 **CSS Variables (from vars.scss):**
+
 ```scss
 // Spacing
---base: 25px
---gutter-h: 25px
---gutter-v: 25px
-
-// Typography
---font-body: 'Untitled Sans', sans-serif
---font-mono: 'Consolas', monospace
-
-// Layout
---nav-width: 280px
---scrollbar-width: 12px
-
-// Breakpoints
---breakpoint-xs: 400px
---breakpoint-s: 768px
---breakpoint-m: 1024px
---breakpoint-l: 1440px
+--base:
+  25px --gutter-h: 25px --gutter-v: 25px // Typography
+  --font-body: 'Untitled Sans',
+  sans-serif --font-mono: 'Consolas',
+  monospace // Layout
+  --nav-width: 280px --scrollbar-width: 12px // Breakpoints
+  --breakpoint-xs: 400px --breakpoint-s: 768px --breakpoint-m: 1024px --breakpoint-l: 1440px;
 ```
 
 ### 2.3 Theming System
@@ -190,6 +189,7 @@ const ThemeProvider: React.FC = ({ children }) => {
 ```
 
 **Implementation:**
+
 - Uses `data-theme` attribute on document element
 - CSS variables adapt based on theme
 - Cookie-based persistence
@@ -198,6 +198,7 @@ const ThemeProvider: React.FC = ({ children }) => {
 ### 2.4 Responsive Design
 
 **Breakpoint System:**
+
 ```typescript
 // From WindowInfoProvider
 const breakpoints = {
@@ -209,20 +210,22 @@ const breakpoints = {
 ```
 
 **Approach:**
+
 - Mobile-first responsive design
 - Uses media queries in SCSS
 - JavaScript-based breakpoint detection via `useWindowInfo()`
 - Adaptive layouts (e.g., mobile nav toggle)
 
 **Example Responsive Pattern:**
-```tsx
-const { breakpoints: { s: smallBreak } } = useWindowInfo()
 
-{smallBreak ? (
-  <MobileLayout />
-) : (
-  <DesktopLayout />
-)}
+```tsx
+const {
+  breakpoints: { s: smallBreak },
+} = useWindowInfo()
+
+{
+  smallBreak ? <MobileLayout /> : <DesktopLayout />
+}
 ```
 
 ---
@@ -232,6 +235,7 @@ const { breakpoints: { s: smallBreak } } = useWindowInfo()
 ### 3.1 Admin Dashboard Layout
 
 **Structure:**
+
 ```
 <RootProvider>
   <ConfigProvider>
@@ -279,6 +283,7 @@ export function DefaultListView(props: ListViewClientProps) {
 ```
 
 **Features:**
+
 - Bulk selection with checkboxes
 - Filtering and search
 - Column selection/reordering
@@ -287,11 +292,12 @@ export function DefaultListView(props: ListViewClientProps) {
 - Bulk actions (delete, edit, publish)
 
 **Table Structure:**
+
 ```tsx
 <Table
-  columns={columns}     // Column definitions
-  data={data.docs}      // Document data
-  appearance="default"  // or "condensed"
+  columns={columns} // Column definitions
+  data={data.docs} // Document data
+  appearance="default" // or "condensed"
 >
   {/* Renders <table> with dynamic columns */}
 </Table>
@@ -306,11 +312,7 @@ export function DefaultListView(props: ListViewClientProps) {
 export function DefaultEditView(props: DocumentViewClientProps) {
   return (
     <OperationProvider operation={operation}>
-      <Form
-        action={action}
-        onChange={[onChange]}
-        onSuccess={onSave}
-      >
+      <Form action={action} onChange={[onChange]} onSuccess={onSave}>
         <DocumentControls />
         <DocumentFields fields={docConfig.fields} />
       </Form>
@@ -320,6 +322,7 @@ export function DefaultEditView(props: DocumentViewClientProps) {
 ```
 
 **Features:**
+
 - Auto-save (optional)
 - Version control integration
 - Document locking (prevent concurrent edits)
@@ -330,21 +333,22 @@ export function DefaultEditView(props: DocumentViewClientProps) {
 - "Leave without saving" warning
 
 **Document Locking:**
+
 ```tsx
 // Prevents concurrent edits
 const shouldShowDocumentLockedModal =
-  documentIsLocked &&
-  currentEditor &&
-  currentEditor.id !== user?.id
+  documentIsLocked && currentEditor && currentEditor.id !== user?.id
 
-{shouldShowDocumentLockedModal && (
-  <DocumentLocked
-    user={currentEditor}
-    updatedAt={lastUpdateTime}
-    onReadOnly={() => setIsReadOnlyForIncomingUser(true)}
-    onTakeOver={() => handleTakeOver()}
-  />
-)}
+{
+  shouldShowDocumentLockedModal && (
+    <DocumentLocked
+      user={currentEditor}
+      updatedAt={lastUpdateTime}
+      onReadOnly={() => setIsReadOnlyForIncomingUser(true)}
+      onTakeOver={() => handleTakeOver()}
+    />
+  )
+}
 ```
 
 ### 3.4 Field Components
@@ -363,11 +367,7 @@ const TextFieldComponent: TextFieldClientComponent = (props) => {
   })
 
   return (
-    <TextInput
-      value={value}
-      onChange={(e) => setValue(e.target.value)}
-      showError={showError}
-    />
+    <TextInput value={value} onChange={(e) => setValue(e.target.value)} showError={showError} />
   )
 }
 
@@ -377,16 +377,16 @@ export const TextField = withCondition(TextFieldComponent)
 
 **Field Types Implemented:**
 
-| Category | Fields |
-|----------|--------|
-| **Text** | Text, Textarea, Email, Password, Slug |
-| **Rich** | RichText, Code, JSON |
-| **Number** | Number, Point |
-| **Date** | DateTime |
-| **Selection** | Select, Radio, Checkbox |
-| **Relations** | Relationship, Upload, Join |
+| Category       | Fields                                       |
+| -------------- | -------------------------------------------- |
+| **Text**       | Text, Textarea, Email, Password, Slug        |
+| **Rich**       | RichText, Code, JSON                         |
+| **Number**     | Number, Point                                |
+| **Date**       | DateTime                                     |
+| **Selection**  | Select, Radio, Checkbox                      |
+| **Relations**  | Relationship, Upload, Join                   |
 | **Structural** | Array, Blocks, Group, Row, Tabs, Collapsible |
-| **Special** | Hidden, UI |
+| **Special**    | Hidden, UI                                   |
 
 **Example: Relationship Field**
 
@@ -397,11 +397,14 @@ const RelationshipFieldComponent = (props) => {
     validate: memoizedValidate,
   })
 
-  const handleChange = useCallback((newValue) => {
-    // Handle polymorphic or single relation
-    const dataToSet = isPolymorphic ? newValue : newValue.value
-    setValue(dataToSet)
-  }, [setValue])
+  const handleChange = useCallback(
+    (newValue) => {
+      // Handle polymorphic or single relation
+      const dataToSet = isPolymorphic ? newValue : newValue.value
+      setValue(dataToSet)
+    },
+    [setValue],
+  )
 
   return (
     <RelationshipInput
@@ -423,19 +426,15 @@ const RelationshipFieldComponent = (props) => {
 // forms/Form/index.tsx
 export const Form: React.FC<FormProps> = (props) => {
   const {
-    action,           // Submit URL or function
-    initialState,     // Initial form state
-    onChange,         // Array of onChange handlers
-    onSuccess,        // Success callback
-    onSubmit,         // Submit handler
+    action, // Submit URL or function
+    initialState, // Initial form state
+    onChange, // Array of onChange handlers
+    onSuccess, // Success callback
+    onSubmit, // Submit handler
   } = props
 
   // Form reducer for state management
-  const [formState, dispatchFields] = useReducer(
-    fieldReducer,
-    {},
-    () => initialState
-  )
+  const [formState, dispatchFields] = useReducer(fieldReducer, {}, () => initialState)
 
   // Submit handler with validation
   const submit = useCallback(async (options, e) => {
@@ -462,9 +461,7 @@ export const Form: React.FC<FormProps> = (props) => {
 
   return (
     <form onSubmit={submit}>
-      <FormContext value={contextRef.current}>
-        {children}
-      </FormContext>
+      <FormContext value={contextRef.current}>{children}</FormContext>
     </form>
   )
 }
@@ -483,7 +480,7 @@ type FormField = {
   valid: boolean
   errorMessage?: string
   errorPaths?: string[]
-  rows?: Row[]              // For array/blocks fields
+  rows?: Row[] // For array/blocks fields
   passesCondition?: boolean
   customComponents?: any
   disableFormData?: boolean
@@ -492,6 +489,7 @@ type FormField = {
 ```
 
 **Example Form State:**
+
 ```json
 {
   "title": {
@@ -538,16 +536,10 @@ const Nav: React.FC = () => {
   return (
     <nav className={navOpen ? 'nav--open' : ''}>
       {config.collections.map((collection) => (
-        <NavLink
-          href={`/collections/${collection.slug}`}
-          label={collection.labels.plural}
-        />
+        <NavLink href={`/collections/${collection.slug}`} label={collection.labels.plural} />
       ))}
       {config.globals.map((global) => (
-        <NavLink
-          href={`/globals/${global.slug}`}
-          label={global.label}
-        />
+        <NavLink href={`/globals/${global.slug}`} label={global.label} />
       ))}
     </nav>
   )
@@ -555,6 +547,7 @@ const Nav: React.FC = () => {
 ```
 
 **Routing Strategy:**
+
 - Uses Next.js App Router
 - Route transitions with `useRouter()` from `next/navigation`
 - `RouteTransitionProvider` for loading states
@@ -570,10 +563,7 @@ const Nav: React.FC = () => {
 
 ```typescript
 // forms/Form/fieldReducer.ts
-export function fieldReducer(
-  state: FormState,
-  action: FieldAction
-): FormState {
+export function fieldReducer(state: FormState, action: FieldAction): FormState {
   switch (action.type) {
     case 'UPDATE':
       return {
@@ -587,22 +577,22 @@ export function fieldReducer(
       }
 
     case 'ADD_ROW':
-      // Add row to array/blocks field
+    // Add row to array/blocks field
 
     case 'REMOVE_ROW':
-      // Remove row from array/blocks field
+    // Remove row from array/blocks field
 
     case 'MOVE_ROW':
-      // Reorder rows
+    // Reorder rows
 
     case 'REPLACE_STATE':
-      // Replace entire form state (on load)
+    // Replace entire form state (on load)
 
     case 'MERGE_SERVER_STATE':
-      // Merge server state after onChange
+    // Merge server state after onChange
 
     case 'ADD_SERVER_ERRORS':
-      // Add validation errors from server
+    // Add validation errors from server
   }
 }
 ```
@@ -610,11 +600,21 @@ export function fieldReducer(
 **Form Context Hierarchy:**
 
 ```tsx
-<FormContext>           // Form methods (submit, getData, etc.)
-  <FormWatchContext>    // Subscribable form state
-    <FormFieldsContext> // Reducer dispatch
-      <ModifiedContext>   // Tracks if form is modified
-        <ProcessingContext> // Tracks if form is submitting
+<FormContext>
+  {' '}
+  // Form methods (submit, getData, etc.)
+  <FormWatchContext>
+    {' '}
+    // Subscribable form state
+    <FormFieldsContext>
+      {' '}
+      // Reducer dispatch
+      <ModifiedContext>
+        {' '}
+        // Tracks if form is modified
+        <ProcessingContext>
+          {' '}
+          // Tracks if form is submitting
           {children}
         </ProcessingContext>
       </ModifiedContext>
@@ -658,29 +658,36 @@ export const useField = <TValue>(options?: Options): FieldType<TValue> => {
   const { setModified } = useForm()
 
   // Update field value
-  const setValue = useCallback((newValue) => {
-    dispatchField({
-      type: 'UPDATE',
-      path,
-      value: newValue,
-    })
-    setModified(true)
-  }, [path, dispatchField, setModified])
+  const setValue = useCallback(
+    (newValue) => {
+      dispatchField({
+        type: 'UPDATE',
+        path,
+        value: newValue,
+      })
+      setModified(true)
+    },
+    [path, dispatchField, setModified],
+  )
 
   // Throttled validation
-  useThrottledEffect(() => {
-    if (typeof validate === 'function') {
-      const isValid = await validate(field.value, options)
+  useThrottledEffect(
+    () => {
+      if (typeof validate === 'function') {
+        const isValid = await validate(field.value, options)
 
-      if (isValid !== field.valid) {
-        dispatchField({
-          type: 'UPDATE',
-          path,
-          valid: isValid,
-        })
+        if (isValid !== field.valid) {
+          dispatchField({
+            type: 'UPDATE',
+            path,
+            valid: isValid,
+          })
+        }
       }
-    }
-  }, 150, [field.value, validate])
+    },
+    150,
+    [field.value, validate],
+  )
 
   return {
     value: field?.value,
@@ -774,6 +781,7 @@ const onChange: FormProps['onChange'][0] = async ({ formState }) => {
 ```
 
 **Debouncing Strategy:**
+
 - Form onChange debounced by 250ms
 - Field validation throttled by 150ms
 - Cookie refresh throttled by 15s
@@ -902,18 +910,13 @@ export const RenderFields: React.FC = ({ fields }) => {
   return fields.map((field) => {
     const FieldComponent = fieldComponents[field.type]
 
-    return (
-      <RenderField
-        key={field.path}
-        field={field}
-        Component={FieldComponent}
-      />
-    )
+    return <RenderField key={field.path} field={field} Component={FieldComponent} />
   })
 }
 ```
 
 **Dynamic Component Loading:**
+
 - Field components selected via `fieldComponents` map
 - Supports custom field components via `admin.components.Field`
 - Conditional rendering via `withCondition` HOC
@@ -971,6 +974,7 @@ const { labels, fields, admin } = collection
 ```
 
 **Client Config:**
+
 - Server config is sanitized to remove sensitive data
 - `getClientConfig()` creates safe config for browser
 - Excludes server-only hooks, access control logic
@@ -993,11 +997,13 @@ dispatch({ type: 'UPDATE', path: 'title', value: 'New Title' })
 ```
 
 **Benefits:**
+
 - Predictable state updates
 - Easy to debug (action log)
 - Supports complex operations (add/remove/move rows)
 
 **For tiny-cms:**
+
 - Use simpler form library initially (React Hook Form)
 - Consider custom reducer if we need complex array/block fields
 
@@ -1011,11 +1017,13 @@ const { value, setValue } = useField({ path: 'title' })
 ```
 
 **Benefits:**
+
 - Declarative field definitions
 - Automatic form state integration
 - No manual registration needed
 
 **For tiny-cms:**
+
 - Adopt this pattern - very elegant
 - Each field component uses `useField` hook
 - Form automatically tracks all registered fields
@@ -1031,11 +1039,13 @@ fields.map(field => <FieldComponent type={field.type} {...field} />)
 ```
 
 **Benefits:**
+
 - Dynamic UI generation
 - No hardcoded forms
 - Easy to extend
 
 **For tiny-cms:**
+
 - Essential pattern - we're building a CMS
 - Must render fields dynamically based on schema
 - Use component map: `{ text: TextField, number: NumberField }`
@@ -1048,20 +1058,20 @@ fields.map(field => <FieldComponent type={field.type} {...field} />)
 <RootProvider>
   <ConfigProvider>
     <AuthProvider>
-      <ThemeProvider>
-        {children}
-      </ThemeProvider>
+      <ThemeProvider>{children}</ThemeProvider>
     </AuthProvider>
   </ConfigProvider>
 </RootProvider>
 ```
 
 **Benefits:**
+
 - Separation of concerns
 - Easy to test individual providers
 - Composable context
 
 **For tiny-cms:**
+
 - Use this pattern but keep it minimal
 - Essential providers only:
   - ConfigProvider
@@ -1081,11 +1091,13 @@ const getFormState = async (formState) => {
 ```
 
 **Benefits:**
+
 - Server-side validation
 - Access control enforcement
 - Hook execution
 
 **For tiny-cms:**
+
 - Consider this for later
 - Initially: simple POST to API endpoints
 - If we adopt Next.js, use Server Actions
@@ -1099,6 +1111,7 @@ const getFormState = async (formState) => {
 Payload has 32+ providers. This is excessive for a small CMS.
 
 **For tiny-cms:**
+
 - Start with 3-5 providers max
 - Only add providers when truly needed
 - Avoid premature abstraction
@@ -1110,6 +1123,7 @@ Payload has 32+ providers. This is excessive for a small CMS.
 Payload uses: SWC → Babel (React Compiler) → esbuild → TypeScript
 
 **For tiny-cms:**
+
 - Use standard Next.js build
 - Add esbuild/SWC only if performance requires
 - Skip React Compiler initially (experimental)
@@ -1121,6 +1135,7 @@ Payload uses: SWC → Babel (React Compiler) → esbuild → TypeScript
 Every component uses `useMemo`, `useCallback`, `React.memo`
 
 **For tiny-cms:**
+
 - Profile first, optimize later
 - Only memoize expensive operations
 - Don't optimize prematurely
@@ -1134,6 +1149,7 @@ View → Layout → Section → Card → Field → Input
 ```
 
 **For tiny-cms:**
+
 - Keep component depth shallow
 - Fewer abstractions = easier to understand
 - Inline components when simple
@@ -1145,6 +1161,7 @@ View → Layout → Section → Card → Field → Input
 ### 7.1 Complexity Metrics
 
 **Scale:**
+
 - **580 TypeScript files**
 - **239 SCSS files**
 - **32 Providers**
@@ -1152,11 +1169,13 @@ View → Layout → Section → Card → Field → Input
 - **32 Field types**
 
 **Build Complexity:**
+
 - Multi-stage build process
 - React Compiler integration (experimental)
 - Custom bundling with esbuild
 
 **State Management:**
+
 - Complex form reducer with 10+ action types
 - Multiple context layers
 - Debounced/throttled updates
@@ -1237,6 +1256,7 @@ const requests = {
 ```
 
 **For tiny-cms:**
+
 - Use similar pattern
 - Add error handling
 - Consider: `ky`, `axios`, or native `fetch`
@@ -1249,11 +1269,12 @@ const requests = {
 // Serialize to FormData (handles file uploads)
 const formData = serialize(
   { _payload: JSON.stringify(data) },
-  { indices: true, nullsAsUndefineds: false }
+  { indices: true, nullsAsUndefineds: false },
 )
 ```
 
 **For tiny-cms:**
+
 - JSON for text data
 - FormData for file uploads
 - Keep it simple
@@ -1282,6 +1303,7 @@ export default async function EditPage({ params }) {
 ```
 
 **For tiny-cms:**
+
 - If using Next.js, adopt RSC pattern
 - Pre-render forms on server
 - Client hydrates with initial state
@@ -1293,27 +1315,32 @@ export default async function EditPage({ params }) {
 ### 9.1 What We Learned
 
 **1. Admin UI is a Large Undertaking**
+
 - 580+ files for full-featured admin
 - Requires significant development time
 - Better to delay for tiny-cms MVP
 
 **2. Form State Management is Complex**
+
 - Custom reducer with 10+ actions
 - Server-client synchronization
 - Validation, debouncing, throttling
 - Use library initially (React Hook Form)
 
 **3. Configuration-Driven UI is Essential**
+
 - Dynamic field rendering
 - Component maps
 - Schema-to-UI conversion
 
 **4. Provider Pattern is Powerful**
+
 - But easy to overuse (32 providers!)
 - Start minimal (3-5 providers)
 - Add only when needed
 
 **5. RSC Architecture**
+
 - Server Components for data fetching
 - Client Components for interactivity
 - Clear boundaries important
@@ -1321,11 +1348,13 @@ export default async function EditPage({ params }) {
 ### 9.2 Recommendations for tiny-cms
 
 **Phase 1 (MVP): Skip Admin UI**
+
 - Use Directus or Strapi for admin
 - Or use direct DB access
 - Focus on API, SDK, and core features
 
 **Phase 2 (Later): Build Minimal Admin**
+
 - 5-10 field types
 - List view + Edit view
 - React Hook Form
@@ -1333,6 +1362,7 @@ export default async function EditPage({ params }) {
 - No custom build process
 
 **Phase 3 (Future): Feature Parity**
+
 - Add complex fields (Array, Blocks)
 - Custom reducer for form state
 - Live preview
@@ -1340,6 +1370,7 @@ export default async function EditPage({ params }) {
 - Advanced features
 
 **Architecture to Adopt:**
+
 ```
 Simple Admin (50-100 files)
 ├── providers/
@@ -1365,6 +1396,7 @@ Simple Admin (50-100 files)
 ```
 
 **Complexity Target:**
+
 - 50-100 files (vs 580 in Payload)
 - 5-10 field types (vs 32 in Payload)
 - 3-5 providers (vs 32 in Payload)
@@ -1373,6 +1405,7 @@ Simple Admin (50-100 files)
 ### 9.3 Final Verdict
 
 **Payload's Admin UI is:**
+
 - ✅ Production-grade
 - ✅ Feature-complete
 - ✅ Well-architected
@@ -1382,6 +1415,7 @@ Simple Admin (50-100 files)
 - ❌ Requires significant resources
 
 **For tiny-cms:**
+
 - Don't build admin UI initially
 - When we do, build 10x simpler version
 - Adopt key patterns:
@@ -1396,6 +1430,7 @@ Simple Admin (50-100 files)
   - Complex reducer (initially)
 
 **Estimated Effort to Build Minimal Admin:**
+
 - 2-4 weeks for basic version
 - 2-3 months for feature parity
 
@@ -1425,45 +1460,53 @@ scss/                239 style files
 ## Appendix B: Provider List
 
 **Core Providers:**
+
 - ConfigProvider
 - AuthProvider
 - ThemeProvider
 - TranslationProvider
 
 **Document Providers:**
+
 - DocumentInfoProvider
 - DocumentEventsProvider
 - DocumentTitleProvider
 
 **Form Providers:**
+
 - FormContext
 - FormFieldsContext
 - FormWatchContext
 
 **View Providers:**
+
 - ListQueryProvider
 - TableColumnsProvider
 - SelectionProvider
 
 **Feature Providers:**
+
 - LivePreviewProvider
 - UploadHandlersProvider
 - UploadControlsProvider
 - UploadEditsProvider
 
 **Layout Providers:**
+
 - NavProvider
 - WindowInfoProvider
 - ScrollInfoProvider
 - ClickOutsideProvider
 
 **Routing Providers:**
+
 - ParamsProvider
 - SearchParamsProvider
 - RouteCacheProvider
 - RouteTransitionProvider
 
 **Utility Providers:**
+
 - OperationProvider
 - EditDepthProvider
 - LocaleProvider

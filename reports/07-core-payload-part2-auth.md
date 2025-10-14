@@ -33,6 +33,7 @@ auth/
 ### 2.1 Login (`operations/login.ts`)
 
 **Flow**:
+
 1. **Validation**: Sanitize email/username, validate password presence
 2. **User Lookup**: Query database with email OR username (based on config)
 3. **Lock Check**: Verify user isn't locked from failed attempts
@@ -46,6 +47,7 @@ auth/
 11. **Cookie Setting**: Generate httpOnly cookie with JWT
 
 **Critical Details**:
+
 - Supports email-only, username-only, or both (configurable)
 - Max login attempts with account locking (lockUntil timestamp)
 - JWT expires in 2 hours default (`tokenExpiration: 7200`)
@@ -55,6 +57,7 @@ auth/
 ### 2.2 Logout (`operations/logout.ts`)
 
 **Flow**:
+
 1. **User Check**: Verify req.user exists and collection matches
 2. **Session Removal**: Filter out current session ID from user.sessions array
 3. **All Sessions**: Optional flag to clear all sessions
@@ -63,6 +66,7 @@ auth/
 6. **Cookie Clear**: Endpoint sets expired cookie
 
 **Critical Details**:
+
 - Only removes session if `useSessions: true`
 - Uses session ID (`req.user._sid`) from JWT payload
 - Updates `updatedAt` timestamp on user document
@@ -70,6 +74,7 @@ auth/
 ### 2.3 Register (`strategies/local/register.ts` + `operations/registerFirstUser.ts`)
 
 **Flow**:
+
 1. **First User Check**: Query if any user exists (registerFirstUser only)
 2. **Validation**: Ensure email or username provided based on config
 3. **Password Hash**: Generate salt (32 random bytes), hash with pbkdf2
@@ -80,6 +85,7 @@ auth/
 8. **Auto Login**: Call login operation to return JWT
 
 **Critical Details**:
+
 - Uses crypto.pbkdf2 with 25000 iterations, 512 byte key length
 - Salt stored as hex string in user.salt field
 - Password validation enforces minimum length
@@ -87,6 +93,7 @@ auth/
 ### 2.4 Forgot Password (`operations/forgotPassword.ts`)
 
 **Flow**:
+
 1. **User Lookup**: Find by email or username
 2. **Silent Failure**: Return null if user not found (security)
 3. **Token Generation**: 20 random bytes as hex string
@@ -96,6 +103,7 @@ auth/
 7. **Custom HTML**: Support generateEmailHTML hook
 
 **Critical Details**:
+
 - Token stored in plaintext in database
 - Default expiration: 1 hour
 - Excludes trashed users from lookup
@@ -104,11 +112,13 @@ auth/
 ### 2.5 Verify Email (`operations/verifyEmail.ts`)
 
 **Flow**:
+
 1. **Token Lookup**: Find user by `_verificationToken`
 2. **Update User**: Set `_verified: true`, clear `_verificationToken`
 3. **Error**: Throw forbidden if token invalid
 
 **Critical Details**:
+
 - Simple boolean flag toggle
 - No expiration on verification tokens
 - Verification can be manually set in admin panel
@@ -116,6 +126,7 @@ auth/
 ### 2.6 Refresh (`operations/refresh.ts`)
 
 **Flow**:
+
 1. **User Check**: Verify req.user exists (already authenticated)
 2. **Session Check**: Find session in user.sessions by session ID
 3. **Session Update**: Extend session expiration by tokenExpiration
@@ -125,6 +136,7 @@ auth/
 7. **Hook**: Run afterRefresh hook
 
 **Critical Details**:
+
 - Requires valid JWT to refresh
 - Extends both JWT and session expiration
 - Can be overridden by refresh hook
@@ -138,6 +150,7 @@ auth/
 **Library**: `jose` (modern, secure JWT library)
 
 **Signing** (`jwt.ts`):
+
 ```typescript
 const token = await new SignJWT(fieldsToSign)
   .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
@@ -147,6 +160,7 @@ const token = await new SignJWT(fieldsToSign)
 ```
 
 **JWT Payload** (`getFieldsToSign.ts`):
+
 - `id`: User ID
 - `email`: User email
 - `collection`: Collection slug
@@ -155,6 +169,7 @@ const token = await new SignJWT(fieldsToSign)
 - Additional user fields based on config
 
 **Token Storage**:
+
 - **Cookie**: `${cookiePrefix}-token` (httpOnly, secure based on config)
 - **Header**: Returned in login/refresh response body
 - **Expiration**: 2 hours default (7200 seconds)
@@ -162,21 +177,24 @@ const token = await new SignJWT(fieldsToSign)
 ### 3.2 Session Implementation
 
 **Session Storage** (`sessions.ts`):
+
 ```typescript
 type UserSession = {
-  id: string;           // UUID v4
-  createdAt: Date;
-  expiresAt: Date;      // createdAt + tokenExpiration
+  id: string // UUID v4
+  createdAt: Date
+  expiresAt: Date // createdAt + tokenExpiration
 }
 ```
 
 **Session Array**:
+
 - Stored in `user.sessions` field (array of session objects)
 - Each login creates new session
 - Expired sessions cleaned on login/refresh
 - Logout removes specific session by ID
 
 **Session Flow**:
+
 1. Login generates session ID (uuid)
 2. Session added to user.sessions array
 3. Session ID included in JWT payload (`sid`)
@@ -184,6 +202,7 @@ type UserSession = {
 5. Logout removes session from array
 
 **Why Both JWT + Sessions?**:
+
 - **JWT**: Stateless authentication, fast verification
 - **Sessions**: Remote revocation capability (delete session = invalidate JWT)
 - **Trade-off**: Database query on each request if session validation needed
@@ -192,19 +211,21 @@ type UserSession = {
 
 ```typescript
 interface IncomingAuthType {
-  useSessions?: boolean;              // Default: true
-  tokenExpiration?: number;           // Default: 7200 (2 hours)
-  removeTokenFromResponses?: true;    // Hide token in API responses
+  useSessions?: boolean // Default: true
+  tokenExpiration?: number // Default: 7200 (2 hours)
+  removeTokenFromResponses?: true // Hide token in API responses
 }
 ```
 
 **Session Enabled** (default):
+
 - JWT contains session ID
 - Refresh checks session validity
 - Logout removes session
 - Database query on refresh
 
 **Session Disabled**:
+
 - JWT is only auth mechanism
 - No remote revocation
 - Faster (no DB query)
@@ -219,17 +240,19 @@ interface IncomingAuthType {
 **Method**: PBKDF2-HMAC-SHA256
 
 **Implementation** (`strategies/local/generatePasswordSaltHash.ts`):
+
 ```typescript
 // Salt generation
 const saltBuffer = await crypto.randomBytes(32)
-const salt = saltBuffer.toString('hex')  // 64 char hex string
+const salt = saltBuffer.toString('hex') // 64 char hex string
 
 // Password hashing
 const hashRaw = await crypto.pbkdf2(password, salt, 25000, 512, 'sha256')
-const hash = hashRaw.toString('hex')      // 1024 char hex string
+const hash = hashRaw.toString('hex') // 1024 char hex string
 ```
 
 **Parameters**:
+
 - **Iterations**: 25,000 (fixed)
 - **Key Length**: 512 bytes
 - **Algorithm**: SHA256
@@ -239,10 +262,11 @@ const hash = hashRaw.toString('hex')      // 1024 char hex string
 ### 4.2 Verification
 
 **Implementation** (`strategies/local/authenticate.ts`):
+
 ```typescript
 crypto.pbkdf2(password, salt, 25000, 512, 'sha256', (e, hashBuffer) => {
   if (scmp(hashBuffer, Buffer.from(hash, 'hex'))) {
-    resolve(doc)  // Password correct
+    resolve(doc) // Password correct
   } else {
     reject(new Error('Invalid password'))
   }
@@ -254,14 +278,16 @@ crypto.pbkdf2(password, salt, 25000, 512, 'sha256', (e, hashBuffer) => {
 ### 4.3 Database Fields
 
 **Required Fields**:
+
 ```typescript
 {
-  salt: string;      // Hex-encoded salt (64 chars)
-  hash: string;      // Hex-encoded hash (1024 chars)
+  salt: string // Hex-encoded salt (64 chars)
+  hash: string // Hex-encoded hash (1024 chars)
 }
 ```
 
 **Field Configuration**:
+
 - Both fields: `type: 'text'`, `hidden: true`
 - Never returned in API responses
 - Never shown in admin panel
@@ -269,6 +295,7 @@ crypto.pbkdf2(password, salt, 25000, 512, 'sha256', (e, hashBuffer) => {
 ### 4.4 Password Reset
 
 **Reset Flow**:
+
 1. Generate random token (20 bytes hex = 40 chars)
 2. Store in `resetPasswordToken` field
 3. Set `resetPasswordExpiration` (default 1 hour)
@@ -283,27 +310,29 @@ crypto.pbkdf2(password, salt, 25000, 512, 'sha256', (e, hashBuffer) => {
 ### 5.1 Strategy System
 
 **Interface** (`types.ts`):
+
 ```typescript
 type AuthStrategy = {
-  name: string;
-  authenticate: AuthStrategyFunction;
+  name: string
+  authenticate: AuthStrategyFunction
 }
 
 type AuthStrategyFunction = (args: {
-  headers: Request['headers'];
-  payload: Payload;
-  canSetHeaders?: boolean;
-  isGraphQL?: boolean;
-  strategyName?: string;
-}) => Promise<AuthStrategyResult>;
+  headers: Request['headers']
+  payload: Payload
+  canSetHeaders?: boolean
+  isGraphQL?: boolean
+  strategyName?: string
+}) => Promise<AuthStrategyResult>
 
 type AuthStrategyResult = {
-  user: TypedUser | null;
-  responseHeaders?: Headers;
+  user: TypedUser | null
+  responseHeaders?: Headers
 }
 ```
 
 **Execution** (`executeAuthStrategies.ts`):
+
 - Loops through all strategies in order
 - Returns first successful authentication
 - Continues on error (logs but doesn't throw)
@@ -312,6 +341,7 @@ type AuthStrategyResult = {
 ### 5.2 Local JWT Strategy (`strategies/jwt.ts`)
 
 **Authentication Flow**:
+
 1. Extract JWT from cookie or Authorization header
 2. Verify JWT signature using payload.secret
 3. Check expiration
@@ -321,10 +351,12 @@ type AuthStrategyResult = {
 7. Return user object
 
 **JWT Extraction** (`extractJWT.ts`):
+
 - **Cookie**: `${cookiePrefix}-token`
 - **Header**: `Authorization: JWT <token>` or `Bearer <token>`
 
 **Session Validation**:
+
 - If `useSessions: true`: query user.sessions for matching `sid`
 - If session not found or expired: authentication fails
 - If `useSessions: false`: skip session check
@@ -332,6 +364,7 @@ type AuthStrategyResult = {
 ### 5.3 API Key Strategy (`strategies/apiKey.ts`)
 
 **Authentication Flow**:
+
 1. Check Authorization header for: `${collectionSlug} API-Key <key>`
 2. Hash API key with HMAC-SHA256 + payload.secret
 3. Query users where `apiKeyIndex` matches hash
@@ -339,15 +372,17 @@ type AuthStrategyResult = {
 5. Return user with `_strategy: 'api-key'`
 
 **API Key Fields**:
+
 ```typescript
 {
-  enableAPIKey: boolean;      // Checkbox to enable
-  apiKey: string;             // Encrypted at rest
-  apiKeyIndex: string;        // HMAC-SHA256 hash for lookup
+  enableAPIKey: boolean // Checkbox to enable
+  apiKey: string // Encrypted at rest
+  apiKeyIndex: string // HMAC-SHA256 hash for lookup
 }
 ```
 
 **Security**:
+
 - API keys encrypted at rest (`payload.encrypt()`)
 - Index is HMAC hash (one-way)
 - Supports both SHA1 (legacy) and SHA256 hashes
@@ -357,6 +392,7 @@ type AuthStrategyResult = {
 **Not a Strategy**: Local auth is implemented as operations (login, register), not as an authentication strategy
 
 **Components**:
+
 - `authenticate.ts`: Password verification
 - `generatePasswordSaltHash.ts`: Hash generation
 - `register.ts`: User registration with password
@@ -364,6 +400,7 @@ type AuthStrategyResult = {
 - `resetLoginAttempts.ts`: Clear failed attempts
 
 **Disabled via**:
+
 ```typescript
 auth: {
   disableLocalStrategy: true | {
@@ -376,6 +413,7 @@ auth: {
 ### 5.5 Custom Strategies
 
 **Configuration**:
+
 ```typescript
 auth: {
   strategies: [
@@ -383,14 +421,15 @@ auth: {
       name: 'oauth-google',
       authenticate: async ({ headers, payload }) => {
         // Custom OAuth logic
-        return { user: googleUser };
-      }
-    }
+        return { user: googleUser }
+      },
+    },
   ]
 }
 ```
 
 **Use Cases**:
+
 - OAuth providers (Google, GitHub, etc.)
 - SAML/SSO integration
 - Custom token validation
@@ -403,6 +442,7 @@ auth: {
 ### 6.1 Auth Configuration
 
 **Collection Config**:
+
 ```typescript
 {
   slug: 'users',
@@ -444,6 +484,7 @@ auth: {
 **Auto-injected Fields** (`getAuthFields.ts`):
 
 **Always Added** (if not disabled):
+
 - `email` (unique, required by default)
 - `username` (optional, based on loginWithUsername)
 - `salt` (hidden)
@@ -452,12 +493,14 @@ auth: {
 - `resetPasswordExpiration` (hidden)
 
 **Conditional Fields**:
+
 - If `verify: true`: `_verified`, `_verificationToken`
 - If `maxLoginAttempts > 0`: `loginAttempts`, `lockUntil`
 - If `useAPIKey: true`: `enableAPIKey`, `apiKey`, `apiKeyIndex`
 - If `useSessions: true`: `sessions` (array)
 
 **Field Hooks**:
+
 - `apiKey`: beforeChange encrypts, afterRead decrypts
 - `apiKeyIndex`: beforeValidate generates HMAC hash
 - `_verificationToken`: beforeChange auto-clears when verified
@@ -465,6 +508,7 @@ auth: {
 ### 6.3 Endpoints
 
 **Auto-registered Routes**:
+
 ```
 POST   /api/{collection}/login
 POST   /api/{collection}/logout
@@ -482,6 +526,7 @@ GET    /api/{collection}/me
 ### 6.4 Hooks
 
 **Auth-specific Hooks**:
+
 ```typescript
 {
   hooks: {
@@ -495,6 +540,7 @@ GET    /api/{collection}/me
 ```
 
 **Standard Hooks** (still apply):
+
 - `beforeOperation`: Can modify login/refresh operations
 - `afterOperation`: Can modify responses
 - `beforeValidate`: Runs before password hashing
@@ -507,20 +553,22 @@ GET    /api/{collection}/me
 ### 7.1 Request Authentication
 
 **Entry Point** (`createPayloadRequest.ts`):
+
 ```typescript
 // Called on every request
 const { user, responseHeaders } = await executeAuthStrategies({
   headers: req.headers,
   payload,
   canSetHeaders,
-  isGraphQL
-});
+  isGraphQL,
+})
 
-req.user = user;  // Null if no auth
-req.responseHeaders = responseHeaders;
+req.user = user // Null if no auth
+req.responseHeaders = responseHeaders
 ```
 
 **Strategy Execution**:
+
 1. Loop through all registered strategies
 2. Each strategy checks headers/cookies
 3. First successful strategy sets user
@@ -530,20 +578,23 @@ req.responseHeaders = responseHeaders;
 ### 7.2 Access Control System
 
 **Access Function Signature**:
+
 ```typescript
 type Access = (args: {
-  req: PayloadRequest;      // Has user attached
-  id?: string | number;     // Document ID (if applicable)
-  data?: any;               // Document data
-}) => boolean | Where;
+  req: PayloadRequest // Has user attached
+  id?: string | number // Document ID (if applicable)
+  data?: any // Document data
+}) => boolean | Where
 ```
 
 **Return Values**:
+
 - `true`: Full access
 - `false`: No access (throws Forbidden)
 - `Where` object: Filtered access (query constraint)
 
 **Access Levels** (Collections):
+
 ```typescript
 {
   access: {
@@ -558,6 +609,7 @@ type Access = (args: {
 ```
 
 **Access Levels** (Globals):
+
 ```typescript
 {
   access: {
@@ -569,6 +621,7 @@ type Access = (args: {
 ```
 
 **Field-level Access**:
+
 ```typescript
 {
   fields: [
@@ -576,11 +629,11 @@ type Access = (args: {
       name: 'salary',
       type: 'number',
       access: {
-        create: Access,      // Can set on create
-        read: Access,        // Can read value
-        update: Access       // Can modify value
-      }
-    }
+        create: Access, // Can set on create
+        read: Access, // Can read value
+        update: Access, // Can modify value
+      },
+    },
   ]
 }
 ```
@@ -588,31 +641,34 @@ type Access = (args: {
 ### 7.3 Access Execution
 
 **executeAccess** (`executeAccess.ts`):
+
 ```typescript
 const executeAccess = async (
   { req, id, data, disableErrors },
-  access: Access
+  access: Access,
 ): Promise<boolean | Where> => {
   if (access) {
-    const result = await access({ req, id, data });
+    const result = await access({ req, id, data })
     if (!result && !disableErrors) {
-      throw new Forbidden(req.t);
+      throw new Forbidden(req.t)
     }
-    return result;
+    return result
   }
 
   // Default behavior
-  return req.user ? true : false;
-};
+  return req.user ? true : false
+}
 ```
 
 **Default Access** (`defaultAccess.ts`):
+
 ```typescript
 // If no access function provided
-const defaultAccess = ({ req }) => Boolean(req.user);
+const defaultAccess = ({ req }) => Boolean(req.user)
 ```
 
 **Access in Operations**:
+
 1. Operation receives PayloadRequest
 2. Check if `overrideAccess: true` flag set
 3. If not, call access function with req.user
@@ -622,11 +678,13 @@ const defaultAccess = ({ req }) => Boolean(req.user);
 ### 7.4 Permission Resolution
 
 **getAccessResults** (`getAccessResults.ts`):
+
 - Runs all access functions for all collections/globals
 - Returns permissions object for frontend
 - Used in `/me` endpoint to show UI capabilities
 
 **Permission Object**:
+
 ```typescript
 {
   canAccessAdmin: boolean,
@@ -657,6 +715,7 @@ const defaultAccess = ({ req }) => Boolean(req.user);
 **No Traditional Middleware**: Payload doesn't use Express-style middleware
 
 **Auth Flow**:
+
 1. **Request Handler** receives HTTP request
 2. **createPayloadRequest** wraps request, runs auth strategies
 3. **Operation** receives PayloadRequest with user attached
@@ -664,6 +723,7 @@ const defaultAccess = ({ req }) => Boolean(req.user);
 5. **Response** returned with any responseHeaders from strategies
 
 **Authentication Points**:
+
 - **REST**: Each route handler calls createPayloadRequest
 - **GraphQL**: Context resolver runs executeAuthStrategies
 - **Local API**: Can inject user directly or run auth()
@@ -737,61 +797,62 @@ const defaultAccess = ({ req }) => Boolean(req.user);
 ```typescript
 // New: better-auth instance
 const betterAuth = new BetterAuth({
-  database: payload.db,          // Share database
-  secret: payload.secret,         // Share secret
+  database: payload.db, // Share database
+  secret: payload.secret, // Share secret
   session: {
-    expiresIn: 7200,             // Match tokenExpiration
-  }
-});
+    expiresIn: 7200, // Match tokenExpiration
+  },
+})
 
 // Replace: executeAuthStrategies
 const executeAuthStrategies = async ({ headers, payload }) => {
   // Try better-auth first
-  const session = await betterAuth.api.getSession({ headers });
+  const session = await betterAuth.api.getSession({ headers })
   if (session?.user) {
     return {
       user: await fetchPayloadUser(session.user.id),
-      responseHeaders: new Headers()
-    };
+      responseHeaders: new Headers(),
+    }
   }
 
   // Fall back to custom strategies (API keys, etc.)
-  return await customStrategyExecution({ headers, payload });
-};
+  return await customStrategyExecution({ headers, payload })
+}
 
 // Replace: login operation
 const loginOperation = async ({ collection, data, req }) => {
   // Use better-auth for password check
   const authResult = await betterAuth.api.signIn.email({
     email: data.email,
-    password: data.password
-  });
+    password: data.password,
+  })
 
   if (!authResult.success) {
-    throw new AuthenticationError();
+    throw new AuthenticationError()
   }
 
   // Fetch full user with Payload
   const user = await payload.findByID({
     collection: collection.slug,
-    id: authResult.user.id
-  });
+    id: authResult.user.id,
+  })
 
   // Run Payload hooks
-  await runBeforeLoginHooks({ user, req });
-  await runAfterLoginHooks({ user, req });
+  await runBeforeLoginHooks({ user, req })
+  await runAfterLoginHooks({ user, req })
 
   return {
     user,
     token: authResult.token,
-    exp: authResult.expiresAt
-  };
-};
+    exp: authResult.expiresAt,
+  }
+}
 ```
 
 ### 8.3 Database Schema Migration
 
 **Current Payload Fields**:
+
 ```typescript
 {
   email: string,
@@ -812,6 +873,7 @@ const loginOperation = async ({ collection, data, req }) => {
 ```
 
 **Better-Auth Tables**:
+
 ```typescript
 // better_auth_user table
 {
@@ -845,6 +907,7 @@ const loginOperation = async ({ collection, data, req }) => {
 **Migration Strategy**:
 
 **Option A: Parallel Tables**
+
 - Keep Payload user collection as-is
 - Add better_auth tables alongside
 - Link via user ID
@@ -853,6 +916,7 @@ const loginOperation = async ({ collection, data, req }) => {
 - **Con**: Data duplication (email, verification status)
 
 **Option B: Shared User Table**
+
 - Configure better-auth to use Payload's user collection
 - Remove auth fields from Payload schema
 - Better-auth manages auth fields directly
@@ -860,17 +924,19 @@ const loginOperation = async ({ collection, data, req }) => {
 - **Con**: Tighter coupling, complex migration
 
 **Option C: Hybrid (Recommended)**
+
 - Better-auth uses separate session/verification tables
 - Payload user collection keeps user data
 - Share user ID as foreign key
 - Keep API key fields in Payload
-- Map _verified from better-auth emailVerified
+- Map \_verified from better-auth emailVerified
 - **Pro**: Clean separation, minimal duplication
 - **Con**: Need sync logic for verification status
 
 ### 8.4 Migration Steps
 
 **Phase 1: Setup** (Non-breaking)
+
 1. Install better-auth
 2. Add better_auth tables to database
 3. Create better-auth instance with Payload config
@@ -878,6 +944,7 @@ const loginOperation = async ({ collection, data, req }) => {
 5. Hash existing passwords to better-auth format
 
 **Phase 2: Dual-Auth** (Feature flag)
+
 1. Add `useBetterAuth` config flag (default: false)
 2. Implement better-auth strategy in executeAuthStrategies
 3. Update login endpoint to use better-auth when flag enabled
@@ -885,18 +952,21 @@ const loginOperation = async ({ collection, data, req }) => {
 5. Test thoroughly in staging
 
 **Phase 3: Migration** (Gradual)
+
 1. Enable better-auth for new users
 2. Migrate existing users on next login (re-hash password)
 3. Both auth systems work in parallel
 4. Monitor error rates and performance
 
 **Phase 4: Cutover** (Breaking change)
+
 1. Enable `useBetterAuth` by default
 2. Deprecate legacy auth operations
 3. Remove legacy auth fields from schema (major version)
 4. Update documentation
 
 **Phase 5: Cleanup**
+
 1. Remove legacy auth code
 2. Remove migration scripts
 3. Remove feature flags
@@ -904,6 +974,7 @@ const loginOperation = async ({ collection, data, req }) => {
 ### 8.5 API Compatibility
 
 **Maintain These Endpoints**:
+
 ```
 POST /api/users/login           -> better-auth signIn
 POST /api/users/logout          -> better-auth signOut
@@ -915,14 +986,15 @@ GET  /api/users/me              -> Keep (Payload permissions)
 ```
 
 **Endpoint Wrapper Pattern**:
+
 ```typescript
 // Maintain backward compatibility
 export const loginEndpoint = async (req: PayloadRequest) => {
   // Call better-auth
   const authResult = await betterAuth.api.signIn.email({
     email: req.body.email,
-    password: req.body.password
-  });
+    password: req.body.password,
+  })
 
   // Transform response to match Payload format
   return {
@@ -930,13 +1002,14 @@ export const loginEndpoint = async (req: PayloadRequest) => {
     token: authResult.token,
     exp: authResult.expiresAt,
     // ...maintain same response shape
-  };
-};
+  }
+}
 ```
 
 ### 8.6 Hook Preservation
 
 **Keep All Hooks**:
+
 ```typescript
 // Before better-auth call
 await runBeforeOperationHooks({ operation: 'login', args });
@@ -951,55 +1024,58 @@ await runAfterOperationHooks({ operation: 'login', result });
 ```
 
 **Hook Compatibility Layer**:
+
 ```typescript
 const wrapBetterAuth = (operation: string, authFn) => {
   return async (args) => {
     // Payload before hooks
-    const modifiedArgs = await runPayloadHooks.before(operation, args);
+    const modifiedArgs = await runPayloadHooks.before(operation, args)
 
     // Better-auth operation
-    const result = await authFn(modifiedArgs);
+    const result = await authFn(modifiedArgs)
 
     // Payload after hooks
-    const modifiedResult = await runPayloadHooks.after(operation, result);
+    const modifiedResult = await runPayloadHooks.after(operation, result)
 
-    return modifiedResult;
-  };
-};
+    return modifiedResult
+  }
+}
 ```
 
 ### 8.7 Custom Strategy Support
 
 **Preserve Strategy System**:
+
 ```typescript
 // Better-auth becomes one strategy
 const strategies = [
-  betterAuthStrategy,        // Handles password + OAuth
-  apiKeyStrategy,            // Keep from Payload
-  ...customStrategies        // User-defined
-];
+  betterAuthStrategy, // Handles password + OAuth
+  apiKeyStrategy, // Keep from Payload
+  ...customStrategies, // User-defined
+]
 
 // Strategy execution unchanged
-const { user } = await executeAuthStrategies({ strategies, headers });
+const { user } = await executeAuthStrategies({ strategies, headers })
 ```
 
 **Better-Auth Strategy**:
+
 ```typescript
 const betterAuthStrategy: AuthStrategy = {
   name: 'better-auth',
   authenticate: async ({ headers, payload }) => {
-    const session = await betterAuth.api.getSession({ headers });
-    if (!session) return { user: null };
+    const session = await betterAuth.api.getSession({ headers })
+    if (!session) return { user: null }
 
     const user = await payload.findByID({
       collection: 'users',
-      id: session.user.id
-    });
+      id: session.user.id,
+    })
 
-    user._strategy = 'better-auth';
-    return { user };
-  }
-};
+    user._strategy = 'better-auth'
+    return { user }
+  },
+}
 ```
 
 ### 8.8 Testing Strategy
@@ -1038,6 +1114,7 @@ const betterAuthStrategy: AuthStrategy = {
    - Rollback capability
 
 **Test Data Migration**:
+
 ```typescript
 // Create test users in both formats
 const legacyUser = {
@@ -1060,17 +1137,20 @@ await testLogin(betterAuthUser);  // Should work
 ### 8.9 Performance Considerations
 
 **Current Performance**:
+
 - JWT verification: ~1ms (jose library)
 - Session validation: ~10ms (database query)
 - Password verification: ~50ms (pbkdf2 25000 iterations)
 - Total login: ~100-200ms
 
 **Better-Auth Performance**:
+
 - Bcrypt hashing: ~100-300ms (rounds=10)
 - Session validation: ~10ms (database query)
 - JWT verification: ~1ms
 
 **Optimization Strategies**:
+
 1. **Session Caching**: Cache active sessions in Redis
 2. **JWT Strategy First**: Skip session check if JWT valid
 3. **Parallel Queries**: Fetch user and session in parallel
@@ -1080,6 +1160,7 @@ await testLogin(betterAuthUser);  // Should work
 ### 8.10 Security Considerations
 
 **Security Improvements**:
+
 1. **Better Hashing**: Bcrypt > PBKDF2 for password storage
 2. **Token Rotation**: Better-auth's automatic token rotation
 3. **Rate Limiting**: Built-in rate limiting vs custom implementation
@@ -1087,12 +1168,14 @@ await testLogin(betterAuthUser);  // Should work
 5. **CSRF Protection**: Better-auth's CSRF tokens
 
 **Security Parity**:
+
 1. **API Keys**: Keep Payload's encrypted API key system
 2. **Account Locking**: Implement using better-auth rate limiting
 3. **Email Verification**: Map to better-auth verification flow
 4. **Password Reset**: Use better-auth reset with custom emails
 
 **Security Testing**:
+
 1. Test timing attack resistance
 2. Test session fixation prevention
 3. Test CSRF token validation
@@ -1106,6 +1189,7 @@ await testLogin(betterAuthUser);  // Should work
 ### Current State
 
 **Payload Auth Architecture**:
+
 - **Hybrid JWT + Session**: JWT for stateless auth, sessions for revocation
 - **PBKDF2 Hashing**: 25k iterations, SHA256
 - **Multiple Strategies**: Local (password), JWT, API Key, Custom
@@ -1115,6 +1199,7 @@ await testLogin(betterAuthUser);  // Should work
 - **Account Security**: Login attempts, account locking
 
 **Strengths**:
+
 - Flexible strategy system
 - Tight CMS integration
 - Powerful access control
@@ -1122,6 +1207,7 @@ await testLogin(betterAuthUser);  // Should work
 - Well-tested and battle-hardened
 
 **Weaknesses**:
+
 - Custom auth implementation (reinventing wheel)
 - PBKDF2 less secure than modern alternatives
 - Complex codebase (70+ files)
@@ -1131,6 +1217,7 @@ await testLogin(betterAuthUser);  // Should work
 ### Migration Goals
 
 **Why Better-Auth**:
+
 1. **Modern Security**: Bcrypt, better token handling
 2. **Built-in OAuth**: Google, GitHub, etc. out of box
 3. **Maintained Library**: Security updates, features
@@ -1138,6 +1225,7 @@ await testLogin(betterAuthUser);  // Should work
 5. **Better DX**: Modern API, TypeScript-first
 
 **Non-Goals**:
+
 - Keep Payload's access control (it's superior)
 - Keep Payload's hook system (it's powerful)
 - Keep API key authentication (custom to Payload)
@@ -1157,6 +1245,7 @@ await testLogin(betterAuthUser);  // Should work
 ### Recommended Approach
 
 **Hybrid Architecture**:
+
 - Better-auth handles authentication (login, password, sessions)
 - Payload keeps authorization (access control, permissions)
 - Shared user ID links the systems
@@ -1164,6 +1253,7 @@ await testLogin(betterAuthUser);  // Should work
 - Hook system bridges both systems
 
 **Migration Path**:
+
 1. Add better-auth alongside existing auth (non-breaking)
 2. Implement better-auth strategy in executeAuthStrategies
 3. Migrate users gradually (re-hash on login)
@@ -1172,6 +1262,7 @@ await testLogin(betterAuthUser);  // Should work
 6. Remove legacy auth in major version
 
 **Success Metrics**:
+
 - Zero breaking changes in minor version
 - All existing tests pass
 - No performance regression
@@ -1183,6 +1274,7 @@ await testLogin(betterAuthUser);  // Should work
 ## 10. File Reference
 
 **Key Files to Study**:
+
 ```
 /payload-main/packages/payload/src/auth/
 ├── operations/login.ts              # Login flow (400 lines)
@@ -1206,6 +1298,7 @@ await testLogin(betterAuthUser);  // Should work
 **Total Auth Code**: ~2,500 lines across 70+ files
 
 **Estimated Migration Effort**:
+
 - Planning: 2-3 days
 - Implementation: 10-15 days
 - Testing: 5-7 days

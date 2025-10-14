@@ -35,6 +35,7 @@
 The Payload SDK is a **type-safe REST API client** that provides a fully typed interface to interact with Payload CMS backends. It mirrors the Payload Local API but works over HTTP, making it ideal for frontend applications, serverless functions, and external integrations.
 
 **Key Characteristics:**
+
 - **100% Type-Safe**: Uses TypeScript generics to provide compile-time type safety
 - **Minimal Dependencies**: Only 3 runtime dependencies (payload, qs-esm, ts-essentials)
 - **Clean Architecture**: Well-organized with clear separation of concerns
@@ -42,6 +43,7 @@ The Payload SDK is a **type-safe REST API client** that provides a fully typed i
 - **Comprehensive Coverage**: Supports all CRUD operations, auth, versions, and file uploads
 
 **Essential Features for tiny-cms:**
+
 - Collections CRUD (find, findByID, create, update, delete)
 - Authentication (login, me, refresh)
 - File uploads for media handling
@@ -68,12 +70,14 @@ The Payload SDK is a **type-safe REST API client** that provides a fully typed i
 ### Entry Points
 
 **Development Entry:**
+
 ```javascript
 // packages/sdk/src/index.ts
 export { PayloadSDK } from './index.js'
 ```
 
 **Production Entry (after build):**
+
 ```javascript
 // packages/sdk/dist/index.js
 // Compiled from TypeScript with SWC
@@ -85,7 +89,7 @@ export { PayloadSDK } from './index.js'
 {
   "exports": {
     ".": {
-      "import": "./src/index.ts",      // Development
+      "import": "./src/index.ts", // Development
       "types": "./src/index.ts",
       "default": "./src/index.ts"
     }
@@ -93,7 +97,7 @@ export { PayloadSDK } from './index.js'
   "publishConfig": {
     "exports": {
       ".": {
-        "import": "./dist/index.js",    // Production
+        "import": "./dist/index.js", // Production
         "types": "./dist/index.d.ts",
         "default": "./dist/index.js"
       }
@@ -139,6 +143,7 @@ sdk/src/
 ```
 
 **File Distribution:**
+
 - Collections: 9 files (37.5%)
 - Globals: 5 files (20.8%)
 - Auth: 6 files (25%)
@@ -154,9 +159,9 @@ sdk/src/
 ```json
 {
   "dependencies": {
-    "payload": "workspace:*",        // Core Payload types
-    "qs-esm": "7.0.2",              // Query string serialization
-    "ts-essentials": "10.0.3"       // TypeScript utility types
+    "payload": "workspace:*", // Core Payload types
+    "qs-esm": "7.0.2", // Query string serialization
+    "ts-essentials": "10.0.3" // TypeScript utility types
   }
 }
 ```
@@ -221,6 +226,7 @@ sdk/src/
 ```
 
 **Build Process:**
+
 1. Copy static files (copyfiles)
 2. Generate `.d.ts` files (TypeScript)
 3. Transpile to JavaScript (SWC)
@@ -310,9 +316,9 @@ const sdk = new PayloadSDK<GeneratedTypes>({
   baseInit: {
     credentials: 'include',
     headers: {
-      'X-Custom-Header': 'value'
-    }
-  }
+      'X-Custom-Header': 'value',
+    },
+  },
 })
 ```
 
@@ -345,6 +351,7 @@ export async function find<T, TSlug, TSelect>(
 ```
 
 **Why this pattern?**
+
 - Easier to test individual functions
 - Better code organization
 - Each operation in its own file
@@ -462,36 +469,34 @@ These utility types extract specific types from the config:
 
 ```typescript
 // Get all collection names as union type
-export type CollectionSlug<T extends PayloadGeneratedTypes> =
-  StringKeyOf<TypedCollection<T>>
+export type CollectionSlug<T extends PayloadGeneratedTypes> = StringKeyOf<TypedCollection<T>>
 // Example result: 'posts' | 'users' | 'media'
 
 // Get data type for specific collection
 export type DataFromCollectionSlug<
   T extends PayloadGeneratedTypes,
-  TSlug extends CollectionSlug<T>
+  TSlug extends CollectionSlug<T>,
 > = TypedCollection<T>[TSlug]
 // Example result: Post (the Post interface)
 
 // Get all global names
-export type GlobalSlug<T extends PayloadGeneratedTypes> =
-  StringKeyOf<TypedGlobal<T>>
+export type GlobalSlug<T extends PayloadGeneratedTypes> = StringKeyOf<TypedGlobal<T>>
 // Example result: 'header' | 'footer' | 'settings'
 
 // Get data type for specific global
 export type DataFromGlobalSlug<
   T extends PayloadGeneratedTypes,
-  TSlug extends GlobalSlug<T>
+  TSlug extends GlobalSlug<T>,
 > = TypedGlobal<T>[TSlug]
 
 // Get auth collection names
-export type AuthCollectionSlug<T extends PayloadGeneratedTypes> =
-  StringKeyOf<TypedAuth<T>>
+export type AuthCollectionSlug<T extends PayloadGeneratedTypes> = StringKeyOf<TypedAuth<T>>
 // Example result: 'users' | 'admins'
 
 // Get upload collection names (collections with file fields)
-export type UploadCollectionSlug<T extends PayloadGeneratedTypes> =
-  StringKeyOf<TypedUploadCollection<T>>
+export type UploadCollectionSlug<T extends PayloadGeneratedTypes> = StringKeyOf<
+  TypedUploadCollection<T>
+>
 // Example result: 'media' | 'documents'
 ```
 
@@ -503,14 +508,14 @@ These handle field selection (like GraphQL field selection):
 // Get select options for a collection
 export type SelectFromCollectionSlug<
   T extends PayloadGeneratedTypes,
-  TSlug extends CollectionSlug<T>
+  TSlug extends CollectionSlug<T>,
 > = TypedCollectionSelect<T>[TSlug]
 
 // Transform collection data based on select
 export type TransformCollectionWithSelect<
   T extends PayloadGeneratedTypes,
   TSlug extends CollectionSlug<T>,
-  TSelect extends SelectType
+  TSelect extends SelectType,
 > = TSelect extends SelectType
   ? TransformDataWithSelect<DataFromCollectionSlug<T, TSlug>, TSelect>
   : DataFromCollectionSlug<T, TSlug>
@@ -519,7 +524,7 @@ export type TransformCollectionWithSelect<
 export type TransformGlobalWithSelect<
   T extends PayloadGeneratedTypes,
   TSlug extends GlobalSlug<T>,
-  TSelect extends SelectType
+  TSelect extends SelectType,
 > = TSelect extends SelectType
   ? TransformDataWithSelect<DataFromGlobalSlug<T, TSlug>, TSelect>
   : DataFromGlobalSlug<T, TSlug>
@@ -532,7 +537,7 @@ export type TransformGlobalWithSelect<
 export type BulkOperationResult<
   T extends PayloadGeneratedTypes,
   TSlug extends CollectionSlug<T>,
-  TSelect extends SelectType
+  TSelect extends SelectType,
 > = {
   docs: TransformCollectionWithSelect<T, TSlug, TSelect>[]
   errors: {
@@ -548,48 +553,48 @@ export type BulkOperationResult<
 // For required fields in create/update
 export type RequiredDataFromCollectionSlug<
   T extends PayloadGeneratedTypes,
-  TSlug extends CollectionSlug<T>
+  TSlug extends CollectionSlug<T>,
 > = RequiredDataFromCollection<DataFromCollectionSlug<T, TSlug>>
 
 // Makes auto-generated fields optional
-export type RequiredDataFromCollection<TData extends JsonObject> =
-  MarkOptional<TData, 'createdAt' | 'id' | 'sizes' | 'updatedAt'>
+export type RequiredDataFromCollection<TData extends JsonObject> = MarkOptional<
+  TData,
+  'createdAt' | 'id' | 'sizes' | 'updatedAt'
+>
 ```
 
 **5. Query Configuration Types**
 
 ```typescript
 // Join query configuration
-export type JoinQuery<
-  T extends PayloadGeneratedTypes,
-  TSlug extends CollectionSlug<T>
-> = TypedCollectionJoins<T>[TSlug] extends Record<string, string>
-  ? false | Partial<{
-      [K in keyof TypedCollectionJoins<T>[TSlug]]:
-        | {
-            count?: boolean
-            limit?: number
-            page?: number
-            sort?: Sort
-            where?: Where
-          }
+export type JoinQuery<T extends PayloadGeneratedTypes, TSlug extends CollectionSlug<T>> =
+  TypedCollectionJoins<T>[TSlug] extends Record<string, string>
+    ?
         | false
-    }>
-  : never
+        | Partial<{
+            [K in keyof TypedCollectionJoins<T>[TSlug]]:
+              | {
+                  count?: boolean
+                  limit?: number
+                  page?: number
+                  sort?: Sort
+                  where?: Where
+                }
+              | false
+          }>
+    : never
 
 // Populate configuration
-export type PopulateType<T extends PayloadGeneratedTypes> =
-  Partial<TypedCollectionSelect<T>>
+export type PopulateType<T extends PayloadGeneratedTypes> = Partial<TypedCollectionSelect<T>>
 
 // ID type for collection
 export type IDType<
   T extends PayloadGeneratedTypes,
-  TSlug extends CollectionSlug<T>
+  TSlug extends CollectionSlug<T>,
 > = DataFromCollectionSlug<T, TSlug>['id']
 
 // Locale type
-export type TypedLocale<T extends PayloadGeneratedTypes> =
-  NonNullable<T['locale']>
+export type TypedLocale<T extends PayloadGeneratedTypes> = NonNullable<T['locale']>
 ```
 
 ### Type Flow Example
@@ -603,14 +608,14 @@ const sdk = new PayloadSDK<Config>({ baseURL: '/api' })
 
 // 2. Find operation with type inference
 const result = await sdk.find({
-  collection: 'posts',  // TSlug inferred as 'posts'
+  collection: 'posts', // TSlug inferred as 'posts'
   where: {
-    status: { equals: 'published' }
+    status: { equals: 'published' },
   },
   select: {
     title: true,
-    content: true
-  }
+    content: true,
+  },
 })
 
 // 3. Type inference chain:
@@ -623,9 +628,9 @@ const result = await sdk.find({
 // - Result type = PaginatedDocs<Pick<Post, 'title' | 'content'>>
 
 // 4. Usage with full type safety
-result.docs[0].title    // ✓ OK - string
-result.docs[0].content  // ✓ OK - string
-result.docs[0].author   // ✗ Error - not in select
+result.docs[0].title // ✓ OK - string
+result.docs[0].content // ✓ OK - string
+result.docs[0].author // ✗ Error - not in select
 ```
 
 ---
@@ -750,9 +755,7 @@ export const buildSearchParams = (args: OperationArgs): string => {
   }
 
   if (args.sort) {
-    const sanitizedSort = Array.isArray(args.sort)
-      ? args.sort.join(',')
-      : args.sort
+    const sanitizedSort = Array.isArray(args.sort) ? args.sort.join(',') : args.sort
     search.sort = sanitizedSort
   }
 
@@ -788,7 +791,7 @@ buildSearchParams({
   page: 1,
   limit: 10,
   where: { status: { equals: 'published' } },
-  sort: '-createdAt'
+  sort: '-createdAt',
 })
 // Returns: "?page=1&limit=10&where[status][equals]=published&sort=-createdAt"
 ```
@@ -807,7 +810,7 @@ buildSearchParams({
 export type FindOptions<
   T extends PayloadGeneratedTypes,
   TSlug extends CollectionSlug<T>,
-  TSelect extends SelectType
+  TSelect extends SelectType,
 > = {
   /** Collection slug to query */
   collection: TSlug
@@ -859,17 +862,17 @@ export type FindOptions<
 export async function find<
   T extends PayloadGeneratedTypes,
   TSlug extends CollectionSlug<T>,
-  TSelect extends SelectType
+  TSelect extends SelectType,
 >(
   sdk: PayloadSDK<T>,
   options: FindOptions<T, TSlug, TSelect>,
-  init?: RequestInit
+  init?: RequestInit,
 ): Promise<PaginatedDocs<TransformCollectionWithSelect<T, TSlug, TSelect>>> {
   const response = await sdk.request({
     args: options,
     init,
     method: 'GET',
-    path: `/${options.collection}`
+    path: `/${options.collection}`,
   })
 
   return response.json()
@@ -898,15 +901,15 @@ type PaginatedDocs<T> = {
 ```typescript
 // Basic find
 const posts = await sdk.find({
-  collection: 'posts'
+  collection: 'posts',
 })
 
 // With filtering
 const publishedPosts = await sdk.find({
   collection: 'posts',
   where: {
-    status: { equals: 'published' }
-  }
+    status: { equals: 'published' },
+  },
 })
 
 // With pagination and sorting
@@ -914,7 +917,7 @@ const recentPosts = await sdk.find({
   collection: 'posts',
   page: 1,
   limit: 20,
-  sort: '-createdAt'
+  sort: '-createdAt',
 })
 
 // With field selection
@@ -922,8 +925,8 @@ const postTitles = await sdk.find({
   collection: 'posts',
   select: {
     title: true,
-    slug: true
-  }
+    slug: true,
+  },
 })
 
 // Complex query
@@ -934,16 +937,13 @@ const filteredPosts = await sdk.find({
       { status: { equals: 'published' } },
       { publishedAt: { less_than: new Date().toISOString() } },
       {
-        or: [
-          { author: { equals: userId } },
-          { featured: { equals: true } }
-        ]
-      }
-    ]
+        or: [{ author: { equals: userId } }, { featured: { equals: true } }],
+      },
+    ],
   },
   sort: ['-featured', '-publishedAt'],
   limit: 10,
-  depth: 2
+  depth: 2,
 })
 ```
 
@@ -958,7 +958,7 @@ export type FindByIDOptions<
   T extends PayloadGeneratedTypes,
   TSlug extends CollectionSlug<T>,
   TDisableErrors extends boolean,
-  TSelect extends SelectType
+  TSelect extends SelectType,
 > = {
   /** Collection slug */
   collection: TSlug
@@ -999,21 +999,18 @@ export async function findByID<
   T extends PayloadGeneratedTypes,
   TSlug extends CollectionSlug<T>,
   TDisableErrors extends boolean,
-  TSelect extends SelectType
+  TSelect extends SelectType,
 >(
   sdk: PayloadSDK<T>,
   options: FindByIDOptions<T, TSlug, TDisableErrors, TSelect>,
-  init?: RequestInit
-): Promise<ApplyDisableErrors<
-  TransformCollectionWithSelect<T, TSlug, TSelect>,
-  TDisableErrors
->> {
+  init?: RequestInit,
+): Promise<ApplyDisableErrors<TransformCollectionWithSelect<T, TSlug, TSelect>, TDisableErrors>> {
   try {
     const response = await sdk.request({
       args: options,
       init,
       method: 'GET',
-      path: `/${options.collection}/${options.id}`
+      path: `/${options.collection}/${options.id}`,
     })
 
     if (response.ok) {
@@ -1027,9 +1024,7 @@ export async function findByID<
       return null
     }
 
-    throw new Error(
-      `Error retrieving the document ${options.collection}/${options.id}`
-    )
+    throw new Error(`Error retrieving the document ${options.collection}/${options.id}`)
   }
 }
 ```
@@ -1040,14 +1035,14 @@ export async function findByID<
 // Basic find by ID
 const post = await sdk.findByID({
   collection: 'posts',
-  id: '123'
+  id: '123',
 })
 
 // With error suppression
 const post = await sdk.findByID({
   collection: 'posts',
   id: '123',
-  disableErrors: true  // Returns null if not found
+  disableErrors: true, // Returns null if not found
 })
 if (post) {
   // Handle found post
@@ -1059,8 +1054,8 @@ const postTitle = await sdk.findByID({
   id: '123',
   select: {
     title: true,
-    slug: true
-  }
+    slug: true,
+  },
 })
 ```
 
@@ -1074,7 +1069,7 @@ const postTitle = await sdk.findByID({
 export type CreateOptions<
   T extends PayloadGeneratedTypes,
   TSlug extends CollectionSlug<T>,
-  TSelect extends SelectType
+  TSelect extends SelectType,
 > = {
   /** Collection slug */
   collection: TSlug
@@ -1092,9 +1087,7 @@ export type CreateOptions<
   fallbackLocale?: false | TypedLocale<T>
 
   /** File (for upload collections) */
-  file?: TSlug extends UploadCollectionSlug<T>
-    ? Blob | string
-    : never
+  file?: TSlug extends UploadCollectionSlug<T> ? Blob | string : never
 
   /** Locale */
   locale?: 'all' | TypedLocale<T>
@@ -1113,11 +1106,11 @@ export type CreateOptions<
 export async function create<
   T extends PayloadGeneratedTypes,
   TSlug extends CollectionSlug<T>,
-  TSelect extends SelectType
+  TSelect extends SelectType,
 >(
   sdk: PayloadSDK<T>,
   options: CreateOptions<T, TSlug, TSelect>,
-  init?: RequestInit
+  init?: RequestInit,
 ): Promise<TransformCollectionWithSelect<T, TSlug, TSelect>> {
   let file: Blob | undefined = undefined
 
@@ -1132,7 +1125,7 @@ export async function create<
     init,
     json: options.data,
     method: 'POST',
-    path: `/${options.collection}`
+    path: `/${options.collection}`,
   })
 
   const json = await response.json()
@@ -1166,8 +1159,8 @@ const newPost = await sdk.create({
   data: {
     title: 'Hello World',
     content: 'This is my first post',
-    status: 'draft'
-  }
+    status: 'draft',
+  },
 })
 
 // Create with file (upload collection)
@@ -1175,15 +1168,15 @@ const newMedia = await sdk.create({
   collection: 'media',
   file: myFileBlob,
   data: {
-    alt: 'Profile picture'
-  }
+    alt: 'Profile picture',
+  },
 })
 
 // Create from file URL
 const mediaFromUrl = await sdk.create({
   collection: 'media',
   file: 'https://example.com/image.jpg',
-  data: {}
+  data: {},
 })
 
 // Create as draft
@@ -1191,9 +1184,9 @@ const draftPost = await sdk.create({
   collection: 'posts',
   data: {
     title: 'Draft Post',
-    content: 'Work in progress'
+    content: 'Work in progress',
   },
-  draft: true
+  draft: true,
 })
 ```
 
@@ -1208,7 +1201,7 @@ const draftPost = await sdk.create({
 export type UpdateBaseOptions<
   T extends PayloadGeneratedTypes,
   TSlug extends CollectionSlug<T>,
-  TSelect extends SelectType
+  TSelect extends SelectType,
 > = {
   /** Collection slug */
   collection: TSlug
@@ -1229,9 +1222,7 @@ export type UpdateBaseOptions<
   fallbackLocale?: false | TypedLocale<T>
 
   /** File (for upload collections) */
-  file?: TSlug extends UploadCollectionSlug<T>
-    ? Blob | string
-    : never
+  file?: TSlug extends UploadCollectionSlug<T> ? Blob | string : never
 
   /** Locale */
   locale?: TypedLocale<T>
@@ -1250,7 +1241,7 @@ export type UpdateBaseOptions<
 export type UpdateByIDOptions<
   T extends PayloadGeneratedTypes,
   TSlug extends CollectionSlug<T>,
-  TSelect extends SelectFromCollectionSlug<T, TSlug>
+  TSelect extends SelectFromCollectionSlug<T, TSlug>,
 > = {
   id: number | string
   limit?: never
@@ -1261,7 +1252,7 @@ export type UpdateByIDOptions<
 export type UpdateManyOptions<
   T extends PayloadGeneratedTypes,
   TSlug extends CollectionSlug<T>,
-  TSelect extends SelectFromCollectionSlug<T, TSlug>
+  TSelect extends SelectFromCollectionSlug<T, TSlug>,
 > = {
   id?: never
   limit?: number
@@ -1272,7 +1263,7 @@ export type UpdateManyOptions<
 export type UpdateOptions<
   T extends PayloadGeneratedTypes,
   TSlug extends CollectionSlug<T>,
-  TSelect extends SelectFromCollectionSlug<T, TSlug>
+  TSelect extends SelectFromCollectionSlug<T, TSlug>,
 > = UpdateByIDOptions<T, TSlug, TSelect> | UpdateManyOptions<T, TSlug, TSelect>
 ```
 
@@ -1282,14 +1273,13 @@ export type UpdateOptions<
 export async function update<
   T extends PayloadGeneratedTypes,
   TSlug extends CollectionSlug<T>,
-  TSelect extends SelectFromCollectionSlug<T, TSlug>
+  TSelect extends SelectFromCollectionSlug<T, TSlug>,
 >(
   sdk: PayloadSDK<T>,
   options: UpdateOptions<T, TSlug, TSelect>,
-  init?: RequestInit
+  init?: RequestInit,
 ): Promise<
-  | BulkOperationResult<T, TSlug, TSelect>
-  | TransformCollectionWithSelect<T, TSlug, TSelect>
+  BulkOperationResult<T, TSlug, TSelect> | TransformCollectionWithSelect<T, TSlug, TSelect>
 > {
   let file: Blob | undefined = undefined
 
@@ -1303,7 +1293,7 @@ export async function update<
     init,
     json: options.data,
     method: 'PATCH',
-    path: `/${options.collection}${options.id ? `/${options.id}` : ''}`
+    path: `/${options.collection}${options.id ? `/${options.id}` : ''}`,
   })
 
   const json = await response.json()
@@ -1326,19 +1316,19 @@ const updated = await sdk.update({
   collection: 'posts',
   id: '123',
   data: {
-    title: 'Updated Title'
-  }
+    title: 'Updated Title',
+  },
 })
 
 // Bulk update
 const bulkResult = await sdk.update({
   collection: 'posts',
   where: {
-    status: { equals: 'draft' }
+    status: { equals: 'draft' },
   },
   data: {
-    status: 'archived'
-  }
+    status: 'archived',
+  },
 })
 // bulkResult = {
 //   docs: [...updated posts],
@@ -1351,8 +1341,8 @@ const updatedMedia = await sdk.update({
   id: '456',
   file: newFileBlob,
   data: {
-    alt: 'Updated alt text'
-  }
+    alt: 'Updated alt text',
+  },
 })
 ```
 
@@ -1367,7 +1357,7 @@ const updatedMedia = await sdk.update({
 export type DeleteBaseOptions<
   T extends PayloadGeneratedTypes,
   TSlug extends CollectionSlug<T>,
-  TSelect extends SelectType
+  TSelect extends SelectType,
 > = {
   /** Collection slug */
   collection: TSlug
@@ -1395,7 +1385,7 @@ export type DeleteBaseOptions<
 export type DeleteByIDOptions<
   T extends PayloadGeneratedTypes,
   TSlug extends CollectionSlug<T>,
-  TSelect extends SelectFromCollectionSlug<T, TSlug>
+  TSelect extends SelectFromCollectionSlug<T, TSlug>,
 > = {
   id: number | string
   where?: never
@@ -1405,7 +1395,7 @@ export type DeleteByIDOptions<
 export type DeleteManyOptions<
   T extends PayloadGeneratedTypes,
   TSlug extends CollectionSlug<T>,
-  TSelect extends SelectFromCollectionSlug<T, TSlug>
+  TSelect extends SelectFromCollectionSlug<T, TSlug>,
 > = {
   id?: never
   where: Where
@@ -1414,7 +1404,7 @@ export type DeleteManyOptions<
 export type DeleteOptions<
   T extends PayloadGeneratedTypes,
   TSlug extends CollectionSlug<T>,
-  TSelect extends SelectFromCollectionSlug<T, TSlug>
+  TSelect extends SelectFromCollectionSlug<T, TSlug>,
 > = DeleteByIDOptions<T, TSlug, TSelect> | DeleteManyOptions<T, TSlug, TSelect>
 ```
 
@@ -1424,20 +1414,19 @@ export type DeleteOptions<
 export async function deleteOperation<
   T extends PayloadGeneratedTypes,
   TSlug extends CollectionSlug<T>,
-  TSelect extends SelectFromCollectionSlug<T, TSlug>
+  TSelect extends SelectFromCollectionSlug<T, TSlug>,
 >(
   sdk: PayloadSDK<T>,
   options: DeleteOptions<T, TSlug, TSelect>,
-  init?: RequestInit
+  init?: RequestInit,
 ): Promise<
-  | BulkOperationResult<T, TSlug, TSelect>
-  | TransformCollectionWithSelect<T, TSlug, TSelect>
+  BulkOperationResult<T, TSlug, TSelect> | TransformCollectionWithSelect<T, TSlug, TSelect>
 > {
   const response = await sdk.request({
     args: options,
     init,
     method: 'DELETE',
-    path: `/${options.collection}${options.id ? `/${options.id}` : ''}`
+    path: `/${options.collection}${options.id ? `/${options.id}` : ''}`,
   })
 
   const json = await response.json()
@@ -1456,7 +1445,7 @@ export async function deleteOperation<
 // Delete by ID
 const deleted = await sdk.delete({
   collection: 'posts',
-  id: '123'
+  id: '123',
 })
 
 // Bulk delete
@@ -1464,8 +1453,8 @@ const bulkResult = await sdk.delete({
   collection: 'posts',
   where: {
     status: { equals: 'archived' },
-    createdAt: { less_than: '2023-01-01' }
-  }
+    createdAt: { less_than: '2023-01-01' },
+  },
 })
 // bulkResult = {
 //   docs: [...deleted posts],
@@ -1480,10 +1469,7 @@ const bulkResult = await sdk.delete({
 **Options Type:**
 
 ```typescript
-export type CountOptions<
-  T extends PayloadGeneratedTypes,
-  TSlug extends CollectionSlug<T>
-> = {
+export type CountOptions<T extends PayloadGeneratedTypes, TSlug extends CollectionSlug<T>> = {
   /** Collection slug */
   collection: TSlug
 
@@ -1498,19 +1484,16 @@ export type CountOptions<
 **Implementation:**
 
 ```typescript
-export async function count<
-  T extends PayloadGeneratedTypes,
-  TSlug extends CollectionSlug<T>
->(
+export async function count<T extends PayloadGeneratedTypes, TSlug extends CollectionSlug<T>>(
   sdk: PayloadSDK<T>,
   options: CountOptions<T, TSlug>,
-  init?: RequestInit
+  init?: RequestInit,
 ): Promise<{ totalDocs: number }> {
   const response = await sdk.request({
     args: options,
     init,
     method: 'GET',
-    path: `/${options.collection}/count`
+    path: `/${options.collection}/count`,
   })
 
   return response.json()
@@ -1522,15 +1505,15 @@ export async function count<
 ```typescript
 // Count all documents
 const { totalDocs } = await sdk.count({
-  collection: 'posts'
+  collection: 'posts',
 })
 
 // Count with filter
 const { totalDocs: publishedCount } = await sdk.count({
   collection: 'posts',
   where: {
-    status: { equals: 'published' }
-  }
+    status: { equals: 'published' },
+  },
 })
 ```
 
@@ -1550,7 +1533,7 @@ Globals are singleton documents (site settings, headers, footers, etc.).
 export type FindGlobalOptions<
   T extends PayloadGeneratedTypes,
   TSlug extends GlobalSlug<T>,
-  TSelect extends SelectType
+  TSelect extends SelectType,
 > = {
   /** Global slug */
   slug: TSlug
@@ -1581,17 +1564,17 @@ export type FindGlobalOptions<
 export async function findGlobal<
   T extends PayloadGeneratedTypes,
   TSlug extends GlobalSlug<T>,
-  TSelect extends SelectFromGlobalSlug<T, TSlug>
+  TSelect extends SelectFromGlobalSlug<T, TSlug>,
 >(
   sdk: PayloadSDK<T>,
   options: FindGlobalOptions<T, TSlug, TSelect>,
-  init?: RequestInit
+  init?: RequestInit,
 ): Promise<TransformGlobalWithSelect<T, TSlug, TSelect>> {
   const response = await sdk.request({
     args: options,
     init,
     method: 'GET',
-    path: `/globals/${options.slug}`
+    path: `/globals/${options.slug}`,
   })
 
   return response.json()
@@ -1603,7 +1586,7 @@ export async function findGlobal<
 ```typescript
 // Get site settings
 const settings = await sdk.findGlobal({
-  slug: 'settings'
+  slug: 'settings',
 })
 
 // Get with field selection
@@ -1611,8 +1594,8 @@ const headerData = await sdk.findGlobal({
   slug: 'header',
   select: {
     logo: true,
-    navigation: true
-  }
+    navigation: true,
+  },
 })
 ```
 
@@ -1626,7 +1609,7 @@ const headerData = await sdk.findGlobal({
 export type UpdateGlobalOptions<
   T extends PayloadGeneratedTypes,
   TSlug extends GlobalSlug<T>,
-  TSelect extends SelectType
+  TSelect extends SelectType,
 > = {
   /** Global slug */
   slug: TSlug
@@ -1663,18 +1646,18 @@ export type UpdateGlobalOptions<
 export async function updateGlobal<
   T extends PayloadGeneratedTypes,
   TSlug extends GlobalSlug<T>,
-  TSelect extends SelectFromGlobalSlug<T, TSlug>
+  TSelect extends SelectFromGlobalSlug<T, TSlug>,
 >(
   sdk: PayloadSDK<T>,
   options: UpdateGlobalOptions<T, TSlug, TSelect>,
-  init?: RequestInit
+  init?: RequestInit,
 ): Promise<TransformGlobalWithSelect<T, TSlug, TSelect>> {
   const response = await sdk.request({
     args: options,
     init,
     json: options.data,
     method: 'POST',
-    path: `/globals/${options.slug}`
+    path: `/globals/${options.slug}`,
   })
 
   const { result } = await response.json()
@@ -1691,8 +1674,8 @@ const updated = await sdk.updateGlobal({
   slug: 'settings',
   data: {
     siteName: 'My Awesome Site',
-    maintenanceMode: false
-  }
+    maintenanceMode: false,
+  },
 })
 
 // Update as draft
@@ -1701,10 +1684,10 @@ const draft = await sdk.updateGlobal({
   data: {
     navigation: [
       { label: 'Home', href: '/' },
-      { label: 'About', href: '/about' }
-    ]
+      { label: 'About', href: '/about' },
+    ],
   },
-  draft: true
+  draft: true,
 })
 ```
 
@@ -1719,18 +1702,12 @@ const draft = await sdk.updateGlobal({
 **Types:**
 
 ```typescript
-export type LoginOptions<
-  T extends PayloadGeneratedTypes,
-  TSlug extends AuthCollectionSlug<T>
-> = {
+export type LoginOptions<T extends PayloadGeneratedTypes, TSlug extends AuthCollectionSlug<T>> = {
   collection: TSlug
   data: TypedAuth<T>[TSlug]['login']
 }
 
-export type LoginResult<
-  T extends PayloadGeneratedTypes,
-  TSlug extends AuthCollectionSlug<T>
-> = {
+export type LoginResult<T extends PayloadGeneratedTypes, TSlug extends AuthCollectionSlug<T>> = {
   exp?: number
   message: string
   token?: string
@@ -1741,19 +1718,16 @@ export type LoginResult<
 **Implementation:**
 
 ```typescript
-export async function login<
-  T extends PayloadGeneratedTypes,
-  TSlug extends AuthCollectionSlug<T>
->(
+export async function login<T extends PayloadGeneratedTypes, TSlug extends AuthCollectionSlug<T>>(
   sdk: PayloadSDK<T>,
   options: LoginOptions<T, TSlug>,
-  init?: RequestInit
+  init?: RequestInit,
 ): Promise<LoginResult<T, TSlug>> {
   const response = await sdk.request({
     init,
     json: options.data,
     method: 'POST',
-    path: `/${options.collection}/login`
+    path: `/${options.collection}/login`,
   })
 
   return response.json()
@@ -1768,8 +1742,8 @@ const result = await sdk.login({
   collection: 'users',
   data: {
     email: 'user@example.com',
-    password: 'password123'
-  }
+    password: 'password123',
+  },
 })
 
 // Use token for subsequent requests
@@ -1777,9 +1751,9 @@ const posts = await sdk.find(
   { collection: 'posts' },
   {
     headers: {
-      Authorization: `JWT ${result.token}`
-    }
-  }
+      Authorization: `JWT ${result.token}`,
+    },
+  },
 )
 ```
 
@@ -1790,17 +1764,11 @@ const posts = await sdk.find(
 **Types:**
 
 ```typescript
-export type MeOptions<
-  T extends PayloadGeneratedTypes,
-  TSlug extends AuthCollectionSlug<T>
-> = {
+export type MeOptions<T extends PayloadGeneratedTypes, TSlug extends AuthCollectionSlug<T>> = {
   collection: TSlug
 }
 
-export type MeResult<
-  T extends PayloadGeneratedTypes,
-  TSlug extends AuthCollectionSlug<T>
-> = {
+export type MeResult<T extends PayloadGeneratedTypes, TSlug extends AuthCollectionSlug<T>> = {
   collection?: TSlug
   exp?: number
   message: string
@@ -1813,18 +1781,15 @@ export type MeResult<
 **Implementation:**
 
 ```typescript
-export async function me<
-  T extends PayloadGeneratedTypes,
-  TSlug extends AuthCollectionSlug<T>
->(
+export async function me<T extends PayloadGeneratedTypes, TSlug extends AuthCollectionSlug<T>>(
   sdk: PayloadSDK<T>,
   options: MeOptions<T, TSlug>,
-  init?: RequestInit
+  init?: RequestInit,
 ): Promise<MeResult<T, TSlug>> {
   const response = await sdk.request({
     init,
     method: 'GET',
-    path: `/${options.collection}/me`
+    path: `/${options.collection}/me`,
   })
 
   return response.json()
@@ -1839,9 +1804,9 @@ const result = await sdk.me(
   { collection: 'users' },
   {
     headers: {
-      Authorization: `JWT ${token}`
-    }
-  }
+      Authorization: `JWT ${token}`,
+    },
+  },
 )
 
 console.log(result.user.email)
@@ -1854,17 +1819,11 @@ console.log(result.user.email)
 **Types:**
 
 ```typescript
-export type RefreshOptions<
-  T extends PayloadGeneratedTypes,
-  TSlug extends AuthCollectionSlug<T>
-> = {
+export type RefreshOptions<T extends PayloadGeneratedTypes, TSlug extends AuthCollectionSlug<T>> = {
   collection: TSlug
 }
 
-export type RefreshResult<
-  T extends PayloadGeneratedTypes,
-  TSlug extends AuthCollectionSlug<T>
-> = {
+export type RefreshResult<T extends PayloadGeneratedTypes, TSlug extends AuthCollectionSlug<T>> = {
   exp: number
   refreshedToken: string
   setCookie?: boolean
@@ -1878,16 +1837,16 @@ export type RefreshResult<
 ```typescript
 export async function refreshToken<
   T extends PayloadGeneratedTypes,
-  TSlug extends AuthCollectionSlug<T>
+  TSlug extends AuthCollectionSlug<T>,
 >(
   sdk: PayloadSDK<T>,
   options: RefreshOptions<T, TSlug>,
-  init?: RequestInit
+  init?: RequestInit,
 ): Promise<RefreshResult<T, TSlug>> {
   const response = await sdk.request({
     init,
     method: 'POST',
-    path: `/${options.collection}/refresh-token`
+    path: `/${options.collection}/refresh-token`,
   })
 
   return response.json()
@@ -1902,9 +1861,9 @@ const result = await sdk.refreshToken(
   { collection: 'users' },
   {
     headers: {
-      Authorization: `JWT ${oldToken}`
-    }
-  }
+      Authorization: `JWT ${oldToken}`,
+    },
+  },
 )
 
 // Use new token
@@ -1920,7 +1879,7 @@ const newToken = result.refreshedToken
 ```typescript
 export type ForgotPasswordOptions<
   T extends PayloadGeneratedTypes,
-  TSlug extends AuthCollectionSlug<T>
+  TSlug extends AuthCollectionSlug<T>,
 > = {
   collection: TSlug
   data: {
@@ -1935,17 +1894,17 @@ export type ForgotPasswordOptions<
 ```typescript
 export async function forgotPassword<
   T extends PayloadGeneratedTypes,
-  TSlug extends AuthCollectionSlug<T>
+  TSlug extends AuthCollectionSlug<T>,
 >(
   sdk: PayloadSDK<T>,
   options: ForgotPasswordOptions<T, TSlug>,
-  init?: RequestInit
+  init?: RequestInit,
 ): Promise<{ message: string }> {
   const response = await sdk.request({
     init,
     json: options.data,
     method: 'POST',
-    path: `/${options.collection}/forgot-password`
+    path: `/${options.collection}/forgot-password`,
   })
 
   return response.json()
@@ -1959,8 +1918,8 @@ export async function forgotPassword<
 const result = await sdk.forgotPassword({
   collection: 'users',
   data: {
-    email: 'user@example.com'
-  }
+    email: 'user@example.com',
+  },
 })
 // Sends reset email with token
 ```
@@ -1974,7 +1933,7 @@ const result = await sdk.forgotPassword({
 ```typescript
 export type ResetPasswordOptions<
   T extends PayloadGeneratedTypes,
-  TSlug extends AuthCollectionSlug<T>
+  TSlug extends AuthCollectionSlug<T>,
 > = {
   collection: TSlug
   data: {
@@ -1985,7 +1944,7 @@ export type ResetPasswordOptions<
 
 export type ResetPasswordResult<
   T extends PayloadGeneratedTypes,
-  TSlug extends AuthCollectionSlug<T>
+  TSlug extends AuthCollectionSlug<T>,
 > = {
   token?: string
   user: DataFromCollectionSlug<T, TSlug>
@@ -1997,17 +1956,17 @@ export type ResetPasswordResult<
 ```typescript
 export async function resetPassword<
   T extends PayloadGeneratedTypes,
-  TSlug extends AuthCollectionSlug<T>
+  TSlug extends AuthCollectionSlug<T>,
 >(
   sdk: PayloadSDK<T>,
   options: ResetPasswordOptions<T, TSlug>,
-  init?: RequestInit
+  init?: RequestInit,
 ): Promise<ResetPasswordResult<T, TSlug>> {
   const response = await sdk.request({
     init,
     json: options.data,
     method: 'POST',
-    path: `/${options.collection}/reset-password`
+    path: `/${options.collection}/reset-password`,
   })
 
   return response.json()
@@ -2022,8 +1981,8 @@ const result = await sdk.resetPassword({
   collection: 'users',
   data: {
     password: 'newSecurePassword123',
-    token: tokenFromEmail
-  }
+    token: tokenFromEmail,
+  },
 })
 
 // User can now login with new password
@@ -2038,7 +1997,7 @@ const result = await sdk.resetPassword({
 ```typescript
 export type VerifyEmailOptions<
   T extends PayloadGeneratedTypes,
-  TSlug extends AuthCollectionSlug<T>
+  TSlug extends AuthCollectionSlug<T>,
 > = {
   collection: TSlug
   token: string
@@ -2050,16 +2009,16 @@ export type VerifyEmailOptions<
 ```typescript
 export async function verifyEmail<
   T extends PayloadGeneratedTypes,
-  TSlug extends AuthCollectionSlug<T>
+  TSlug extends AuthCollectionSlug<T>,
 >(
   sdk: PayloadSDK<T>,
   options: VerifyEmailOptions<T, TSlug>,
-  init?: RequestInit
+  init?: RequestInit,
 ): Promise<{ message: string }> {
   const response = await sdk.request({
     init,
     method: 'POST',
-    path: `/${options.collection}/verify/${options.token}`
+    path: `/${options.collection}/verify/${options.token}`,
   })
 
   return response.json()
@@ -2072,7 +2031,7 @@ export async function verifyEmail<
 // Verify email
 const result = await sdk.verifyEmail({
   collection: 'users',
-  token: tokenFromEmail
+  token: tokenFromEmail,
 })
 ```
 
@@ -2091,7 +2050,7 @@ Payload supports version history for documents. The SDK provides operations to q
 ```typescript
 export type FindVersionsOptions<
   T extends PayloadGeneratedTypes,
-  TSlug extends CollectionSlug<T>
+  TSlug extends CollectionSlug<T>,
 > = {
   collection: TSlug
   depth?: number
@@ -2114,17 +2073,17 @@ export type FindVersionsOptions<
 ```typescript
 export async function findVersions<
   T extends PayloadGeneratedTypes,
-  TSlug extends CollectionSlug<T>
+  TSlug extends CollectionSlug<T>,
 >(
   sdk: PayloadSDK<T>,
   options: FindVersionsOptions<T, TSlug>,
-  init?: RequestInit
+  init?: RequestInit,
 ): Promise<PaginatedDocs<TypeWithVersion<DataFromCollectionSlug<T, TSlug>>>> {
   const response = await sdk.request({
     args: options,
     init,
     method: 'GET',
-    path: `/${options.collection}/versions`
+    path: `/${options.collection}/versions`,
   })
 
   return response.json()
@@ -2138,9 +2097,9 @@ export async function findVersions<
 const versions = await sdk.findVersions({
   collection: 'posts',
   where: {
-    parent: { equals: postId }
+    parent: { equals: postId },
   },
-  sort: '-version.createdAt'
+  sort: '-version.createdAt',
 })
 
 // Each version includes:
@@ -2160,20 +2119,18 @@ const versions = await sdk.findVersions({
 export async function findVersionByID<
   T extends PayloadGeneratedTypes,
   TSlug extends CollectionSlug<T>,
-  TDisableErrors extends boolean
+  TDisableErrors extends boolean,
 >(
   sdk: PayloadSDK<T>,
   options: FindVersionByIDOptions<T, TSlug, TDisableErrors>,
-  init?: RequestInit
-): Promise<
-  ApplyDisableErrors<TypeWithVersion<DataFromCollectionSlug<T, TSlug>>, TDisableErrors>
-> {
+  init?: RequestInit,
+): Promise<ApplyDisableErrors<TypeWithVersion<DataFromCollectionSlug<T, TSlug>>, TDisableErrors>> {
   try {
     const response = await sdk.request({
       args: options,
       init,
       method: 'GET',
-      path: `/${options.collection}/versions/${options.id}`
+      path: `/${options.collection}/versions/${options.id}`,
     })
 
     if (response.ok) {
@@ -2187,9 +2144,7 @@ export async function findVersionByID<
       return null
     }
 
-    throw new Error(
-      `Error retrieving the version document ${options.collection}/${options.id}`
-    )
+    throw new Error(`Error retrieving the version document ${options.collection}/${options.id}`)
   }
 }
 ```
@@ -2200,7 +2155,7 @@ export async function findVersionByID<
 // Get specific version
 const version = await sdk.findVersionByID({
   collection: 'posts',
-  id: versionId
+  id: versionId,
 })
 ```
 
@@ -2213,17 +2168,17 @@ const version = await sdk.findVersionByID({
 ```typescript
 export async function restoreVersion<
   T extends PayloadGeneratedTypes,
-  TSlug extends CollectionSlug<T>
+  TSlug extends CollectionSlug<T>,
 >(
   sdk: PayloadSDK<T>,
   options: RestoreVersionByIDOptions<T, TSlug>,
-  init?: RequestInit
+  init?: RequestInit,
 ): Promise<DataFromCollectionSlug<T, TSlug>> {
   const response = await sdk.request({
     args: options,
     init,
     method: 'POST',
-    path: `/${options.collection}/versions/${options.id}`
+    path: `/${options.collection}/versions/${options.id}`,
   })
 
   return response.json()
@@ -2236,7 +2191,7 @@ export async function restoreVersion<
 // Restore post to previous version
 const restoredPost = await sdk.restoreVersion({
   collection: 'posts',
-  id: versionId
+  id: versionId,
 })
 // Creates new version with content from versionId
 ```
@@ -2248,19 +2203,19 @@ Similar operations exist for globals:
 ```typescript
 // Find global versions
 const headerVersions = await sdk.findGlobalVersions({
-  slug: 'header'
+  slug: 'header',
 })
 
 // Find specific global version
 const version = await sdk.findGlobalVersionByID({
   slug: 'header',
-  id: versionId
+  id: versionId,
 })
 
 // Restore global version
 const restored = await sdk.restoreGlobalVersion({
   slug: 'header',
-  id: versionId
+  id: versionId,
 })
 ```
 
@@ -2275,9 +2230,7 @@ File uploads are seamlessly integrated into create and update operations.
 **1. File Resolution (packages/sdk/src/utilities/resolveFileFromOptions.ts):**
 
 ```typescript
-export const resolveFileFromOptions = async (
-  file: Blob | string
-): Promise<Blob> => {
+export const resolveFileFromOptions = async (file: Blob | string): Promise<Blob> => {
   if (typeof file === 'string') {
     // Fetch from URL
     const response = await fetch(file)
@@ -2323,8 +2276,8 @@ const media = await sdk.create({
   file: file,
   data: {
     alt: 'Product image',
-    caption: 'New product launch'
-  }
+    caption: 'New product launch',
+  },
 })
 
 // From URL
@@ -2332,8 +2285,8 @@ const media = await sdk.create({
   collection: 'media',
   file: 'https://example.com/image.jpg',
   data: {
-    alt: 'Downloaded image'
-  }
+    alt: 'Downloaded image',
+  },
 })
 ```
 
@@ -2346,8 +2299,8 @@ const updated = await sdk.update({
   id: mediaId,
   file: newFile,
   data: {
-    alt: 'Updated alt text'
-  }
+    alt: 'Updated alt text',
+  },
 })
 ```
 
@@ -2360,9 +2313,7 @@ type CreateOptions<T, TSlug, TSelect> = {
   // ...other options
 
   // Only available for upload collections
-  file?: TSlug extends UploadCollectionSlug<T>
-    ? Blob | string
-    : never
+  file?: TSlug extends UploadCollectionSlug<T> ? Blob | string : never
 }
 ```
 
@@ -2441,11 +2392,11 @@ const result = await sdk.request({
   method: 'POST',
   path: '/custom-endpoint',
   json: {
-    customField: 'value'
+    customField: 'value',
   },
   args: {
-    depth: 2
-  }
+    depth: 2,
+  },
 })
 
 // Custom GET endpoint
@@ -2453,8 +2404,8 @@ const result = await sdk.request({
   method: 'GET',
   path: '/analytics/stats',
   args: {
-    where: { date: { greater_than: '2024-01-01' } }
-  }
+    where: { date: { greater_than: '2024-01-01' } },
+  },
 })
 ```
 
@@ -2491,7 +2442,7 @@ try {
 // With disableErrors: false (default)
 const post = await sdk.findByID({
   collection: 'posts',
-  id: '123'
+  id: '123',
 })
 // Type: Post
 
@@ -2499,7 +2450,7 @@ const post = await sdk.findByID({
 const post = await sdk.findByID({
   collection: 'posts',
   id: '123',
-  disableErrors: true
+  disableErrors: true,
 })
 // Type: Post | null
 ```
@@ -2534,12 +2485,12 @@ Bulk operations return partial success:
 const result = await sdk.update({
   collection: 'posts',
   where: { status: { equals: 'draft' } },
-  data: { status: 'published' }
+  data: { status: 'published' },
 })
 
 // Result includes both successes and failures
-result.docs     // Successfully updated documents
-result.errors   // Failed updates with reasons
+result.docs // Successfully updated documents
+result.errors // Failed updates with reasons
 
 // Example errors array:
 // [
@@ -2557,7 +2508,7 @@ async function fetchPostSafely(id: string) {
   try {
     return await sdk.findByID({
       collection: 'posts',
-      id
+      id,
     })
   } catch (error) {
     if (error instanceof TypeError) {
@@ -2593,10 +2544,10 @@ export default buildConfig({
       fields: [
         { name: 'title', type: 'text', required: true },
         { name: 'content', type: 'richText' },
-        { name: 'author', type: 'relationship', relationTo: 'users' }
-      ]
-    }
-  ]
+        { name: 'author', type: 'relationship', relationTo: 'users' },
+      ],
+    },
+  ],
 })
 ```
 
@@ -2641,7 +2592,7 @@ import { PayloadSDK } from '@payloadcms/sdk'
 import type { Config } from './payload-types'
 
 const sdk = new PayloadSDK<Config>({
-  baseURL: process.env.NEXT_PUBLIC_API_URL
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
 })
 
 // Now fully type-safe!
@@ -2657,7 +2608,7 @@ import { PayloadSDK } from '@payloadcms/sdk'
 import type { Config } from '@/payload-types'
 
 const sdk = new PayloadSDK<Config>({
-  baseURL: process.env.PAYLOAD_API_URL
+  baseURL: process.env.PAYLOAD_API_URL,
 })
 
 export async function GET(request: Request) {
@@ -2668,7 +2619,7 @@ export async function GET(request: Request) {
     collection: 'posts',
     page,
     limit: 10,
-    sort: '-createdAt'
+    sort: '-createdAt',
   })
 
   return Response.json(posts)
@@ -2747,13 +2698,13 @@ import { PayloadSDK } from '@payloadcms/sdk'
 import type { Config } from './payload-types'
 
 const sdk = new PayloadSDK<Config>({
-  baseURL: process.env.NEXT_PUBLIC_API_URL
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
 })
 
 export async function login(email: string, password: string) {
   const result = await sdk.login({
     collection: 'users',
-    data: { email, password }
+    data: { email, password },
   })
 
   // Store token (cookie, localStorage, etc.)
@@ -2772,9 +2723,9 @@ export async function getCurrentUser() {
       { collection: 'users' },
       {
         headers: {
-          Authorization: `JWT ${token}`
-        }
-      }
+          Authorization: `JWT ${token}`,
+        },
+      },
     )
     return result.user
   } catch {
@@ -2793,9 +2744,9 @@ export async function refreshAuthToken() {
     { collection: 'users' },
     {
       headers: {
-        Authorization: `JWT ${token}`
-      }
-    }
+        Authorization: `JWT ${token}`,
+      },
+    },
   )
 
   localStorage.setItem('token', result.refreshedToken)
@@ -2827,7 +2778,7 @@ const sdk = new PayloadSDK<Config>({
     }
 
     return fetch(url, init)
-  }
+  },
 })
 ```
 
@@ -2850,9 +2801,7 @@ const sdk = new PayloadSDK<Config>({
         // Retry on 5xx errors
         if (response.status >= 500) {
           retries--
-          await new Promise(resolve =>
-            setTimeout(resolve, 1000 * (4 - retries))
-          )
+          await new Promise((resolve) => setTimeout(resolve, 1000 * (4 - retries)))
           continue
         }
 
@@ -2862,7 +2811,7 @@ const sdk = new PayloadSDK<Config>({
         if (retries === 0) throw error
       }
     }
-  }
+  },
 })
 ```
 
@@ -2878,7 +2827,7 @@ const mockFetch = jest.fn()
 
 const sdk = new PayloadSDK<Config>({
   baseURL: '',
-  fetch: mockFetch
+  fetch: mockFetch,
 })
 
 test('find posts', async () => {
@@ -2886,8 +2835,8 @@ test('find posts', async () => {
     ok: true,
     json: async () => ({
       docs: [{ id: '1', title: 'Test Post' }],
-      totalDocs: 1
-    })
+      totalDocs: 1,
+    }),
   })
 
   const result = await sdk.find({ collection: 'posts' })
@@ -2910,7 +2859,7 @@ const api = {
   POST: REST_POST(config),
   PATCH: REST_PATCH(config),
   DELETE: REST_DELETE(config),
-  PUT: REST_PUT(config)
+  PUT: REST_PUT(config),
 }
 
 const awaitedConfig = await config
@@ -2932,12 +2881,12 @@ export const sdk = new PayloadSDK<GeneratedTypes>({
 
     const params = {
       params: Promise.resolve({
-        slug: slugs.split('/')
-      })
+        slug: slugs.split('/'),
+      }),
     }
 
     return api[init.method.toUpperCase()](request, params)
-  }
+  },
 })
 ```
 
@@ -2950,6 +2899,7 @@ Based on the SDK analysis, here's what we need to implement for tiny-cms:
 ### Essential Features (Must Have)
 
 **1. Collections CRUD**
+
 - ✓ `find` - List/query documents
 - ✓ `findByID` - Get single document
 - ✓ `create` - Create document
@@ -2958,16 +2908,19 @@ Based on the SDK analysis, here's what we need to implement for tiny-cms:
 - ✓ `count` - Count documents (for pagination)
 
 **2. Authentication**
+
 - ✓ `login` - User authentication
 - ✓ `me` - Get current user
 - ✓ `refreshToken` - Token refresh
 
 **3. File Uploads**
+
 - ✓ File upload support for media
 - ✓ Both Blob and URL input
 - ✓ FormData encoding
 
 **4. Type Safety**
+
 - ✓ Generic type parameters
 - ✓ Type inference from config
 - ✓ Collection/field autocomplete
@@ -2975,18 +2928,22 @@ Based on the SDK analysis, here's what we need to implement for tiny-cms:
 ### Optional Features (Nice to Have)
 
 **1. Globals**
+
 - `findGlobal` - Get global config
 - `updateGlobal` - Update global config
 
 **2. Advanced Auth**
+
 - `forgotPassword` - Password reset flow
 - `resetPassword` - Password reset completion
 - `verifyEmail` - Email verification
 
 **3. Versions**
+
 - Skip for MVP - not essential for basic CMS
 
 **4. Advanced Queries**
+
 - `joins` - Relationship joins
 - `populate` - Field population control
 - `select` - Field selection
@@ -2994,30 +2951,36 @@ Based on the SDK analysis, here's what we need to implement for tiny-cms:
 ### Can Skip / Simplify
 
 **1. Versions API**
+
 - `findVersions`, `findVersionByID`, `restoreVersion`
 - Not needed for tiny-cms MVP
 
 **2. Bulk Operations**
+
 - Update many documents at once
 - Delete many documents at once
 - tiny-cms will only do single-document operations
 
 **3. Advanced Locale Support**
+
 - `fallbackLocale`
 - `locale: 'all'`
 - tiny-cms will support simpler locale switching
 
 **4. Draft System**
+
 - `draft` parameter
 - Draft/published workflow
 - Can add later if needed
 
 **5. Trash/Soft Delete**
+
 - `trash` parameter
 - Soft delete support
 - Use hard deletes in tiny-cms
 
 **6. Complex Pagination**
+
 - `pagination: false` to skip counts
 - tiny-cms will always paginate
 
@@ -3028,11 +2991,12 @@ Based on the SDK analysis, here's what we need to implement for tiny-cms:
 ### 1. Simplified Type System
 
 **Payload SDK:**
+
 ```typescript
 export type FindOptions<
   T extends PayloadGeneratedTypes,
   TSlug extends CollectionSlug<T>,
-  TSelect extends SelectType
+  TSelect extends SelectType,
 > = {
   collection: TSlug
   depth?: number
@@ -3052,11 +3016,9 @@ export type FindOptions<
 ```
 
 **tiny-cms (simplified):**
+
 ```typescript
-export type FindOptions<
-  TSlug extends CollectionSlug,
-  TSelect = undefined
-> = {
+export type FindOptions<TSlug extends CollectionSlug, TSelect = undefined> = {
   collection: TSlug
   where?: Where
   sort?: Sort
@@ -3067,6 +3029,7 @@ export type FindOptions<
 ```
 
 **Removed:**
+
 - `depth` - auto-populate to depth 1 always
 - `draft`, `trash` - no draft/soft-delete support
 - `fallbackLocale`, `locale` - simplified locale handling
@@ -3076,6 +3039,7 @@ export type FindOptions<
 ### 2. Simplified Update API
 
 **Payload SDK supports both:**
+
 ```typescript
 // Update by ID
 sdk.update({ collection: 'posts', id: '123', data: {...} })
@@ -3085,6 +3049,7 @@ sdk.update({ collection: 'posts', where: {...}, data: {...} })
 ```
 
 **tiny-cms (ID only):**
+
 ```typescript
 sdk.update({ collection: 'posts', id: '123', data: {...} })
 // No bulk updates - simpler implementation
@@ -3093,21 +3058,23 @@ sdk.update({ collection: 'posts', id: '123', data: {...} })
 ### 3. Simplified Error Handling
 
 **Payload SDK:**
+
 ```typescript
 // Optional error suppression
 const post = await sdk.findByID({
   collection: 'posts',
   id: '123',
-  disableErrors: true  // Returns null on error
+  disableErrors: true, // Returns null on error
 })
 ```
 
 **tiny-cms:**
+
 ```typescript
 // Always throw errors - let caller handle
 const post = await sdk.findByID({
   collection: 'posts',
-  id: '123'
+  id: '123',
 })
 // Throws if not found - simpler API
 ```
@@ -3115,22 +3082,24 @@ const post = await sdk.findByID({
 ### 4. Simplified File Uploads
 
 **Payload SDK:**
+
 ```typescript
 // Supports Blob and URL
 sdk.create({
   collection: 'media',
-  file: 'https://example.com/image.jpg',  // Fetches from URL
-  data: {}
+  file: 'https://example.com/image.jpg', // Fetches from URL
+  data: {},
 })
 ```
 
 **tiny-cms:**
+
 ```typescript
 // Only support Blob/File
 sdk.create({
   collection: 'media',
-  file: fileBlob,  // Must be Blob/File
-  data: {}
+  file: fileBlob, // Must be Blob/File
+  data: {},
 })
 // Simpler - no URL fetching needed
 ```
@@ -3138,6 +3107,7 @@ sdk.create({
 ### 5. Simplified Request Method
 
 **Payload SDK:**
+
 ```typescript
 async request({
   args = {},
@@ -3150,6 +3120,7 @@ async request({
 ```
 
 **tiny-cms:**
+
 ```typescript
 async request({
   method,
@@ -3167,20 +3138,24 @@ async request({
 ### 6. Removed Features
 
 **Authentication:**
+
 - Remove: `forgotPassword`, `resetPassword`, `verifyEmail`
 - Keep: `login`, `me`, `refreshToken`
 
 **Versions:**
+
 - Remove entire versions API
 - Not needed for MVP
 
 **Globals:**
+
 - Remove globals API
 - Use regular collections for config
 
 ### 7. Simplified Dependencies
 
 **Payload SDK:**
+
 ```json
 {
   "dependencies": {
@@ -3192,6 +3167,7 @@ async request({
 ```
 
 **tiny-cms:**
+
 ```json
 {
   "dependencies": {
@@ -3209,6 +3185,7 @@ async request({
 ### Phase 1: Core Foundation (Week 1)
 
 **1. Type System (1-2 days)**
+
 ```typescript
 // src/types.ts
 
@@ -3256,6 +3233,7 @@ export type Sort = string | string[]
 ```
 
 **2. SDK Class (1 day)**
+
 ```typescript
 // src/sdk.ts
 
@@ -3264,11 +3242,7 @@ export class TinyCMSSDK<T extends GeneratedTypes> {
   private baseInit: RequestInit
   private fetch: typeof fetch
 
-  constructor(config: {
-    baseURL: string
-    baseInit?: RequestInit
-    fetch?: typeof fetch
-  }) {
+  constructor(config: { baseURL: string; baseInit?: RequestInit; fetch?: typeof fetch }) {
     this.baseURL = config.baseURL
     this.baseInit = config.baseInit ?? {}
     this.fetch = config.fetch ?? globalThis.fetch
@@ -3281,7 +3255,7 @@ export class TinyCMSSDK<T extends GeneratedTypes> {
 
   // Collection methods
   find<S extends CollectionSlug<T>>(
-    options: FindOptions<T, S>
+    options: FindOptions<T, S>,
   ): Promise<PaginatedDocs<DataFromCollection<T, S>>> {
     return find(this, options)
   }
@@ -3291,6 +3265,7 @@ export class TinyCMSSDK<T extends GeneratedTypes> {
 ```
 
 **3. Request Implementation (1 day)**
+
 ```typescript
 // src/request.ts
 
@@ -3301,7 +3276,7 @@ export async function request(
     path: string
     body?: any
     params?: Record<string, any>
-  }
+  },
 ): Promise<Response> {
   // Build URL
   const url = buildURL(sdk.baseURL, params.path, params.params)
@@ -3309,7 +3284,7 @@ export async function request(
   // Build init
   const init: RequestInit = {
     method: params.method,
-    ...sdk.baseInit
+    ...sdk.baseInit,
   }
 
   // Handle body
@@ -3319,7 +3294,7 @@ export async function request(
     } else {
       init.headers = {
         ...init.headers,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       }
       init.body = JSON.stringify(params.body)
     }
@@ -3333,12 +3308,13 @@ export async function request(
 ### Phase 2: Collections API (Week 1-2)
 
 **1. Find Operation (0.5 day)**
+
 ```typescript
 // src/collections/find.ts
 
 export async function find<T, S extends CollectionSlug<T>>(
   sdk: TinyCMSSDK<T>,
-  options: FindOptions<T, S>
+  options: FindOptions<T, S>,
 ): Promise<PaginatedDocs<DataFromCollection<T, S>>> {
   const response = await sdk.request({
     method: 'GET',
@@ -3347,8 +3323,8 @@ export async function find<T, S extends CollectionSlug<T>>(
       where: options.where,
       sort: options.sort,
       limit: options.limit,
-      page: options.page
-    }
+      page: options.page,
+    },
   })
 
   if (!response.ok) {
@@ -3362,6 +3338,7 @@ export async function find<T, S extends CollectionSlug<T>>(
 **2. FindByID, Create, Update, Delete (1 day)**
 
 Each operation follows similar pattern:
+
 - Separate file in `src/collections/`
 - Type-safe options
 - Call `sdk.request()` with appropriate params
@@ -3372,6 +3349,7 @@ Each operation follows similar pattern:
 ### Phase 3: Authentication (Week 2)
 
 **1. Login (0.5 day)**
+
 ```typescript
 // src/auth/login.ts
 
@@ -3388,12 +3366,12 @@ export type LoginResult<T, S> = {
 
 export async function login<T, S extends AuthCollectionSlug<T>>(
   sdk: TinyCMSSDK<T>,
-  options: LoginOptions<T, S>
+  options: LoginOptions<T, S>,
 ): Promise<LoginResult<T, S>> {
   const response = await sdk.request({
     method: 'POST',
     path: `/${options.collection}/login`,
-    body: options.data
+    body: options.data,
   })
 
   if (!response.ok) {
@@ -3409,12 +3387,13 @@ export async function login<T, S extends AuthCollectionSlug<T>>(
 ### Phase 4: File Uploads (Week 2)
 
 **1. File Upload Support (1 day)**
+
 ```typescript
 // src/collections/create.ts (enhanced)
 
 export async function create<T, S extends CollectionSlug<T>>(
   sdk: TinyCMSSDK<T>,
-  options: CreateOptions<T, S>
+  options: CreateOptions<T, S>,
 ): Promise<DataFromCollection<T, S>> {
   let body: any
 
@@ -3432,7 +3411,7 @@ export async function create<T, S extends CollectionSlug<T>>(
   const response = await sdk.request({
     method: 'POST',
     path: `/${options.collection}`,
-    body
+    body,
   })
 
   if (!response.ok) {
@@ -3447,6 +3426,7 @@ export async function create<T, S extends CollectionSlug<T>>(
 ### Phase 5: Utilities (Week 2-3)
 
 **1. Query String Builder (0.5 day)**
+
 ```typescript
 // src/utils/buildQueryString.ts
 
@@ -3478,11 +3458,15 @@ export function buildQueryString(params: Record<string, any>): string {
 ```
 
 **2. Error Classes (0.5 day)**
+
 ```typescript
 // src/utils/errors.ts
 
 export class SDKError extends Error {
-  constructor(message: string, public statusCode?: number) {
+  constructor(
+    message: string,
+    public statusCode?: number,
+  ) {
     super(message)
     this.name = 'SDKError'
   }
@@ -3496,7 +3480,10 @@ export class NotFoundError extends SDKError {
 }
 
 export class ValidationError extends SDKError {
-  constructor(message: string, public errors?: any[]) {
+  constructor(
+    message: string,
+    public errors?: any[],
+  ) {
     super(message, 400)
     this.name = 'ValidationError'
   }
@@ -3513,11 +3500,13 @@ export class AuthenticationError extends SDKError {
 ### Phase 6: Testing (Week 3)
 
 **1. Unit Tests (2 days)**
+
 - Test each operation with mock fetch
 - Test type inference
 - Test error handling
 
 **2. Integration Tests (1 day)**
+
 - Test against real Payload instance
 - Test file uploads
 - Test authentication flow
@@ -3525,12 +3514,14 @@ export class AuthenticationError extends SDKError {
 ### Phase 7: Documentation (Week 3)
 
 **1. README (1 day)**
+
 - Installation
 - Quick start
 - API reference
 - Examples
 
 **2. TypeDoc Comments (0.5 day)**
+
 - Add JSDoc comments to all public APIs
 - Generate TypeDoc documentation
 
@@ -3593,6 +3584,7 @@ packages/sdk/
 The Payload SDK is a well-architected, type-safe REST API client with comprehensive coverage of Payload CMS features. For tiny-cms, we can adopt its core patterns while simplifying significantly:
 
 **Keep:**
+
 - Generic type system for full type safety
 - Method delegation pattern for organization
 - Request/response handling architecture
@@ -3600,6 +3592,7 @@ The Payload SDK is a well-architected, type-safe REST API client with comprehens
 - Authentication flow
 
 **Simplify:**
+
 - Remove versions API entirely
 - Remove bulk operations (update/delete many)
 - Remove draft/trash support
@@ -3612,4 +3605,4 @@ A lean, focused SDK (~1,400 LOC vs 2,500) that provides essential CMS functional
 
 ---
 
-*End of Report*
+_End of Report_

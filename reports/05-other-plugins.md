@@ -71,6 +71,7 @@ export const ecommercePlugin =
 ### Why We Don't Need It
 
 **For tiny-cms-next**:
+
 - We're building a content management system, not an e-commerce platform
 - No requirement for product catalogs, shopping carts, or payment processing
 - Adding e-commerce would significantly increase complexity
@@ -156,6 +157,7 @@ export const formBuilderPlugin =
 ### Why We Don't Need It
 
 **For tiny-cms-next**:
+
 - No requirement for dynamic form building in the admin UI
 - Static forms can be built directly in React/Next.js
 - Form submissions don't need to be stored in the CMS database
@@ -199,14 +201,13 @@ export const importExportPlugin =
     }
 
     // inject custom import export provider
-    config.admin.components.providers.push(
-      '@payloadcms/plugin-import-export/rsc#ImportExportProvider',
-    )
-
-    // inject the createExport job into the config
-    ((config.jobs ??= {}).tasks ??= []).push(
-      getCreateCollectionExportTask(config, pluginConfig)
-    )
+    config.admin.components.providers
+      .push('@payloadcms/plugin-import-export/rsc#ImportExportProvider')
+      (
+        // inject the createExport job into the config
+        ((config.jobs ??= {}).tasks ??= []),
+      )
+      .push(getCreateCollectionExportTask(config, pluginConfig))
 
     collectionsToUpdate.forEach((collection) => {
       components.listMenuItems.push({
@@ -246,6 +247,7 @@ export const importExportPlugin =
 ### Why We Don't Need It
 
 **For tiny-cms-next**:
+
 - Small-scale CMS won't need bulk data operations
 - Manual entry is sufficient for initial content
 - If bulk operations are needed, can use database tools directly
@@ -302,7 +304,7 @@ export const multiTenantPlugin =
 
     // Add tenants array field to users collection
     const adminUsersCollection = incomingConfig.collections.find(
-      ({ slug, auth }) => slug === incomingConfig.admin.user || auth
+      ({ slug, auth }) => slug === incomingConfig.admin.user || auth,
     )
     // ... adds tenant fields to user collection
   }
@@ -330,6 +332,7 @@ export const multiTenantPlugin =
 ### Why We Don't Need It
 
 **For tiny-cms-next**:
+
 - Building a single-tenant CMS, not a SaaS platform
 - No requirement to isolate data between multiple organizations
 - Adds significant complexity to data access patterns
@@ -375,7 +378,7 @@ export const nestedDocsPlugin =
 
         // Check for existing parent/breadcrumb fields
         const existingParentField = collection.fields.find(
-          (field) => 'name' in field && field.name === 'parent'
+          (field) => 'name' in field && field.name === 'parent',
         )
 
         if (!existingParentField) {
@@ -393,11 +396,11 @@ export const nestedDocsPlugin =
             afterChange: [
               resaveChildren(pluginConfig),
               resaveSelfAfterCreate(pluginConfig),
-              ...collection?.hooks?.afterChange || [],
+              ...(collection?.hooks?.afterChange || []),
             ],
             beforeChange: [
               populateBreadcrumbsBeforeChange(pluginConfig),
-              ...collection?.hooks?.beforeChange || [],
+              ...(collection?.hooks?.beforeChange || []),
             ],
           },
         }
@@ -427,6 +430,7 @@ export const nestedDocsPlugin =
 ### Why We Don't Need It
 
 **For tiny-cms-next**:
+
 - Simple flat structure is sufficient for most content types
 - If hierarchy is needed for pages, can build custom parent relationship
 - Automatic breadcrumb generation adds complexity
@@ -531,6 +535,7 @@ const redirects = await payload.find({ collection: 'redirects' })
 ### Why We Don't Need It
 
 **For tiny-cms-next**:
+
 - Next.js provides built-in redirect support in `next.config.js`
 - Can use Next.js `middleware.ts` for dynamic redirects
 - Adds a collection that needs to be queried on every request
@@ -614,6 +619,7 @@ export const sentryPlugin =
 ### Why We Don't Need It
 
 **For tiny-cms-next**:
+
 - Can integrate Sentry directly in Next.js without plugin
 - Sentry Next.js SDK provides better integration (App Router, middleware, etc.)
 - Plugin only covers Payload-specific errors, not full app
@@ -622,6 +628,7 @@ export const sentryPlugin =
 - Plugin adds unnecessary abstraction layer
 
 **Better approach**:
+
 ```typescript
 // instrumentation.ts
 import * as Sentry from '@sentry/nextjs'
@@ -668,10 +675,12 @@ export const seoPlugin =
         hasGenerateFn: typeof pluginConfig?.generateDescription === 'function',
       }),
       ...(pluginConfig?.uploadsCollection
-        ? [MetaImageField({
-            hasGenerateFn: typeof pluginConfig?.generateImage === 'function',
-            relationTo: pluginConfig.uploadsCollection,
-          })]
+        ? [
+            MetaImageField({
+              hasGenerateFn: typeof pluginConfig?.generateImage === 'function',
+              relationTo: pluginConfig.uploadsCollection,
+            }),
+          ]
         : []),
       PreviewField({
         hasGenerateFn: typeof pluginConfig?.generateURL === 'function',
@@ -729,6 +738,7 @@ export const seoPlugin =
 ### Why We Don't Need It
 
 **For tiny-cms-next**:
+
 - Can add simple meta fields directly to collections
 - Next.js Metadata API handles SEO at page level
 - No need for complex preview components
@@ -737,6 +747,7 @@ export const seoPlugin =
 - Adds UI complexity for simple key-value pairs
 
 **Simpler approach**:
+
 ```typescript
 // In collection config
 fields: [
@@ -749,7 +760,7 @@ fields: [
 export const metadata = {
   title: page.metaTitle,
   description: page.metaDescription,
-  openGraph: { images: [page.ogImage.url] }
+  openGraph: { images: [page.ogImage.url] },
 }
 ```
 
@@ -811,9 +822,7 @@ export const stripePlugin =
     }
 
     for (const collection of collections!) {
-      const syncConfig = pluginConfig.sync?.find(
-        (sync) => sync.collection === collection.slug
-      )
+      const syncConfig = pluginConfig.sync?.find((sync) => sync.collection === collection.slug)
 
       if (!syncConfig) continue
 
@@ -857,6 +866,7 @@ export const stripePlugin =
 ### Why We Don't Need It
 
 **For tiny-cms-next**:
+
 - No payment processing requirements
 - If payments needed, better to use Stripe directly in application
 - Bi-directional sync adds complexity and failure points
@@ -865,6 +875,7 @@ export const stripePlugin =
 - Adding payment data to CMS blurs domain boundaries
 
 **If payments needed later**:
+
 ```typescript
 // Better approach: Separate payment service
 // app/api/payment/route.ts
@@ -881,17 +892,17 @@ export async function POST(req: Request) {
 
 ## Summary Table
 
-| Plugin | Primary Use Case | Collections Added | Why Not Needed |
-|--------|-----------------|-------------------|----------------|
-| **ecommerce** | Online stores | 8 (products, carts, orders, etc.) | Not building e-commerce |
-| **form-builder** | Dynamic forms | 2 (forms, submissions) | Static forms simpler |
-| **import-export** | Bulk data operations | 1 (export jobs) | Small scale, use DB tools |
-| **multi-tenant** | SaaS platforms | 1 (tenants) | Single tenant CMS |
-| **nested-docs** | Hierarchical content | 0 (modifies existing) | Flat structure sufficient |
-| **redirects** | URL management | 1 (redirects) | Use Next.js redirects |
-| **sentry** | Error monitoring | 0 (hooks only) | Direct Sentry integration |
-| **seo** | Meta management | 0 (adds fields) | Simple fields + next-seo |
-| **stripe** | Payment processing | 0 (modifies existing) | No payment needs |
+| Plugin            | Primary Use Case     | Collections Added                 | Why Not Needed            |
+| ----------------- | -------------------- | --------------------------------- | ------------------------- |
+| **ecommerce**     | Online stores        | 8 (products, carts, orders, etc.) | Not building e-commerce   |
+| **form-builder**  | Dynamic forms        | 2 (forms, submissions)            | Static forms simpler      |
+| **import-export** | Bulk data operations | 1 (export jobs)                   | Small scale, use DB tools |
+| **multi-tenant**  | SaaS platforms       | 1 (tenants)                       | Single tenant CMS         |
+| **nested-docs**   | Hierarchical content | 0 (modifies existing)             | Flat structure sufficient |
+| **redirects**     | URL management       | 1 (redirects)                     | Use Next.js redirects     |
+| **sentry**        | Error monitoring     | 0 (hooks only)                    | Direct Sentry integration |
+| **seo**           | Meta management      | 0 (adds fields)                   | Simple fields + next-seo  |
+| **stripe**        | Payment processing   | 0 (modifies existing)             | No payment needs          |
 
 ---
 
@@ -902,24 +913,26 @@ From analyzing these plugins, several patterns emerge:
 ### 1. Config Extension Pattern
 
 All plugins follow this pattern:
+
 ```typescript
 export const pluginName =
   (pluginConfig: PluginConfig) =>
   (incomingConfig: Config): Config => {
     // Modify and return config
-    return { ...incomingConfig, /* modifications */ }
+    return { ...incomingConfig /* modifications */ }
   }
 ```
 
 ### 2. Collection Injection
 
 Plugins add collections in two ways:
+
 ```typescript
 // Add new collection
 config.collections.push(newCollection)
 
 // Modify existing collection
-config.collections = config.collections.map(collection => {
+config.collections = config.collections.map((collection) => {
   if (shouldModify(collection)) {
     return { ...collection, fields: [...collection.fields, newField] }
   }
@@ -930,39 +943,38 @@ config.collections = config.collections.map(collection => {
 ### 3. Hook Registration
 
 Plugins inject hooks into collections:
+
 ```typescript
 collection.hooks = {
   ...collection.hooks,
-  beforeChange: [
-    ...collection.hooks?.beforeChange || [],
-    pluginHook,
-  ],
+  beforeChange: [...(collection.hooks?.beforeChange || []), pluginHook],
 }
 ```
 
 ### 4. Admin UI Extension
 
 Plugins add React components:
+
 ```typescript
 config.admin.components = {
   ...config.admin.components,
-  providers: [
-    ...config.admin.components?.providers || [],
-    'plugin-package#ComponentPath',
-  ],
+  providers: [...(config.admin.components?.providers || []), 'plugin-package#ComponentPath'],
 }
 ```
 
 ### 5. Endpoint Registration
 
 Plugins add custom endpoints:
+
 ```typescript
 config.endpoints = [
-  ...config.endpoints || [],
+  ...(config.endpoints || []),
   {
     path: '/plugin-path',
     method: 'post',
-    handler: async (req) => { /* ... */ },
+    handler: async (req) => {
+      /* ... */
+    },
   },
 ]
 ```
@@ -990,6 +1002,7 @@ config.endpoints = [
 ### For Tiny CMS Next
 
 Given our goals:
+
 - **Keep it simple**: Avoid plugins that add complexity
 - **Build custom**: Simple features better implemented directly
 - **Use framework**: Leverage Next.js built-ins over plugins
@@ -1003,6 +1016,7 @@ Given our goals:
 All nine plugins analyzed serve specific use cases but are not needed for our simplified CMS:
 
 **Not Needed Because**:
+
 1. **ecommerce**: We're building a CMS, not a store
 2. **form-builder**: Static forms are simpler
 3. **import-export**: Small scale doesn't need bulk operations

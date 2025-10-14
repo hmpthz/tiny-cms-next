@@ -3,6 +3,7 @@
 ## Executive Summary
 
 Payload's test suite is comprehensive, with **133 total test files** organized into **~80+ test directories**. The suite includes:
+
 - **66 integration tests** (int.spec.ts)
 - **66 E2E tests** (e2e.spec.ts)
 - **4 unit tests** (test.ts files)
@@ -18,6 +19,7 @@ Tests are organized by feature area, with each directory containing its own conf
 The test suite is organized into ~80+ directories under `/test/`, each representing a specific feature area or component:
 
 **Core Functionality Tests:**
+
 - `access-control/` - Field and collection-level access control
 - `auth/` - Authentication and authorization
 - `collections-graphql/` - GraphQL collection operations
@@ -33,6 +35,7 @@ The test suite is organized into ~80+ directories under `/test/`, each represent
 - `versions/` - Document versioning
 
 **Admin UI Tests:**
+
 - `admin/` - Core admin panel functionality
 - `admin-bar/` - Admin bar component
 - `admin-root/` - Custom admin root
@@ -44,10 +47,12 @@ The test suite is organized into ~80+ directories under `/test/`, each represent
 - `locked-documents/` - Document locking
 
 **Rich Text Editors:**
+
 - `lexical/` - Lexical editor tests
 - `lexical-mdx/` - MDX integration
 
 **Advanced Features:**
+
 - `dataloader/` - DataLoader optimization
 - `group-by/` - Group by functionality
 - `i18n/` - Internationalization
@@ -61,6 +66,7 @@ The test suite is organized into ~80+ directories under `/test/`, each represent
 - `trash/` - Soft delete/trash
 
 **Plugin Tests:**
+
 - `plugin-cloud-storage/` - Cloud storage integration
 - `plugin-ecommerce/` - E-commerce features
 - `plugin-form-builder/` - Form builder
@@ -74,6 +80,7 @@ The test suite is organized into ~80+ directories under `/test/`, each represent
 - `plugin-stripe/` - Stripe integration
 
 **Storage Adapters:**
+
 - `storage-azure/` - Azure Blob Storage
 - `storage-gcs/` - Google Cloud Storage
 - `storage-r2/` - Cloudflare R2
@@ -82,11 +89,13 @@ The test suite is organized into ~80+ directories under `/test/`, each represent
 - `storage-vercel-blob/` - Vercel Blob Storage
 
 **Email Adapters:**
+
 - `email/` - Email functionality
 - `email-nodemailer/` - Nodemailer adapter
 - `email-resend/` - Resend adapter
 
 **Other:**
+
 - `_community/` - Community template test
 - `array-update/` - Array field updates
 - `benchmark-blocks/` - Performance benchmarks
@@ -109,7 +118,7 @@ Integration tests focus on **API-level testing** using the Payload SDK and REST 
 // Typical structure
 describe('Feature Name', () => {
   beforeAll(async () => {
-    ({ payload, restClient } = await initPayloadInt(dirname))
+    ;({ payload, restClient } = await initPayloadInt(dirname))
   })
 
   afterAll(async () => {
@@ -120,7 +129,7 @@ describe('Feature Name', () => {
     it('creates a document', async () => {
       const doc = await payload.create({
         collection: 'posts',
-        data: { title: 'Test' }
+        data: { title: 'Test' },
       })
       expect(doc.title).toBe('Test')
     })
@@ -129,6 +138,7 @@ describe('Feature Name', () => {
 ```
 
 **Coverage:**
+
 - Database operations (CRUD)
 - REST API endpoints
 - GraphQL API
@@ -165,6 +175,7 @@ describe('Admin Panel', () => {
 ```
 
 **Coverage:**
+
 - Admin UI interactions
 - Form submission
 - Document editing
@@ -208,6 +219,7 @@ Minimal unit tests, mostly for utility functions:
 ```
 
 **Key Setup (jest.setup.js):**
+
 - Sets `PAYLOAD_DISABLE_ADMIN=true` (no UI compilation needed)
 - Sets `PAYLOAD_DROP_DATABASE=true` (clean slate per test)
 - Generates database adapter dynamically
@@ -234,6 +246,7 @@ Minimal unit tests, mostly for utility functions:
 ```
 
 **Key Features:**
+
 - 16 parallel workers
 - 5 retries in CI (for flaky tests)
 - Captures screenshots/traces on failure
@@ -242,12 +255,14 @@ Minimal unit tests, mostly for utility functions:
 ### Database Setup
 
 **Database Adapters Tested:**
+
 - MongoDB (default)
 - PostgreSQL
 - SQLite
 - Vercel Postgres
 
 **Dynamic Adapter Selection:**
+
 ```javascript
 // jest.setup.js
 if (!process.env.PAYLOAD_DATABASE) {
@@ -257,6 +272,7 @@ generateDatabaseAdapter(process.env.PAYLOAD_DATABASE)
 ```
 
 **Memory Databases:**
+
 - MongoDB: Uses `mongodb-memory-server` for fast in-memory testing
 - PostgreSQL: Uses `pg-replica` for test databases
 
@@ -269,6 +285,7 @@ generateDatabaseAdapter(process.env.PAYLOAD_DATABASE)
 Each test suite typically includes:
 
 **1. Config File** (`config.ts`):
+
 ```typescript
 export default buildConfigWithDefaults({
   collections: [
@@ -277,35 +294,44 @@ export default buildConfigWithDefaults({
       fields: [
         { name: 'title', type: 'text', required: true },
         // ... other fields
-      ]
-    }
-  ]
+      ],
+    },
+  ],
 })
 ```
 
 **2. Collection Definitions** (`collections/Posts/index.ts`):
+
 ```typescript
 export const Posts: CollectionConfig = {
   slug: 'posts',
-  fields: [/* ... */],
+  fields: [
+    /* ... */
+  ],
   hooks: {
-    beforeChange: [/* ... */],
-    afterRead: [/* ... */]
-  }
+    beforeChange: [
+      /* ... */
+    ],
+    afterRead: [
+      /* ... */
+    ],
+  },
 }
 ```
 
 **3. Seed Data** (`seed.ts`):
+
 ```typescript
 export async function seed(payload: Payload) {
   await payload.create({
     collection: 'posts',
-    data: { title: 'Test Post' }
+    data: { title: 'Test Post' },
   })
 }
 ```
 
 **4. Test File** (`int.spec.ts`):
+
 ```typescript
 describe('Posts', () => {
   beforeEach(async () => {
@@ -343,6 +369,7 @@ fields/
 ```
 
 **Test Coverage per Field:**
+
 - Default values
 - Validation rules
 - Required fields
@@ -357,6 +384,7 @@ fields/
 **File:** `test/auth/int.spec.ts`
 
 **Coverage:**
+
 - Login/logout (REST & GraphQL)
 - JWT token generation/validation
 - Password reset flow
@@ -369,13 +397,14 @@ fields/
 - First user registration
 
 **Example:**
+
 ```typescript
 describe('Auth', () => {
   describe('REST - admin user', () => {
     it('should login', async () => {
       const response = await restClient.login({
         slug: 'users',
-        credentials: { email, password }
+        credentials: { email, password },
       })
       expect(response.token).toBeDefined()
     })
@@ -394,6 +423,7 @@ describe('Auth', () => {
 **File:** `test/hooks/int.spec.ts`
 
 **Coverage:**
+
 - beforeValidate
 - beforeChange
 - afterChange
@@ -403,6 +433,7 @@ describe('Auth', () => {
 - afterOperation
 
 **Execution Order Tests:**
+
 ```typescript
 it('should execute hooks in correct order on create', () => {
   // Verifies hooks run in documented order:
@@ -418,6 +449,7 @@ it('should execute hooks in correct order on create', () => {
 ```
 
 **Hook Context Tests:**
+
 ```typescript
 it('should pass correct context to hooks', async () => {
   // Tests that req, operation, context are properly passed
@@ -425,6 +457,7 @@ it('should pass correct context to hooks', async () => {
 ```
 
 **Transform Hooks** (Mongoose):
+
 ```typescript
 it('should not throw on transform actions', async () => {
   // Tests Mongoose transform hooks don't interfere
@@ -436,6 +469,7 @@ it('should not throw on transform actions', async () => {
 **File:** `test/access-control/int.spec.ts`
 
 **Coverage:**
+
 - Collection-level access (read, create, update, delete)
 - Field-level access (read, update)
 - Hidden fields
@@ -445,6 +479,7 @@ it('should not throw on transform actions', async () => {
 - Sibling data dependencies
 
 **Example:**
+
 ```typescript
 describe('Access Control', () => {
   describe('Fields', () => {
@@ -454,21 +489,21 @@ describe('Access Control', () => {
         data: {
           partiallyHiddenGroup: {
             name: 'public',
-            value: 'private'  // Hidden field
-          }
-        }
+            value: 'private', // Hidden field
+          },
+        },
       })
 
       await payload.update({
         id: doc.id,
         collection: 'hidden-fields',
-        data: { title: 'Updated' }
+        data: { title: 'Updated' },
       })
 
       const updated = await payload.findByID({
         id: doc.id,
         collection: 'hidden-fields',
-        showHiddenFields: true
+        showHiddenFields: true,
       })
 
       // Hidden field should still exist
@@ -495,6 +530,7 @@ describe('Access Control', () => {
 ### Core Initialization Helpers
 
 **`initPayloadInt(dirname)`** - Integration Tests
+
 ```typescript
 // Returns: { payload, restClient, sdk, config }
 // - Initializes Payload with test config
@@ -504,6 +540,7 @@ describe('Access Control', () => {
 ```
 
 **`initPayloadE2ENoConfig({ dirname })`** - E2E Tests
+
 ```typescript
 // Returns: { payload (SDK), serverURL }
 // - Starts Next.js dev server
@@ -514,6 +551,7 @@ describe('Access Control', () => {
 ### Test Data Helpers
 
 **`seedDB()`** - Located in `helpers/seed.ts`
+
 ```typescript
 // Features:
 // - Resets database (deletes all collections)
@@ -524,11 +562,13 @@ describe('Access Control', () => {
 ```
 
 **`resetDB(payload, collectionSlugs)`** - Located in `helpers/reset.ts`
+
 ```typescript
 // Deletes all documents from specified collections
 ```
 
 **`clearAndSeedEverything(payload)`**
+
 ```typescript
 // Used in beforeEach to ensure clean state
 ```
@@ -561,6 +601,7 @@ class NextRESTClient {
 **Located in:** `helpers/helpers.ts` and `helpers/e2e/`
 
 **Page Setup:**
+
 ```typescript
 ensureCompilationIsDone({ page, serverURL })
 // Waits for Next.js compilation before running tests
@@ -570,6 +611,7 @@ initPageConsoleErrorCatch(page)
 ```
 
 **Form Actions:**
+
 ```typescript
 saveDocAndAssert(page, selector, expectation)
 // Clicks save button and verifies toast message
@@ -584,6 +626,7 @@ toggleDocDrawer(page)
 ```
 
 **Navigation:**
+
 ```typescript
 navigateToDoc({ page, serverURL, slug, id })
 goToListDoc({ page, slug, title })
@@ -591,6 +634,7 @@ switchTab(page, selector)
 ```
 
 **Locale Testing:**
+
 ```typescript
 openLocaleSelector(page)
 closeLocaleSelector(page)
@@ -598,6 +642,7 @@ changeLocale(page, 'es')
 ```
 
 **Table/List Helpers:**
+
 ```typescript
 findTableRow(page, title)
 findTableCell(page, fieldName, rowTitle)
@@ -606,6 +651,7 @@ openColumnControls(page)
 ```
 
 **Field Helpers:**
+
 ```typescript
 copyPasteField(page, { fieldName })
 toggleCollapsible(page, togglerSelector)
@@ -614,6 +660,7 @@ selectInput({ page, locator, value })
 ```
 
 **Assertions:**
+
 ```typescript
 checkPageTitle(page, title)
 checkBreadcrumb(page, text)
@@ -621,6 +668,7 @@ exactText(text) // Returns regex for exact match
 ```
 
 **Performance Testing:**
+
 ```typescript
 throttleTest({ context, page, delay: 'Fast 3G' })
 // Simulates network conditions and CPU throttling
@@ -629,10 +677,12 @@ throttleTest({ context, page, delay: 'Fast 3G' })
 ### Mock Data and Fixtures
 
 **Mock Files:**
+
 - `helpers/mocks/emptyModule.js` - For CSS imports
 - `helpers/mocks/fileMock.js` - For asset imports
 
 **Test Assets** (`uploads/`):
+
 - `image.jpg`, `image.png`, `image.svg` - Various image formats
 - `test-pdf.pdf` - PDF upload testing
 - `audio.mp3` - Audio file testing
@@ -642,6 +692,7 @@ throttleTest({ context, page, delay: 'Fast 3G' })
 - `2mb.jpg` - Large file testing
 
 **Seed Data Patterns:**
+
 ```typescript
 // Each test suite has its own seed.ts
 export async function seed(payload: Payload) {
@@ -665,13 +716,14 @@ restoreFromSnapshot(_payload, snapshotKey, collectionSlugs)
 ```
 
 **Usage:**
+
 ```typescript
 await seedDB({
   _payload: payload,
   collectionSlugs: ['posts', 'users'],
   snapshotKey: 'fields-test',
   seedFunction: seed,
-  uploadsDir: './media'
+  uploadsDir: './media',
 })
 // First run: seeds data, creates snapshot
 // Subsequent runs: restores from snapshot (much faster)
@@ -696,6 +748,7 @@ await seedDB({
 ### Database Helpers
 
 **`generateDatabaseAdapter(database)`** - Located in `generateDatabaseAdapter.ts`
+
 ```typescript
 // Dynamically generates database adapter file
 // Based on PAYLOAD_DATABASE env var
@@ -703,6 +756,7 @@ await seedDB({
 ```
 
 **`isMongoose(payload)`** - Located in `helpers/isMongoose.ts`
+
 ```typescript
 // Type guard to check if using Mongoose adapter
 // Used to conditionally run Mongoose-specific tests
@@ -715,12 +769,14 @@ await seedDB({
 ### Areas with Strong Coverage
 
 #### **1. Field Types** ⭐⭐⭐⭐⭐
+
 - Every field type has dedicated tests
 - Covers validation, defaults, hooks, localization
 - Both API and UI testing
 - Examples: Text, Number, Date, Relationship, Upload, Blocks, Array, etc.
 
 #### **2. Access Control** ⭐⭐⭐⭐⭐
+
 - Collection-level access (CRUD operations)
 - Field-level access (read/update)
 - Hidden fields
@@ -728,6 +784,7 @@ await seedDB({
 - Request context-based access
 
 #### **3. Authentication** ⭐⭐⭐⭐⭐
+
 - Login/logout flows
 - JWT handling
 - Password reset
@@ -737,6 +794,7 @@ await seedDB({
 - Session management
 
 #### **4. Hooks** ⭐⭐⭐⭐⭐
+
 - All hook types tested
 - Execution order verified
 - Context passing
@@ -744,6 +802,7 @@ await seedDB({
 - Transform hooks (Mongoose)
 
 #### **5. Relationships** ⭐⭐⭐⭐⭐
+
 - hasMany, hasOne
 - Polymorphic relationships
 - Filtered relationships
@@ -753,6 +812,7 @@ await seedDB({
 - GraphQL relationship queries
 
 #### **6. Uploads** ⭐⭐⭐⭐⭐
+
 - Multiple file formats
 - Image processing (sizes, focal points)
 - External URLs
@@ -761,6 +821,7 @@ await seedDB({
 - Crop and resize
 
 #### **7. Admin UI** ⭐⭐⭐⭐⭐
+
 - List view (filtering, sorting, pagination)
 - Document view (editing, validation)
 - Bulk operations
@@ -770,6 +831,7 @@ await seedDB({
 - Form state management
 
 #### **8. Localization** ⭐⭐⭐⭐
+
 - Localized fields
 - Fallback locales
 - Admin UI language switching
@@ -777,6 +839,7 @@ await seedDB({
 - i18n strings
 
 #### **9. Versioning** ⭐⭐⭐⭐
+
 - Draft/publish workflow
 - Version history
 - Restoring versions
@@ -784,6 +847,7 @@ await seedDB({
 - Scheduled publishing
 
 #### **10. Database Operations** ⭐⭐⭐⭐
+
 - CRUD operations
 - Complex queries
 - Transactions
@@ -794,47 +858,56 @@ await seedDB({
 ### Areas with Moderate Coverage
 
 #### **1. GraphQL API** ⭐⭐⭐
+
 - Basic queries and mutations
 - Relationship queries
 - Authentication
 - Could use more edge case testing
 
 #### **2. Email** ⭐⭐⭐
+
 - Email sending (mocked)
 - Template rendering
 - Multiple adapters (nodemailer, resend)
 - Limited real-world email testing
 
 #### **3. Plugins** ⭐⭐⭐
+
 - Most plugins have basic tests
 - Some lack comprehensive E2E coverage
 - Integration well-tested
 
 #### **4. SDK** ⭐⭐⭐
+
 - Basic SDK operations covered
 - Could use more complex workflow testing
 
 ### Areas with Less Coverage
 
 #### **1. Performance** ⭐⭐
+
 - `benchmark-blocks/` exists but limited
 - No systematic performance regression testing
 - Limited load testing
 
 #### **2. Error Handling** ⭐⭐
+
 - Some error cases tested
 - Could use more comprehensive error scenario coverage
 - Edge cases for malformed data
 
 #### **3. Caching** ⭐⭐
+
 - Basic caching tested
 - Cache invalidation scenarios limited
 
 #### **4. Search** ⭐⭐
+
 - `plugin-search` has tests
 - Full-text search scenarios could be more comprehensive
 
 #### **5. Real-time Features** ⭐
+
 - Live preview tested
 - Collaborative editing not extensively tested
 - WebSocket scenarios limited
@@ -842,6 +915,7 @@ await seedDB({
 ### Coverage by Test Type
 
 **Integration Tests (API):**
+
 - ✅ Database operations
 - ✅ REST endpoints
 - ✅ GraphQL queries
@@ -853,6 +927,7 @@ await seedDB({
 - ⚠️ Concurrent operations
 
 **E2E Tests (UI):**
+
 - ✅ Form interactions
 - ✅ Navigation
 - ✅ Document editing
@@ -869,6 +944,7 @@ await seedDB({
 ### Running Tests
 
 **Integration Tests:**
+
 ```bash
 # All integration tests
 pnpm test:int
@@ -881,6 +957,7 @@ PAYLOAD_DATABASE=postgres pnpm test:int fields
 ```
 
 **E2E Tests:**
+
 ```bash
 # All E2E tests
 pnpm test:e2e
@@ -890,6 +967,7 @@ pnpm test:e2e
 ```
 
 **All Tests:**
+
 ```bash
 pnpm test
 ```
@@ -897,6 +975,7 @@ pnpm test
 ### Test Development Workflow
 
 **1. Create Test Suite:**
+
 ```bash
 test/my-feature/
 ├── config.ts          # Payload config
@@ -909,12 +988,14 @@ test/my-feature/
 ```
 
 **2. Run Dev Server:**
+
 ```bash
 pnpm dev my-feature
 # Loads test/my-feature/config.ts
 ```
 
 **3. Run Tests:**
+
 ```bash
 pnpm test:int my-feature
 pnpm test:e2e  # E2E tests run all matching
@@ -923,6 +1004,7 @@ pnpm test:e2e  # E2E tests run all matching
 ### CI/CD Integration
 
 **GitHub Actions:**
+
 - Runs on every PR
 - Matrix strategy (multiple databases)
 - Parallel test execution
@@ -930,6 +1012,7 @@ pnpm test:e2e  # E2E tests run all matching
 - Uploads test artifacts on failure
 
 **Test Database in CI:**
+
 - MongoDB: Uses mongodb-memory-server
 - PostgreSQL: Spins up Docker container
 - SQLite: In-memory database
@@ -941,31 +1024,37 @@ pnpm test:e2e  # E2E tests run all matching
 ### What the Tests Teach Us
 
 **1. Feature Isolation:**
+
 - Each test suite is self-contained
 - Own config, collections, seed data
 - No dependencies between test suites
 
 **2. Comprehensive Testing:**
+
 - Both API (integration) and UI (E2E) tested
 - Field types tested in isolation and composition
 - Edge cases covered (errors, validation, access)
 
 **3. Database Agnostic:**
+
 - Tests run against all supported databases
 - Adapter-specific tests conditionally skipped
 - Database-specific features isolated
 
 **4. Snapshot Optimization:**
+
 - Snapshot system speeds up test re-runs
 - Particularly important for large seed datasets
 - Balances speed vs. isolation
 
 **5. Helper Abstraction:**
+
 - Common patterns extracted to helpers
 - E2E helpers reduce boilerplate
 - REST client simplifies API testing
 
 **6. Real-World Testing:**
+
 - Actual database operations (not mocked)
 - Real Next.js server for E2E
 - Actual file uploads and processing
@@ -977,9 +1066,7 @@ pnpm test:e2e  # E2E tests run all matching
 ### Pattern: Conditional Tests by Database
 
 ```typescript
-const mongoIt = mongooseList.includes(process.env.PAYLOAD_DATABASE || '')
-  ? it
-  : it.skip
+const mongoIt = mongooseList.includes(process.env.PAYLOAD_DATABASE || '') ? it : it.skip
 
 mongoIt('should run on MongoDB only', async () => {
   // Mongoose-specific test
@@ -990,7 +1077,7 @@ mongoIt('should run on MongoDB only', async () => {
 
 ```typescript
 beforeAll(async () => {
-  ({ payload, restClient } = await initPayloadInt(dirname))
+  ;({ payload, restClient } = await initPayloadInt(dirname))
   await restClient.login({ slug: 'users' })
 })
 ```
@@ -1006,10 +1093,7 @@ initPageConsoleErrorCatch(page)
 ### Pattern: Polling for Async Operations
 
 ```typescript
-await expect.poll(
-  () => page.url() === expectedURL,
-  { timeout: POLL_TOPASS_TIMEOUT }
-).toBe(true)
+await expect.poll(() => page.url() === expectedURL, { timeout: POLL_TOPASS_TIMEOUT }).toBe(true)
 
 // Retries until condition is true or timeout
 ```
@@ -1021,8 +1105,8 @@ export default buildConfigWithDefaults({
   collections: [Posts],
   // Override defaults for this test
   admin: {
-    autoLogin: false
-  }
+    autoLogin: false,
+  },
 })
 ```
 
@@ -1041,6 +1125,7 @@ export default buildConfigWithDefaults({
 ### For Test Improvements
 
 **High Priority:**
+
 1. Add more error scenario coverage
 2. Expand performance testing
 3. Add accessibility testing to E2E
@@ -1048,6 +1133,7 @@ export default buildConfigWithDefaults({
 5. Add more concurrent operation tests
 
 **Medium Priority:**
+
 1. Increase GraphQL edge case coverage
 2. More comprehensive search testing
 3. Real-world email testing
@@ -1055,6 +1141,7 @@ export default buildConfigWithDefaults({
 5. Plugin E2E coverage
 
 **Low Priority:**
+
 1. Browser compatibility matrix
 2. Load testing
 3. Stress testing
@@ -1084,6 +1171,7 @@ export default buildConfigWithDefaults({
 - **Test Assets:** 25+ files
 
 **Test Coverage by Category:**
+
 - Core Features: ⭐⭐⭐⭐⭐ (95%+)
 - Admin UI: ⭐⭐⭐⭐⭐ (90%+)
 - Plugins: ⭐⭐⭐⭐ (80%+)
@@ -1091,6 +1179,7 @@ export default buildConfigWithDefaults({
 - Edge Cases: ⭐⭐⭐ (60%+)
 
 **Overall Test Maturity:** ⭐⭐⭐⭐ (4/5)
+
 - Strong integration and E2E coverage
 - Well-organized and maintainable
 - Room for improvement in performance and edge cases

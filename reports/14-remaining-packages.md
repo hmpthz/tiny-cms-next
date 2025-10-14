@@ -41,12 +41,15 @@ export type EmailAdapter<TSendEmailResponse = unknown> = ({ payload }: { payload
 ```
 
 **Console Adapter (Development):**
+
 ```typescript
 // packages/payload/src/email/consoleEmailAdapter.ts
 export const consoleEmailAdapter: EmailAdapter<void> = ({ payload }) => ({
   name: 'console',
   sendEmail: async (message) => {
-    payload.logger.info(`Email attempted without being configured. To: '${message.to}', Subject: '${message.subject}'`)
+    payload.logger.info(
+      `Email attempted without being configured. To: '${message.to}', Subject: '${message.subject}'`,
+    )
   },
 })
 ```
@@ -78,6 +81,7 @@ export const nodemailerAdapter = async (
 ```
 
 **Key features:**
+
 - Async factory (builds SMTP transport)
 - Auto-creates Ethereal test account if no config provided
 - Optional transport verification (can skip with `skipVerify: true`)
@@ -114,6 +118,7 @@ export const resendAdapter = (args: ResendAdapterArgs): ResendAdapter => {
 ```
 
 **Key features:**
+
 - Synchronous factory (no async initialization)
 - Uses native `fetch` API
 - Maps Payload email format to Resend API format
@@ -139,22 +144,24 @@ export async function sendVerificationEmail(args: Args): Promise<void> {
 
 ### Comparison
 
-| Feature | Nodemailer | Resend |
-|---------|-----------|--------|
-| **Initialization** | Async | Sync |
-| **Dependencies** | nodemailer@7.0.9 | None |
-| **Protocol** | SMTP | REST API |
-| **Test mode** | Ethereal.email | N/A |
-| **Bundle size** | ~500KB | ~50KB |
+| Feature            | Nodemailer       | Resend   |
+| ------------------ | ---------------- | -------- |
+| **Initialization** | Async            | Sync     |
+| **Dependencies**   | nodemailer@7.0.9 | None     |
+| **Protocol**       | SMTP             | REST API |
+| **Test mode**      | Ethereal.email   | N/A      |
+| **Bundle size**    | ~500KB           | ~50KB    |
 
 ### Why We Don't Need Them
 
 **Better-auth already provides email functionality** for:
+
 - Email verification with customizable templates
 - Password reset with token generation
 - Built-in rate limiting and security
 
 For tiny-cms MVP:
+
 - ✗ Don't need Payload's email adapters (better-auth has its own)
 - ✗ Don't need verification email system (better-auth handles this)
 - ✗ Don't need forgot password emails (better-auth handles this)
@@ -173,13 +180,13 @@ Payload provides two rich text editor adapters: **Lexical** (modern, complex) an
 
 ### Complexity Comparison
 
-| Metric | Lexical | Slate | Simple Markdown |
-|--------|---------|-------|-----------------|
-| **Files** | ~490 | ~142 | ~5-10 |
-| **Lines of Code** | ~23,785 | ~5,483 | ~500-1000 |
-| **Dependencies** | 19+ packages | 4 packages | 1-2 |
-| **Features** | 22+ features | Basic elements | Basic formatting |
-| **Bundle Size** | 2.7 MB | 712 KB | ~100KB |
+| Metric            | Lexical      | Slate          | Simple Markdown  |
+| ----------------- | ------------ | -------------- | ---------------- |
+| **Files**         | ~490         | ~142           | ~5-10            |
+| **Lines of Code** | ~23,785      | ~5,483         | ~500-1000        |
+| **Dependencies**  | 19+ packages | 4 packages     | 1-2              |
+| **Features**      | 22+ features | Basic elements | Basic formatting |
+| **Bundle Size**   | 2.7 MB       | 712 KB         | ~100KB           |
 
 ### Lexical Package
 
@@ -194,24 +201,34 @@ export function lexicalEditor(args?: LexicalEditorProps): LexicalRichTextAdapter
       FieldComponent: '@payloadcms/richtext-lexical/rsc#RscEntryLexicalField',
       features: features, // 22+ features
       hooks: {
-        afterChange: [/* hook */],
-        afterRead: [/* hook */],
-        beforeChange: [/* hook */],
-        beforeValidate: [/* hook */]
+        afterChange: [
+          /* hook */
+        ],
+        afterRead: [
+          /* hook */
+        ],
+        beforeChange: [
+          /* hook */
+        ],
+        beforeValidate: [
+          /* hook */
+        ],
       },
-      validate: richTextValidateHOC({ editorConfig })
+      validate: richTextValidateHOC({ editorConfig }),
     }
   }
 }
 ```
 
 **Default Features:**
+
 - Text formatting: Bold, Italic, Underline, Strikethrough, Subscript, Superscript, InlineCode
 - Structure: Paragraph, Heading (H1-H6), Lists (ordered/unordered/checklist), Blockquote
 - Layout: Alignment, Indentation, HorizontalRule
 - Advanced: Links, Relationships, Uploads, Tables
 
 **Data Storage:**
+
 ```typescript
 // Complex nested JSON structure
 {
@@ -258,30 +275,30 @@ export function slateEditor(args: AdapterArguments): RichTextAdapterProvider {
 ```
 
 **Features:**
+
 - Basic formatting: Bold, italic, underline, strikethrough, code
 - Elements: Headings (H1-H6), lists, blockquote, links
 - Advanced: Relationships, uploads, text alignment, indentation
 
 **Data Storage:**
+
 ```typescript
 // Array of element/text nodes
-[
+;[
   {
     type: 'h1',
-    children: [{ text: 'Heading' }]
+    children: [{ text: 'Heading' }],
   },
   {
-    children: [
-      { text: 'Normal text ' },
-      { text: 'bold text', bold: true }
-    ]
-  }
+    children: [{ text: 'Normal text ' }, { text: 'bold text', bold: true }],
+  },
 ]
 ```
 
 ### Why Both Are Too Complex
 
 **Problems they solve that we don't have:**
+
 1. Complex block types (nested relationships, custom blocks)
 2. Collaborative editing features
 3. Advanced formatting (tables, alignment, text states)
@@ -294,6 +311,7 @@ export function slateEditor(args: AdapterArguments): RichTextAdapterProvider {
 10. Version control with diff views
 
 **What we actually need:**
+
 1. Basic formatting (bold, italic, headings, lists)
 2. Simple data (store markdown as string)
 3. Easy rendering (markdown to HTML)
@@ -308,24 +326,19 @@ export function slateEditor(args: AdapterArguments): RichTextAdapterProvider {
 import MDEditor from '@uiw/react-md-editor'
 
 function BlogPostEditor({ value, onChange }) {
-  return (
-    <MDEditor
-      value={value}
-      onChange={onChange}
-      preview="edit"
-      height={400}
-    />
-  )
+  return <MDEditor value={value} onChange={onChange} preview="edit" height={400} />
 }
 ```
 
 **Data Storage:**
+
 ```typescript
 // Just a string!
-const content = "# Hello\n\nThis is **markdown**"
+const content = '# Hello\n\nThis is **markdown**'
 ```
 
 **Benefits:**
+
 - Bundle size: ~100KB vs 2.7MB
 - Simple debugging: console.log the string
 - Git-friendly: plain text diffs
@@ -333,6 +346,7 @@ const content = "# Hello\n\nThis is **markdown**"
 - No complex JSON: just markdown text
 
 **Implementation:**
+
 ```typescript
 // In collection config
 {
@@ -348,6 +362,7 @@ const content = "# Hello\n\nThis is **markdown**"
 ```
 
 **Rendering:**
+
 ```tsx
 import ReactMarkdown from 'react-markdown'
 
@@ -364,6 +379,7 @@ export function BlogPost({ post }) {
 ### Why We Don't Need Them
 
 For tiny-cms MVP:
+
 - ✗ Don't need Payload's richText field
 - ✗ Don't import Lexical or Slate packages
 - ✗ Don't need complex JSON storage
@@ -396,6 +412,7 @@ export function configToSchema(config: SanitizedConfig): {
 For each collection, GraphQL package creates:
 
 **Queries:**
+
 - `findPosts`: Paginated list with filtering
 - `findPostByID`: Single document by ID
 - `countPosts`: Count documents
@@ -404,12 +421,14 @@ For each collection, GraphQL package creates:
 - `findPostVersionByID`: Get specific version
 
 **Mutations:**
+
 - `createPost`: Create new document
 - `updatePost`: Update existing document
 - `deletePost`: Delete document
 - `restorePostVersion`: Restore a version
 
 **Auth Operations (for auth collections):**
+
 - `loginUser`: Login mutation
 - `logoutUser`: Logout mutation
 - `meUser`: Current user query
@@ -443,12 +462,14 @@ Prevents malicious queries like deeply nested relationship requests that could o
 ### Why We Don't Need It
 
 **For tiny-cms MVP, we're building REST-only API:**
+
 1. **Simplicity**: REST is more straightforward
 2. **Smaller Bundle**: GraphQL adds significant dependencies (graphql, graphql-scalars, pluralize)
 3. **Easier Debugging**: REST endpoints easier to test with standard tools
 4. **Sufficient for CRUD**: REST handles basic CRUD operations perfectly
 
 **GraphQL would be valuable for:**
+
 - Complex frontend requirements with varied data needs
 - Mobile apps needing optimized data fetching
 - Third-party integrations requiring flexible queries
@@ -473,6 +494,7 @@ Arabic, Azerbaijani, Bengali, Bulgarian, Catalan, Czech, Danish, German, English
 Each language file includes:
 
 **Authentication** (~50 keys):
+
 ```typescript
 {
   account: 'Account',
@@ -488,6 +510,7 @@ Each language file includes:
 ```
 
 **General UI** (~200 keys):
+
 ```typescript
 {
   add: 'Add',
@@ -501,6 +524,7 @@ Each language file includes:
 ```
 
 **Validation** (~30 keys):
+
 ```typescript
 {
   emailAddress: 'Please enter a valid email address',
@@ -531,14 +555,15 @@ export default buildConfig({
   admin: {
     language: 'en', // Default language
     // Or dynamic:
-    language: (req) => req.user?.language || 'en'
-  }
+    language: (req) => req.user?.language || 'en',
+  },
 })
 ```
 
 ### Why We Don't Need It
 
 **For tiny-cms MVP, we'll only support English:**
+
 1. **Single Language**: Reduces complexity significantly
 2. **Hardcoded Strings**: Use English strings directly in UI
 3. **Smaller Bundle**: Avoid 45+ language files and date-fns locales
@@ -551,6 +576,7 @@ export default buildConfig({
 ```
 
 We can add internationalization later when:
+
 - Users request specific languages
 - Core functionality is validated
 - We have resources to maintain translations
@@ -671,20 +697,23 @@ export default function PostPreview({ post }) {
 
 ```typescript
 export default buildConfig({
-  collections: [{
-    slug: 'posts',
-    admin: {
-      livePreview: {
-        url: ({ data }) => `${process.env.NEXT_PUBLIC_URL}/posts/${data.slug}/preview`
-      }
-    }
-  }]
+  collections: [
+    {
+      slug: 'posts',
+      admin: {
+        livePreview: {
+          url: ({ data }) => `${process.env.NEXT_PUBLIC_URL}/posts/${data.slug}/preview`,
+        },
+      },
+    },
+  ],
 })
 ```
 
 ### Why We Don't Need It
 
 **For tiny-cms MVP, live preview is not essential:**
+
 1. **MVP Scope**: Basic CRUD is sufficient initially
 2. **Complexity**: Requires iframe messaging, relationship handling, auth tokens
 3. **Frontend Dependency**: Needs frontend framework integration
@@ -692,6 +721,7 @@ export default buildConfig({
 5. **Use Case**: Most valuable for marketing/content teams
 
 For MVP, editors can:
+
 1. Save draft
 2. Click "View" button
 3. See changes in new tab
@@ -699,6 +729,7 @@ For MVP, editors can:
 This is simpler and sufficient for initial validation.
 
 **Live preview would be valuable later for:**
+
 - Teams doing heavy content editing
 - Marketing landing pages
 - Visual content verification
@@ -714,6 +745,7 @@ This is simpler and sufficient for initial validation.
 ### What It Does
 
 A plugin that automatically configures Payload applications for Payload Cloud's hosting infrastructure. Provides:
+
 - Automatic file storage to AWS S3 (via Payload Cloud's CDN)
 - Integrated email service through AWS SES
 - Background job coordination across multiple instances
@@ -725,7 +757,8 @@ A plugin that automatically configures Payload applications for Payload Cloud's 
 
 ```typescript
 // packages/payload-cloud/src/plugin.ts
-export const payloadCloudPlugin = (pluginOptions?: PluginOptions) =>
+export const payloadCloudPlugin =
+  (pluginOptions?: PluginOptions) =>
   async (incomingConfig: Config): Promise<Config> => {
     // Only activate on Payload Cloud
     if (process.env.PAYLOAD_CLOUD !== 'true') {
@@ -740,22 +773,26 @@ export const payloadCloudPlugin = (pluginOptions?: PluginOptions) =>
 ### Features
 
 **1. Cloud Storage:**
+
 - Automatically uploads files to S3
 - Uses Payload Cloud's CDN
 - Disables local storage
 - Handles delete operations
 
 **2. Cloud Email:**
+
 - Configures AWS SES
 - Automatic domain verification
 - Managed credentials
 
 **3. Job Coordination:**
+
 - Ensures background jobs run on only one instance
 - Instance election system
 - Prevents duplicate job execution
 
 **4. Upload Caching:**
+
 - Caches frequently accessed files
 - Edge location serving
 - Cache invalidation on delete
@@ -763,6 +800,7 @@ export const payloadCloudPlugin = (pluginOptions?: PluginOptions) =>
 ### Why We Don't Need It
 
 **For tiny-cms, we don't need this package:**
+
 1. **Not Using Payload Cloud**: We're self-hosting
 2. **Local File Storage**: We'll use local storage or our own S3 adapter
 3. **Standard Email**: We can configure email directly with nodemailer
@@ -772,6 +810,7 @@ export const payloadCloudPlugin = (pluginOptions?: PluginOptions) =>
 This package is purely for Payload Cloud customers. If we ever migrate to Payload Cloud hosting, we'd simply add the plugin.
 
 For self-hosting, we handle:
+
 - File storage: Direct S3 integration or local storage
 - Email: Direct SMTP/SendGrid/etc configuration
 - Jobs: Single instance or manual coordination
@@ -835,6 +874,7 @@ export default [
 #### Why We Don't Need It
 
 **For tiny-cms:**
+
 1. **Custom Preferences**: We may have our own style
 2. **Simpler Setup**: Fewer rules = faster linting
 3. **Learning Overhead**: Understanding all rules takes time
@@ -870,6 +910,7 @@ Contains custom ESLint rules specific to Payload development that enforce Payloa
 #### Why We Don't Need It
 
 **For tiny-cms:**
+
 1. **Not Building Payload**: We're building our own CMS
 2. **Different Patterns**: Our architecture may differ
 3. **Unnecessary**: Custom rules are for maintaining large codebases
@@ -882,20 +923,20 @@ If we were contributing to Payload, this would be essential. For tiny-cms, it's 
 
 ### Package Overview
 
-| Package | Purpose | Complexity | Need for tiny-cms |
-|---------|---------|------------|-------------------|
-| **email-nodemailer** | SMTP email adapter | Low | No - better-auth has email |
-| **email-resend** | Resend API adapter | Low | No - better-auth has email |
-| **richtext-lexical** | Modern rich text editor | Very High | No - use simple markdown |
-| **richtext-slate** | Older rich text editor | High | No - use simple markdown |
-| **graphql** | GraphQL API generation | High | No - REST only for MVP |
-| **translations** | Admin UI i18n (45+ languages) | Medium | No - English only |
-| **live-preview** | Real-time preview core | High | No - not MVP feature |
-| **live-preview-react** | React hooks for preview | Medium | No - not MVP feature |
-| **live-preview-vue** | Vue composables for preview | Medium | No - not MVP feature |
-| **payload-cloud** | Payload Cloud hosting plugin | Low | No - self-hosting |
-| **eslint-config** | Shared ESLint config | Low | No - own preferences |
-| **eslint-plugin** | Custom ESLint rules | Low | No - not extending Payload |
+| Package                | Purpose                       | Complexity | Need for tiny-cms          |
+| ---------------------- | ----------------------------- | ---------- | -------------------------- |
+| **email-nodemailer**   | SMTP email adapter            | Low        | No - better-auth has email |
+| **email-resend**       | Resend API adapter            | Low        | No - better-auth has email |
+| **richtext-lexical**   | Modern rich text editor       | Very High  | No - use simple markdown   |
+| **richtext-slate**     | Older rich text editor        | High       | No - use simple markdown   |
+| **graphql**            | GraphQL API generation        | High       | No - REST only for MVP     |
+| **translations**       | Admin UI i18n (45+ languages) | Medium     | No - English only          |
+| **live-preview**       | Real-time preview core        | High       | No - not MVP feature       |
+| **live-preview-react** | React hooks for preview       | Medium     | No - not MVP feature       |
+| **live-preview-vue**   | Vue composables for preview   | Medium     | No - not MVP feature       |
+| **payload-cloud**      | Payload Cloud hosting plugin  | Low        | No - self-hosting          |
+| **eslint-config**      | Shared ESLint config          | Low        | No - own preferences       |
+| **eslint-plugin**      | Custom ESLint rules           | Low        | No - not extending Payload |
 
 ### Key Takeaways
 
@@ -916,12 +957,14 @@ If we were contributing to Payload, this would be essential. For tiny-cms, it's 
 ### What We Actually Need for MVP
 
 **Core packages only:**
+
 - `payload` (core functionality)
 - `db-mongodb` (database adapter)
 - `ui` (admin UI components)
 - `next` (Next.js integration)
 
 **Plus simple alternatives:**
+
 - Simple markdown editor (not Payload's rich text)
 - Better-auth for email (not Payload's email adapters)
 - REST API only (not GraphQL)
@@ -930,6 +973,7 @@ If we were contributing to Payload, this would be essential. For tiny-cms, it's 
 ### Total Complexity Avoided
 
 By not using these packages, we avoid:
+
 - **~50,000+ lines** of complex editor code
 - **45+ language files** and i18n overhead
 - **GraphQL layer** with schema generation
@@ -940,6 +984,7 @@ By not using these packages, we avoid:
 ### Estimated Time Savings
 
 **Using Payload's full ecosystem:**
+
 - Rich text setup: 4-8 hours
 - GraphQL understanding: 2-4 hours
 - Live preview integration: 4-6 hours
@@ -947,6 +992,7 @@ By not using these packages, we avoid:
 - Total: **~15-25 hours** initial + ongoing maintenance
 
 **Using simple alternatives:**
+
 - Markdown editor: 30 minutes
 - Direct better-auth email: 1 hour
 - REST only: 0 hours (already planned)
@@ -960,6 +1006,7 @@ By not using these packages, we avoid:
 All remaining packages demonstrate Payload's enterprise-grade features, but for tiny-cms MVP, we can start much simpler and add complexity only when user needs demand it.
 
 **Focus on:**
+
 - Solid REST API (collections, globals, auth)
 - File uploads (local or S3)
 - Basic admin UI
@@ -970,4 +1017,4 @@ All remaining packages demonstrate Payload's enterprise-grade features, but for 
 
 ---
 
-*End of Report*
+_End of Report_

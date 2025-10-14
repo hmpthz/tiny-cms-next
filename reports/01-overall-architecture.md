@@ -27,6 +27,7 @@
 **Payload CMS** is a **Next.js-native, open-source headless CMS** that combines a modern CMS framework with an application framework. It's designed as a complete, production-ready solution for building content-driven applications with extensive customization capabilities.
 
 **Key Positioning:**
+
 - First Next.js-native CMS that installs directly in your `/app` folder
 - Both headless CMS and application framework
 - Zero vendor lock-in, fully self-hosted
@@ -34,6 +35,7 @@
 - Built from the ground up for TypeScript and React Server Components
 
 **Target Market:**
+
 - Enterprise applications requiring complex content structures
 - Agencies building custom client solutions
 - SaaS platforms needing embedded CMS functionality
@@ -45,20 +47,21 @@
 
 **Codebase Metrics:**
 
-| Metric | Value |
-|--------|-------|
-| **Total Packages** | 41 packages |
-| **TypeScript Files** | ~2,853 files |
-| **Total Lines of Code** | ~276,672 lines |
-| **Core Package (payload)** | ~150,000 lines |
-| **Database Adapters** | 5 packages |
-| **Storage Adapters** | 6 packages |
-| **Rich Text Editors** | 2 packages |
-| **Plugins** | 11 official plugins |
-| **Email Adapters** | 2 packages |
-| **Dependencies** | 50+ npm packages |
+| Metric                     | Value               |
+| -------------------------- | ------------------- |
+| **Total Packages**         | 41 packages         |
+| **TypeScript Files**       | ~2,853 files        |
+| **Total Lines of Code**    | ~276,672 lines      |
+| **Core Package (payload)** | ~150,000 lines      |
+| **Database Adapters**      | 5 packages          |
+| **Storage Adapters**       | 6 packages          |
+| **Rich Text Editors**      | 2 packages          |
+| **Plugins**                | 11 official plugins |
+| **Email Adapters**         | 2 packages          |
+| **Dependencies**           | 50+ npm packages    |
 
 **File Distribution by Type:**
+
 - Core business logic: ~120,000 lines (43%)
 - TypeScript types: ~50,000 lines (18%)
 - UI components: ~40,000 lines (15%)
@@ -71,24 +74,28 @@
 Payload follows several core design principles:
 
 **1. Extensibility First**
+
 - Everything is customizable via hooks, plugins, and components
 - Plugin system allows deep integration
 - React components can be swapped at any level
 - Database-agnostic via adapter pattern
 
 **2. Type Safety**
+
 - End-to-end TypeScript
 - Automatic type generation from config
 - Generic-heavy API for compile-time safety
 - JSON Schema validation at runtime
 
 **3. Developer Experience**
+
 - Config-driven architecture (Infrastructure as Code)
 - Local API for server-side operations
 - REST and GraphQL APIs auto-generated
 - Hot Module Reloading with config changes
 
 **4. Feature Completeness**
+
 - Built-in authentication system
 - Versions and drafts support
 - Multi-language (localization)
@@ -99,6 +106,7 @@ Payload follows several core design principles:
 - Admin UI included
 
 **5. Next.js Integration**
+
 - Runs inside Next.js `/app` folder
 - Uses React Server Components
 - Leverages Next.js routing
@@ -131,6 +139,7 @@ Payload follows several core design principles:
    - Custom content models
 
 **User Expertise Level:**
+
 - Intermediate to advanced developers
 - Comfortable with TypeScript, React, and Next.js
 - Understanding of database concepts
@@ -159,6 +168,7 @@ payload-monorepo/
 **Location:** All packages in `payload-main/packages/`
 
 **Category 1: Core Packages (7)**
+
 - `payload/` - Core CMS logic
 - `next/` - Next.js integration layer
 - `ui/` - Admin UI components
@@ -168,6 +178,7 @@ payload-monorepo/
 - `create-payload-app/` - Project scaffolder
 
 **Category 2: Database Adapters (6)**
+
 - `db-postgres/` - PostgreSQL via Drizzle ORM
 - `db-mongodb/` - MongoDB via Mongoose
 - `db-sqlite/` - SQLite via Drizzle
@@ -176,6 +187,7 @@ payload-monorepo/
 - `drizzle/` - Shared SQL adapter logic
 
 **Category 3: Storage Adapters (6)**
+
 - `storage-s3/` - Amazon S3 and S3-compatible
 - `storage-gcs/` - Google Cloud Storage
 - `storage-azure/` - Azure Blob Storage
@@ -183,15 +195,18 @@ payload-monorepo/
 - `storage-uploadthing/` - UploadThing
 - `storage-r2/` - Cloudflare R2
 
-**Category 4: Rich Text Editors (2)** *(Not needed - use simple markdown editor)*
+**Category 4: Rich Text Editors (2)** _(Not needed - use simple markdown editor)_
+
 - `richtext-lexical/` - Facebook Lexical editor (~25K LOC)
 - `richtext-slate/` - Slate.js editor (legacy, ~5K LOC)
 
-**Category 5: Email Adapters (2)** *(Not needed - better-auth handles email)*
+**Category 5: Email Adapters (2)** _(Not needed - better-auth handles email)_
+
 - `email-nodemailer/` - SMTP via Nodemailer
 - `email-resend/` - Resend.com service
 
 **Category 6: Plugins (11)**
+
 - `plugin-cloud-storage/` - Cloud storage integration
 - `plugin-seo/` - SEO meta fields
 - `plugin-form-builder/` - Form builder
@@ -205,6 +220,7 @@ payload-monorepo/
 - `plugin-import-export/` - Data import/export
 
 **Category 7: Tooling (7)**
+
 - `eslint-config/` - Shared ESLint config
 - `eslint-plugin/` - Custom ESLint rules
 - `admin-bar/` - Frontend admin toolbar
@@ -255,6 +271,7 @@ Level 7: Tooling
 ```
 
 **Critical Dependencies:**
+
 - All packages depend on `payload` core
 - SQL adapters depend on `drizzle` package
 - `next` package bridges Payload and Next.js
@@ -262,6 +279,7 @@ Level 7: Tooling
 - Plugins depend on multiple core packages
 
 **External Dependencies (Key):**
+
 - `next` (Next.js framework)
 - `react` & `react-dom` (UI framework)
 - `drizzle-orm` (SQL ORM)
@@ -500,7 +518,7 @@ type Field =
   | ArrayField
   | BlocksField
   | GroupField
-  // ... 22+ more types
+// ... 22+ more types
 
 interface FieldBase {
   name: string
@@ -557,7 +575,7 @@ type Plugin = (config: Config) => Config | Promise<Config>
 const myPlugin = (options): Plugin => {
   return (incomingConfig) => {
     // 1. Modify collections
-    incomingConfig.collections = incomingConfig.collections.map(col => {
+    incomingConfig.collections = incomingConfig.collections.map((col) => {
       col.fields.push(myCustomField)
       return col
     })
@@ -568,10 +586,7 @@ const myPlugin = (options): Plugin => {
     // 3. Add hooks
     incomingConfig.hooks = {
       ...incomingConfig.hooks,
-      beforeOperation: [
-        ...(incomingConfig.hooks?.beforeOperation || []),
-        myHook
-      ]
+      beforeOperation: [...(incomingConfig.hooks?.beforeOperation || []), myHook],
     }
 
     return incomingConfig
@@ -580,6 +595,7 @@ const myPlugin = (options): Plugin => {
 ```
 
 **Plugin Capabilities:**
+
 - Modify any part of config
 - Add collections, globals, fields
 - Inject hooks at any level
@@ -612,6 +628,7 @@ Initialize Payload
 **Purpose:** Core data modeling and CRUD operations
 
 **Key Components:**
+
 - Collection configuration system
 - Field schema definitions
 - CRUD operations (create, read, update, delete, find)
@@ -620,6 +637,7 @@ Initialize Payload
 - Validation system
 
 **Architecture:**
+
 ```
 CollectionConfig (user-defined)
   ↓
@@ -631,6 +649,7 @@ Database Adapter (executes queries)
 ```
 
 **Key Features:**
+
 - 30+ field types (text, number, relationship, upload, richText, blocks, etc.)
 - Nested fields (arrays, groups, tabs)
 - Conditional field logic
@@ -641,6 +660,7 @@ Database Adapter (executes queries)
 **Lines of Code:** ~40,000 lines
 
 **Key Files:**
+
 - Collections: `payload-main/packages/payload/src/collections/`
 - Fields: `payload-main/packages/payload/src/fields/`
 
@@ -653,6 +673,7 @@ Database Adapter (executes queries)
 **Purpose:** Abstract database operations for multiple database engines
 
 **Key Components:**
+
 - Database adapter interface
 - SQL adapters (PostgreSQL, SQLite) via Drizzle ORM
 - MongoDB adapter via Mongoose
@@ -662,6 +683,7 @@ Database Adapter (executes queries)
 - Migration system
 
 **Architecture:**
+
 ```
 Payload Core
   ↓
@@ -679,6 +701,7 @@ Database (Postgres, MongoDB, SQLite)
 ```
 
 **Key Features:**
+
 - Database-agnostic API
 - Connection pooling
 - Read replicas support (Postgres)
@@ -688,6 +711,7 @@ Database (Postgres, MongoDB, SQLite)
 - Query building with operators
 
 **Complex Features (Bloat):**
+
 - Separate tables for locales (`_locales`)
 - Separate tables for relationships (`_rels`)
 - Separate tables for array fields (`_texts`, `_numbers`)
@@ -697,6 +721,7 @@ Database (Postgres, MongoDB, SQLite)
 **Lines of Code:** ~30,000 lines
 
 **Key Packages:**
+
 - Shared SQL logic: `payload-main/packages/drizzle/`
 - PostgreSQL: `payload-main/packages/db-postgres/`
 - MongoDB: `payload-main/packages/db-mongodb/`
@@ -711,6 +736,7 @@ Database (Postgres, MongoDB, SQLite)
 **Purpose:** User authentication and authorization
 
 **Key Components:**
+
 - User collection with auth enabled
 - Password hashing (bcrypt)
 - JWT token generation and validation
@@ -722,6 +748,7 @@ Database (Postgres, MongoDB, SQLite)
 - Multiple auth strategies (JWT, API Key, Custom)
 
 **Architecture:**
+
 ```
 Auth Collection (users)
   ↓
@@ -736,6 +763,7 @@ Token Management (jose library)
 ```
 
 **Key Features:**
+
 - Login with email/username + password
 - JWT access & refresh tokens
 - API key generation
@@ -747,6 +775,7 @@ Token Management (jose library)
 - Auth hooks (beforeLogin, afterLogin, etc.)
 
 **Auth Flow:**
+
 ```
 1. User submits credentials
    ↓
@@ -781,6 +810,7 @@ Token Management (jose library)
 4. **Operation Level:** Specific operation permissions (create, read, update, delete)
 
 **Access Control Architecture:**
+
 ```
 Access Function
   ↓
@@ -797,12 +827,14 @@ If Where query:
 **Hooks System:**
 
 **Hook Levels:**
+
 1. **Config Level:** Global hooks for all operations
 2. **Collection Level:** Collection-specific hooks
 3. **Global Level:** Global entity hooks
 4. **Field Level:** Field-specific hooks
 
 **Hook Execution Order (Create):**
+
 ```
 1. Config.beforeOperation
 2. Collection.beforeOperation
@@ -823,6 +855,7 @@ If Where query:
 **Lines of Code:** ~12,000 lines
 
 **Key Files:**
+
 - Access control: `payload-main/packages/payload/src/auth/operations/access.ts`
 - Hooks: `payload-main/packages/payload/src/collections/operations/` (various hook execution)
 
@@ -835,6 +868,7 @@ If Where query:
 **Purpose:** Schema definition and data validation
 
 **Field Types (30+):**
+
 - **Basic:** text, textarea, email, number, date, checkbox
 - **Selection:** select, radio
 - **Relationships:** relationship (single/multiple, polymorphic)
@@ -845,6 +879,7 @@ If Where query:
 - **Special:** join (virtual fields), ui (presentational)
 
 **Field Architecture:**
+
 ```
 Field Config (user-defined)
   ↓
@@ -860,6 +895,7 @@ Field Transform (read/write)
 ```
 
 **Key Features:**
+
 - Validation rules (required, min, max, etc.)
 - Custom validation functions
 - Default values
@@ -873,17 +909,20 @@ Field Transform (read/write)
 **Complex Field Types:**
 
 **1. Blocks Field:**
+
 - Flexible page builder
 - Multiple block types
 - Nested blocks support
 - Reusable block definitions
 
 **2. Array Field:**
+
 - Repeating field groups
 - Drag-and-drop reordering
 - Min/max items
 
 **3. Relationship Field:**
+
 - Single or multiple relationships
 - Polymorphic (multiple collections)
 - Filter options
@@ -902,6 +941,7 @@ Field Transform (read/write)
 **Purpose:** Browser-based administration interface
 
 **Key Components:**
+
 - React-based admin dashboard
 - Auto-generated forms from field config
 - List views with filtering and sorting
@@ -912,6 +952,7 @@ Field Transform (read/write)
 - Responsive design
 
 **Architecture:**
+
 ```
 Admin Route (/admin)
   ↓
@@ -928,6 +969,7 @@ Payload Core
 ```
 
 **Key Features:**
+
 - Auto-generated CRUD interfaces
 - Custom field components
 - Bulk operations
@@ -941,6 +983,7 @@ Payload Core
 - Theming support
 
 **Component Architecture:**
+
 - Field components (Text, Select, Upload, etc.)
 - Layout components (Row, Collapsible, Tabs)
 - Cell components (list view rendering)
@@ -961,6 +1004,7 @@ Payload Core
 **Purpose:** Bridge between Payload and Next.js framework
 
 **Key Components:**
+
 - `@payloadcms/next` package
 - REST API route handlers
 - Admin UI mounting
@@ -969,6 +1013,7 @@ Payload Core
 - Type generation integration
 
 **Architecture:**
+
 ```
 Next.js App
   ↓
@@ -984,6 +1029,7 @@ Payload Core
 **Integration Points:**
 
 **1. API Routes:**
+
 ```typescript
 // app/api/[...slug]/route.ts
 import { REST_API } from '@payloadcms/next/rest'
@@ -991,6 +1037,7 @@ export const handlers = REST_API(config)
 ```
 
 **2. Admin UI:**
+
 ```typescript
 // app/(payload)/admin/[[...segments]]/page.tsx
 import { RootPage } from '@payloadcms/next/views'
@@ -998,6 +1045,7 @@ export default RootPage
 ```
 
 **3. Server Components:**
+
 ```typescript
 // app/posts/page.tsx
 import { getPayload } from 'payload'
@@ -1006,6 +1054,7 @@ const posts = await payload.find({ collection: 'posts' })
 ```
 
 **Key Features:**
+
 - Automatic route generation
 - Request/response handling
 - Authentication middleware
@@ -1028,6 +1077,7 @@ const posts = await payload.find({ collection: 'posts' })
 **Purpose:** Abstract file storage for uploads
 
 **Key Components:**
+
 - Storage adapter interface
 - 6 storage adapters (S3, GCS, Azure, Vercel Blob, R2, UploadThing)
 - Upload field type
@@ -1035,6 +1085,7 @@ const posts = await payload.find({ collection: 'posts' })
 - File metadata management
 
 **Architecture:**
+
 ```
 Upload Field
   ↓
@@ -1050,6 +1101,7 @@ Cloud Storage Service
 ```
 
 **Storage Adapter Interface:**
+
 ```typescript
 interface StorageAdapter {
   name: string
@@ -1062,6 +1114,7 @@ interface StorageAdapter {
 ```
 
 **Key Features:**
+
 - Local filesystem storage (dev)
 - Cloud storage adapters
 - Image resizing (multiple sizes)
@@ -1085,6 +1138,7 @@ interface StorageAdapter {
 **Purpose:** Rich content editing
 
 **Key Components:**
+
 - Rich text field type
 - Lexical editor (modern, recommended)
 - Slate editor (legacy)
@@ -1092,6 +1146,7 @@ interface StorageAdapter {
 - Serialization to JSON/HTML
 
 **Architecture:**
+
 ```
 RichText Field Config
   ↓
@@ -1105,6 +1160,7 @@ Rendering (custom or default)
 ```
 
 **Lexical Editor Features:**
+
 - Block-based editing
 - Custom blocks (upload, relationship, code, etc.)
 - Inline formatting
@@ -1118,6 +1174,7 @@ Rendering (custom or default)
 **Lines of Code:** ~30,000 lines
 
 **Key Packages:**
+
 - Lexical: `payload-main/packages/richtext-lexical/`
 - Slate: `payload-main/packages/richtext-slate/`
 
@@ -1139,7 +1196,7 @@ await adapter.connect()
 // operations call adapter methods
 const result = await payload.db.find({
   collection: 'posts',
-  where: { status: 'published' }
+  where: { status: 'published' },
 })
 ```
 
@@ -1168,7 +1225,7 @@ file → Sharp (resize) → Storage Adapter → Cloud Storage
 ```typescript
 // Plugin modifies config
 const seoPlugin = (): Plugin => (config) => {
-  config.collections = config.collections.map(col => ({
+  config.collections = config.collections.map((col) => ({
     ...col,
     fields: [
       ...col.fields,
@@ -1178,10 +1235,10 @@ const seoPlugin = (): Plugin => (config) => {
         fields: [
           { name: 'title', type: 'text' },
           { name: 'description', type: 'textarea' },
-          { name: 'image', type: 'upload', relationTo: 'media' }
-        ]
-      }
-    ]
+          { name: 'image', type: 'upload', relationTo: 'media' },
+        ],
+      },
+    ],
   }))
   return config
 }
@@ -1206,7 +1263,7 @@ export default RootPage
 // UI calls REST API
 fetch('/api/posts', {
   method: 'POST',
-  body: JSON.stringify(data)
+  body: JSON.stringify(data),
 })
 
 // Custom components receive field props
@@ -1231,16 +1288,16 @@ const Posts: CollectionConfig = {
           data.slug = slugify(data.title)
         }
         return data
-      }
+      },
     ],
     afterChange: [
       async ({ doc, operation }) => {
         if (operation === 'create') {
           await sendNotification(doc)
         }
-      }
-    ]
-  }
+      },
+    ],
+  },
 }
 ```
 
@@ -1253,8 +1310,8 @@ export default buildConfig({
   plugins: [
     seoPlugin(),
     searchPlugin({ algoliaAppId: '...' }),
-    cloudStoragePlugin({ adapter: s3Adapter() })
-  ]
+    cloudStoragePlugin({ adapter: s3Adapter() }),
+  ],
 })
 ```
 
@@ -1268,10 +1325,10 @@ const TitleField: CollectionConfig['fields'][0] = {
   type: 'text',
   admin: {
     components: {
-      Field: CustomTitleField,  // Custom edit component
-      Cell: CustomTitleCell,     // Custom list view cell
-    }
-  }
+      Field: CustomTitleField, // Custom edit component
+      Cell: CustomTitleCell, // Custom list view cell
+    },
+  },
 }
 ```
 
@@ -1289,12 +1346,12 @@ const Posts: CollectionConfig = {
       handler: async (req, res) => {
         const posts = await req.payload.find({
           collection: 'posts',
-          where: { featured: { equals: true } }
+          where: { featured: { equals: true } },
         })
         res.json(posts)
-      }
-    }
-  ]
+      },
+    },
+  ],
 }
 ```
 
@@ -1312,8 +1369,8 @@ const Posts: CollectionConfig = {
     update: ({ req: { user }, id }) => {
       if (user?.role === 'admin') return true
       return { author: { equals: user?.id } }
-    }
-  }
+    },
+  },
 }
 ```
 
@@ -1351,7 +1408,7 @@ export default buildConfig({
 
   // Database
   db: postgresAdapter({
-    pool: { connectionString: process.env.DATABASE_URI }
+    pool: { connectionString: process.env.DATABASE_URI },
   }),
 
   // Collections
@@ -1362,18 +1419,15 @@ export default buildConfig({
 
   // Storage
   upload: {
-    limits: { fileSize: 5000000 } // 5MB
+    limits: { fileSize: 5000000 }, // 5MB
   },
 
   // Plugins
-  plugins: [
-    seoPlugin(),
-    searchPlugin()
-  ],
+  plugins: [seoPlugin(), searchPlugin()],
 
   // Email
   email: resendAdapter({
-    apiKey: process.env.RESEND_API_KEY
+    apiKey: process.env.RESEND_API_KEY,
   }),
 
   // Admin UI
@@ -1381,23 +1435,23 @@ export default buildConfig({
     user: 'users',
     components: {
       // Custom components
-    }
+    },
   },
 
   // TypeScript
   typescript: {
-    outputFile: path.resolve(__dirname, 'payload-types.ts')
+    outputFile: path.resolve(__dirname, 'payload-types.ts'),
   },
 
   // GraphQL
   graphql: {
-    schemaOutputFile: path.resolve(__dirname, 'schema.graphql')
+    schemaOutputFile: path.resolve(__dirname, 'schema.graphql'),
   },
 
   // Localization
   localization: {
     locales: ['en', 'es'],
-    defaultLocale: 'en'
+    defaultLocale: 'en',
   },
 
   // Hooks
@@ -1408,7 +1462,7 @@ export default buildConfig({
   // Endpoints
   endpoints: [
     // Custom endpoints
-  ]
+  ],
 })
 ```
 
@@ -1475,6 +1529,7 @@ export default buildConfig({
 **1. Architecture & Patterns**
 
 ✅ **Excellent:**
+
 - **Clean separation of concerns:** Core logic separated from adapters
 - **Adapter pattern:** Database, storage, email all use adapters
 - **Dependency injection:** PayloadRequest passed everywhere
@@ -1484,6 +1539,7 @@ export default buildConfig({
 **2. Developer Experience**
 
 ✅ **Strong:**
+
 - **Config-driven:** Infrastructure as code
 - **Auto-generated types:** From config to TypeScript
 - **Hot reloading:** Config changes trigger reload
@@ -1493,6 +1549,7 @@ export default buildConfig({
 **3. Flexibility**
 
 ✅ **Best-in-class:**
+
 - **Plugin system:** Transform entire config
 - **Custom components:** Replace any UI component
 - **Multiple databases:** Easy to switch
@@ -1502,6 +1559,7 @@ export default buildConfig({
 **4. Feature Completeness**
 
 ✅ **Comprehensive:**
+
 - Auth, access control, uploads, rich text, versions, drafts, localization, jobs
 - Everything needed for production CMS
 - No need to build basic features
@@ -1511,6 +1569,7 @@ export default buildConfig({
 **1. Field System**
 
 ❌ **Over-complex:**
+
 - 30+ field types (most projects use 10)
 - Separate database tables for array fields (`_texts`, `_numbers`)
 - Field-level hooks (rarely needed)
@@ -1522,6 +1581,7 @@ export default buildConfig({
 **2. Versions and Drafts**
 
 ❌ **Feature creep:**
+
 - Separate `_v` tables for every collection
 - Draft vs published state management
 - Scheduled publishing
@@ -1534,6 +1594,7 @@ export default buildConfig({
 **3. Localization System**
 
 ❌ **Complex:**
+
 - Separate `_locales` tables
 - Fallback locale logic
 - Query transformations for localized fields
@@ -1545,6 +1606,7 @@ export default buildConfig({
 **4. Database Layer**
 
 ❌ **Over-abstracted:**
+
 - Multiple abstraction layers (Payload → RawTable → Drizzle → SQL)
 - Separate relationship tables (`_rels`)
 - Polymorphic relationships
@@ -1556,6 +1618,7 @@ export default buildConfig({
 **5. Admin UI**
 
 ❌ **Over-featured:**
+
 - Complex form state management
 - 10+ form contexts
 - Custom cell renderers
@@ -1569,6 +1632,7 @@ export default buildConfig({
 **6. Hooks System**
 
 ❌ **Too many layers:**
+
 - Config-level hooks
 - Collection-level hooks
 - Global-level hooks
@@ -1581,6 +1645,7 @@ export default buildConfig({
 **7. GraphQL Layer**
 
 ❌ **Unnecessary for most:**
+
 - Full GraphQL schema generation
 - Query/mutation/subscription support
 - Complex type generation
@@ -1591,6 +1656,7 @@ export default buildConfig({
 **8. Job Queue System**
 
 ❌ **Overkill:**
+
 - Workflow system
 - Task system
 - Cron scheduling
@@ -1604,35 +1670,41 @@ export default buildConfig({
 **What Makes Payload Complex:**
 
 **1. Feature Scope**
+
 - Tries to be everything (CMS + framework + admin + auth + jobs)
 - Enterprise features (multi-tenant, versions, drafts, localization)
 - Backwards compatibility burden
 
 **2. Abstraction Layers**
+
 - Too many layers between user code and database
 - Complex type transformations
 - Indirect execution flow
 
 **3. Type System**
+
 - 100+ generic types
 - Conditional types everywhere
 - Hard to understand type errors
 - Slow TypeScript compilation
 
 **4. Config System**
+
 - 100+ config options per collection
 - Deep nesting
 - Complex defaults
 - Hard to know what's required vs optional
 
 **5. Hook Chains**
+
 - 10+ execution points
 - Hard to debug
 - Implicit side effects
 - Performance overhead
 
 **6. Database Schema**
-- 5+ tables per collection (main, _locales, _rels, _texts, _numbers, _v)
+
+- 5+ tables per collection (main, \_locales, \_rels, \_texts, \_numbers, \_v)
 - Complex JOINs
 - Data transformation overhead
 
@@ -1640,20 +1712,21 @@ export default buildConfig({
 
 **Payload's Trade-offs:**
 
-| Benefit | Cost |
-|---------|------|
-| **Complete feature set** | Massive codebase (270K LOC) |
-| **Highly extensible** | Complex architecture |
-| **Database agnostic** | Extra abstraction layers |
-| **Type-safe end-to-end** | Slow TypeScript compilation |
-| **Auto-generated admin** | Limited customization without overrides |
-| **Plugin system** | Config complexity |
-| **Versions & drafts** | 2x storage, complex queries |
-| **Localization** | Extra tables, query complexity |
-| **Field-level everything** | Deep hook chains |
-| **Enterprise ready** | Overkill for small projects |
+| Benefit                    | Cost                                    |
+| -------------------------- | --------------------------------------- |
+| **Complete feature set**   | Massive codebase (270K LOC)             |
+| **Highly extensible**      | Complex architecture                    |
+| **Database agnostic**      | Extra abstraction layers                |
+| **Type-safe end-to-end**   | Slow TypeScript compilation             |
+| **Auto-generated admin**   | Limited customization without overrides |
+| **Plugin system**          | Config complexity                       |
+| **Versions & drafts**      | 2x storage, complex queries             |
+| **Localization**           | Extra tables, query complexity          |
+| **Field-level everything** | Deep hook chains                        |
+| **Enterprise ready**       | Overkill for small projects             |
 
 **When Payload Makes Sense:**
+
 - Large, complex content models
 - Enterprise requirements (multi-tenant, versions, compliance)
 - Need for extensive customization
@@ -1661,6 +1734,7 @@ export default buildConfig({
 - Budget for learning curve
 
 **When Payload is Overkill:**
+
 - Simple blog or portfolio
 - Startup MVP
 - Small team
@@ -1676,6 +1750,7 @@ export default buildConfig({
 **✅ Keep These Concepts:**
 
 **1. Collection-Based Architecture**
+
 ```typescript
 // Clean, intuitive data modeling
 const Blog: Collection = {
@@ -1683,13 +1758,15 @@ const Blog: Collection = {
   fields: [
     { name: 'title', type: 'text' },
     { name: 'content', type: 'richtext' },
-    { name: 'author', type: 'relation', to: 'users' }
-  ]
+    { name: 'author', type: 'relation', to: 'users' },
+  ],
 }
 ```
+
 **Why:** Collections are the right abstraction for CMS data
 
 **2. Database Adapter Pattern**
+
 ```typescript
 interface DatabaseAdapter {
   create(collection, data)
@@ -1698,22 +1775,20 @@ interface DatabaseAdapter {
   delete(collection, id)
 }
 ```
+
 **Why:** Allows flexibility without coupling to specific database
 
 **3. Field System (Simplified)**
+
 ```typescript
 // Keep core field types only
-type Field =
-  | TextField
-  | NumberField
-  | SelectField
-  | RelationField
-  | RichTextField
-  | ArrayField  // Use JSONB, not separate tables
+type Field = TextField | NumberField | SelectField | RelationField | RichTextField | ArrayField // Use JSONB, not separate tables
 ```
+
 **Why:** Field-based schemas are intuitive
 
 **4. Basic Hook Pattern**
+
 ```typescript
 const Posts: Collection = {
   hooks: {
@@ -1723,13 +1798,15 @@ const Posts: Collection = {
     },
     afterChange: async (doc) => {
       await revalidatePath(`/posts/${doc.slug}`)
-    }
-  }
+    },
+  },
 }
 ```
+
 **Why:** Hooks enable customization without modifying core
 
 **5. Type Generation**
+
 ```typescript
 // Auto-generate TypeScript types from config
 // payload-types.ts
@@ -1740,9 +1817,11 @@ export interface Post {
   author: string | User
 }
 ```
+
 **Why:** Type safety without manual maintenance
 
 **6. Access Control Pattern**
+
 ```typescript
 access: {
   read: ({ user }) => {
@@ -1751,6 +1830,7 @@ access: {
   }
 }
 ```
+
 **Why:** Elegant solution for permissions
 
 ### 7.2 What to Simplify
@@ -1758,6 +1838,7 @@ access: {
 **⚠️ Simplify These:**
 
 **1. Hooks (Reduce 10 → 3)**
+
 ```typescript
 // Before (Payload): 10+ hook points
 hooks: {
@@ -1774,6 +1855,7 @@ hooks: {
 ```
 
 **2. Fields (Reduce 30 → 8)**
+
 ```typescript
 // Before (Payload): 30+ field types
 text, textarea, email, number, date, checkbox, select, radio,
@@ -1785,6 +1867,7 @@ text, number, select, checkbox, relation, richtext, array, group
 ```
 
 **3. Database Schema (1 table per collection)**
+
 ```typescript
 // Before (Payload): 5+ tables per collection
 posts, posts_locales, posts_rels, posts_texts, posts_numbers, posts_v
@@ -1794,6 +1877,7 @@ posts (with JSONB columns for complex data)
 ```
 
 **4. Operations (8 → 6)**
+
 ```typescript
 // Before (Payload): 20+ operations
 create, find, findByID, findDistinct, update, updateMany,
@@ -1804,6 +1888,7 @@ create, find, findById, update, delete, count
 ```
 
 **5. Config Options (100 → 10)**
+
 ```typescript
 // Before (Payload): 100+ config options per collection
 
@@ -1822,61 +1907,73 @@ create, find, findById, update, delete, count
 **🚫 Skip These Features:**
 
 **1. Authentication System**
+
 - ❌ Skip: JWT strategies, password reset, email verification, API keys
 - ✅ Use instead: `better-auth` library
 - **Why:** Auth is complex, use battle-tested library
 
 **2. Admin UI**
+
 - ❌ Skip: React admin panel, form generation, bulk operations
 - ✅ Use instead: Custom Next.js UI with shadcn/ui
 - **Why:** More control, less bloat, modern UI
 
 **3. Versions & Drafts**
+
 - ❌ Skip: Version history, drafts, scheduled publishing
 - ✅ Add later: If really needed (phase 2)
 - **Why:** Complex feature, rarely used in small projects
 
 **4. Localization**
+
 - ❌ Skip: Multi-language support, fallback locales
 - ✅ Use instead: `next-intl` if needed
 - **Why:** Complex implementation, start single-language
 
 **5. GraphQL API**
+
 - ❌ Skip: GraphQL schema generation, resolvers
 - ✅ Use instead: REST API only
 - **Why:** REST is simpler, covers 99% of use cases
 
 **6. Job Queue**
+
 - ❌ Skip: Workflows, tasks, cron scheduling
 - ✅ Use instead: Vercel Cron or external service
 - **Why:** Overkill for most projects
 
 **7. Email System**
+
 - ❌ Skip: Email adapters, templates, verification
 - ✅ Use instead: React Email + Resend (via better-auth)
 - **Why:** better-auth handles email
 
 **8. Upload System**
+
 - ❌ Skip: Image resizing, multiple sizes, storage adapters
 - ✅ Use instead: Simple S3-compatible storage
 - **Why:** Keep it simple, use CDN for transforms
 
 **9. Migration System**
+
 - ❌ Skip: Migration generation, multiple strategies
 - ✅ Use instead: Kysely migrations directly
 - **Why:** Kysely has excellent migration tools
 
 **10. Plugin System**
+
 - ❌ Skip: Complex plugin architecture
 - ✅ Use instead: Direct code integration
 - **Why:** Over-engineered for small project
 
 **11. Live Preview**
+
 - ❌ Skip: Complex preview system
 - ✅ Use instead: Simple draft mode with Next.js
 - **Why:** Can add later if needed
 
 **12. Field-Level Localization**
+
 - ❌ Skip: Per-field translation
 - ✅ Use instead: Document-level localization (if needed)
 - **Why:** Simpler, cleaner
@@ -1941,14 +2038,14 @@ tiny-cms/
 
 **Package Sizes (Estimated):**
 
-| Package | Lines of Code | % of Payload |
-|---------|---------------|--------------|
-| `core` | ~2,000 | 1.3% |
-| `db` | ~1,000 | 0.7% |
-| `storage` | ~300 | 0.2% |
-| `plugin-search` | ~500 | 0.3% |
-| `cli` | ~300 | 0.2% |
-| **Total** | **~4,100** | **1.5%** |
+| Package         | Lines of Code | % of Payload |
+| --------------- | ------------- | ------------ |
+| `core`          | ~2,000        | 1.3%         |
+| `db`            | ~1,000        | 0.7%         |
+| `storage`       | ~300          | 0.2%         |
+| `plugin-search` | ~500          | 0.3%         |
+| `cli`           | ~300          | 0.2%         |
+| **Total**       | **~4,100**    | **1.5%**     |
 
 **Core Package Structure:**
 
@@ -1981,11 +2078,11 @@ import { searchPlugin } from '@tiny-cms/plugin-search'
 
 export default defineConfig({
   db: postgresAdapter({
-    url: process.env.DATABASE_URL
+    url: process.env.DATABASE_URL,
   }),
 
   storage: s3Adapter({
-    bucket: process.env.S3_BUCKET
+    bucket: process.env.S3_BUCKET,
   }),
 
   collections: [
@@ -1997,7 +2094,7 @@ export default defineConfig({
         { name: 'content', type: 'richtext' },
         { name: 'author', type: 'relation', to: 'users' },
         { name: 'tags', type: 'array', of: 'text' },
-        { name: 'published', type: 'checkbox' }
+        { name: 'published', type: 'checkbox' },
       ],
       hooks: {
         beforeChange: async (data) => {
@@ -2005,17 +2102,15 @@ export default defineConfig({
             data.slug = slugify(data.title)
           }
           return data
-        }
+        },
       },
       access: {
-        read: ({ user }) => user ? true : { published: true }
-      }
-    }
+        read: ({ user }) => (user ? true : { published: true }),
+      },
+    },
   ],
 
-  plugins: [
-    searchPlugin({ provider: 'algolia' })
-  ]
+  plugins: [searchPlugin({ provider: 'algolia' })],
 })
 ```
 
@@ -2052,56 +2147,56 @@ export default async function PostsPage() {
 
 **Code Comparison:**
 
-| Aspect | Payload CMS | tiny-cms | Reduction |
-|--------|-------------|----------|-----------|
-| **Total LOC** | ~276,672 | ~4,100 | **98.5%** |
-| **Packages** | 41 | 5 | 88% |
-| **TypeScript Files** | ~2,853 | ~40 | 98.6% |
-| **Dependencies** | 50+ | ~10 | 80% |
-| **Field Types** | 30+ | 8 | 73% |
-| **Hook Points** | 10+ | 3 | 70% |
-| **DB Operations** | 30+ | 6 | 80% |
+| Aspect               | Payload CMS | tiny-cms | Reduction |
+| -------------------- | ----------- | -------- | --------- |
+| **Total LOC**        | ~276,672    | ~4,100   | **98.5%** |
+| **Packages**         | 41          | 5        | 88%       |
+| **TypeScript Files** | ~2,853      | ~40      | 98.6%     |
+| **Dependencies**     | 50+         | ~10      | 80%       |
+| **Field Types**      | 30+         | 8        | 73%       |
+| **Hook Points**      | 10+         | 3        | 70%       |
+| **DB Operations**    | 30+         | 6        | 80%       |
 
 **Feature Comparison:**
 
-| Feature | Payload | tiny-cms | Notes |
-|---------|---------|----------|-------|
-| Collections | ✅ | ✅ | Core feature |
-| Fields | ✅ (30+) | ✅ (8) | Simplified |
-| CRUD | ✅ | ✅ | Core feature |
-| Access Control | ✅ | ✅ | Simplified |
-| Hooks | ✅ (10+) | ✅ (3) | Simplified |
-| Database Adapters | ✅ (5) | ✅ (1) | Postgres only |
-| Auth | ✅ | ❌ | Use better-auth |
-| Admin UI | ✅ | ❌ | Custom UI |
-| Versions | ✅ | ❌ | Too complex |
-| Drafts | ✅ | ❌ | Too complex |
-| Localization | ✅ | ❌ | Use next-intl |
-| GraphQL | ✅ | ❌ | REST only |
-| Job Queue | ✅ | ❌ | Use external |
-| Uploads | ✅ | ✅ | Simplified |
-| Rich Text | ✅ (2) | ✅ (1) | Simple markdown |
-| Storage | ✅ (6) | ✅ (1) | S3-compatible |
-| Email | ✅ (2) | ❌ | Use better-auth |
-| Plugins | ✅ (11) | ✅ (1) | Search only |
+| Feature           | Payload  | tiny-cms | Notes           |
+| ----------------- | -------- | -------- | --------------- |
+| Collections       | ✅       | ✅       | Core feature    |
+| Fields            | ✅ (30+) | ✅ (8)   | Simplified      |
+| CRUD              | ✅       | ✅       | Core feature    |
+| Access Control    | ✅       | ✅       | Simplified      |
+| Hooks             | ✅ (10+) | ✅ (3)   | Simplified      |
+| Database Adapters | ✅ (5)   | ✅ (1)   | Postgres only   |
+| Auth              | ✅       | ❌       | Use better-auth |
+| Admin UI          | ✅       | ❌       | Custom UI       |
+| Versions          | ✅       | ❌       | Too complex     |
+| Drafts            | ✅       | ❌       | Too complex     |
+| Localization      | ✅       | ❌       | Use next-intl   |
+| GraphQL           | ✅       | ❌       | REST only       |
+| Job Queue         | ✅       | ❌       | Use external    |
+| Uploads           | ✅       | ✅       | Simplified      |
+| Rich Text         | ✅ (2)   | ✅ (1)   | Simple markdown |
+| Storage           | ✅ (6)   | ✅ (1)   | S3-compatible   |
+| Email             | ✅ (2)   | ❌       | Use better-auth |
+| Plugins           | ✅ (11)  | ✅ (1)   | Search only     |
 
 **Bundle Size Comparison (Estimated):**
 
-| Package | Payload | tiny-cms | Reduction |
-|---------|---------|----------|-----------|
-| Core | ~500 KB | ~50 KB | 90% |
-| Database | ~200 KB | ~30 KB | 85% |
-| Types | ~100 KB | ~10 KB | 90% |
-| **Total** | **~800 KB** | **~90 KB** | **89%** |
+| Package   | Payload     | tiny-cms   | Reduction |
+| --------- | ----------- | ---------- | --------- |
+| Core      | ~500 KB     | ~50 KB     | 90%       |
+| Database  | ~200 KB     | ~30 KB     | 85%       |
+| Types     | ~100 KB     | ~10 KB     | 90%       |
+| **Total** | **~800 KB** | **~90 KB** | **89%**   |
 
 **Learning Curve:**
 
-| Aspect | Payload | tiny-cms |
-|--------|---------|----------|
-| **Time to Understand** | 2-3 weeks | 1-2 days |
-| **Docs to Read** | 100+ pages | 10-15 pages |
-| **Concepts to Learn** | 30+ | 8-10 |
-| **Beginner Friendly** | No | Yes |
+| Aspect                 | Payload    | tiny-cms    |
+| ---------------------- | ---------- | ----------- |
+| **Time to Understand** | 2-3 weeks  | 1-2 days    |
+| **Docs to Read**       | 100+ pages | 10-15 pages |
+| **Concepts to Learn**  | 30+        | 8-10        |
+| **Beginner Friendly**  | No         | Yes         |
 
 ---
 
@@ -2110,6 +2205,7 @@ export default async function PostsPage() {
 This overview synthesizes information from 13 detailed package reports:
 
 **Report #2: Database Packages** (`02-database-packages.md`)
+
 - In-depth analysis of `db-postgres`, `drizzle`, `db-mongodb`
 - Schema generation, query building, transaction management
 - ~10,000+ lines of code across database adapters
@@ -2117,24 +2213,28 @@ This overview synthesizes information from 13 detailed package reports:
 - Recommendations: Use kysely directly, single table per collection with JSONB for complex data
 
 **Report #3: Storage Packages** (`03-storage-packages.md`)
+
 - Analysis of `plugin-cloud-storage` and 6 storage adapters
 - Storage adapter interface and patterns (S3, GCS, Azure, Vercel Blob, R2, UploadThing)
 - Image processing and file handling
 - Simplification: Use Supabase Storage directly with simple adapter (~100 lines vs 1000+)
 
 **Report #4: Plugin Search** (`04-plugin-search.md`)
+
 - Search plugin architecture (~1,000 LOC)
 - Database-backed search with sync hooks
 - The one plugin worth considering
 - **Better option:** PostgreSQL Full-Text Search (~100 lines, no data duplication)
 
 **Report #5: Other Plugins** (`05-other-plugins.md`)
+
 - Analysis of 9 plugins: ecommerce, form-builder, import-export, multi-tenant, nested-docs, redirects, sentry, SEO, stripe
 - Plugin capabilities and patterns
 - **All unnecessary for tiny-cms** - better to use Next.js built-ins or external services
 - Plugin system complexity analysis
 
 **Report #6: Core Payload - Part 1: Architecture** (`06-core-payload-part1-architecture.md`)
+
 - Core package structure (~150K LOC across 582 files)
 - Initialization flow (13 steps)
 - Config system and plugin application
@@ -2145,6 +2245,7 @@ This overview synthesizes information from 13 detailed package reports:
 - Globals system
 
 **Report #7: Core Payload - Part 2: Auth** (`07-core-payload-part2-auth.md`)
+
 - Authentication system (~10K LOC)
 - JWT and API key strategies
 - Password reset and email verification
@@ -2152,6 +2253,7 @@ This overview synthesizes information from 13 detailed package reports:
 - **Why to replace with better-auth** - too complex, better-auth is more feature-complete
 
 **Report #8: Core Payload - Part 3: Fields** (`08-core-payload-part3-fields.md`)
+
 - 30+ field types analysis (~25K LOC)
 - Field validation and hooks
 - Complex fields (blocks, arrays, relationships)
@@ -2159,18 +2261,21 @@ This overview synthesizes information from 13 detailed package reports:
 - **Simplification: Reduce from 30 to 8 field types**
 
 **Report #9: Core Payload - Part 4: Access & Hooks** (`09-core-payload-part4-access-hooks.md`)
+
 - Multi-level access control (~12K LOC)
 - Hook system with 10+ execution points
 - Permission system and row-level security
 - **Simplification: Reduce from 10+ to 2-3 hook points**
 
 **Report #10: UI Package** (`10-ui-package.md`)
+
 - Admin UI architecture (~40K LOC)
 - React components and form generation
 - Custom component system
 - **Why to build custom UI instead** - too opinionated, custom UI with shadcn/ui is simpler
 
 **Report #11: Next.js Integration** (`11-next-integration.md`)
+
 - `@payloadcms/next` package analysis (~15K LOC)
 - REST API generation
 - Admin UI mounting
@@ -2179,16 +2284,19 @@ This overview synthesizes information from 13 detailed package reports:
 - **Keep pattern, simplify implementation**
 
 **Report #12: SDK Package** (`12-sdk-package.md`)
+
 - TypeScript client SDK for frontend use
 - Type-safe client with auto-completion
 - **Not needed** - use fetch directly with generated types
 
 **Report #13: Create Payload App** (`13-create-payload-app.md`)
+
 - CLI scaffolding tool
 - Template system
 - **Keep concept** - build simple CLI for tiny-cms
 
 **Report #14: Remaining Packages** (`14-remaining-packages.md`)
+
 - GraphQL package (we don't need)
 - Translations package (next-intl is better)
 - Tooling packages (ESLint, CLI)

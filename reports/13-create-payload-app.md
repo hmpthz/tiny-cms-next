@@ -41,19 +41,19 @@ create-payload-app/
 
 ```json
 {
-  "@clack/prompts": "^0.7.0",        // Interactive CLI prompts
+  "@clack/prompts": "^0.7.0", // Interactive CLI prompts
   "@sindresorhus/slugify": "^1.1.0", // String slugification
-  "@swc/core": "1.11.29",            // TypeScript/JavaScript compiler
-  "arg": "^5.0.0",                   // Argument parser
-  "chalk": "^4.1.0",                 // Terminal string styling
-  "comment-json": "^4.2.3",          // JSON with comments parser
-  "esprima-next": "^6.0.3",          // JavaScript parser
-  "execa": "^5.0.0",                 // Process execution
-  "figures": "^6.1.0",               // Unicode symbols
-  "fs-extra": "^9.0.1",              // Enhanced file system methods
-  "globby": "11.1.0",                // Pattern matching for files
-  "tar": "^7.4.3",                   // Tar archive handling
-  "terminal-link": "^2.1.1"          // Clickable links in terminal
+  "@swc/core": "1.11.29", // TypeScript/JavaScript compiler
+  "arg": "^5.0.0", // Argument parser
+  "chalk": "^4.1.0", // Terminal string styling
+  "comment-json": "^4.2.3", // JSON with comments parser
+  "esprima-next": "^6.0.3", // JavaScript parser
+  "execa": "^5.0.0", // Process execution
+  "figures": "^6.1.0", // Unicode symbols
+  "fs-extra": "^9.0.1", // Enhanced file system methods
+  "globby": "11.1.0", // Pattern matching for files
+  "tar": "^7.4.3", // Tar archive handling
+  "terminal-link": "^2.1.1" // Clickable links in terminal
 }
 ```
 
@@ -116,6 +116,7 @@ Main.init() method
 ```
 
 **bin/cli.js:**
+
 ```javascript
 #!/usr/bin/env node
 
@@ -124,6 +125,7 @@ main()
 ```
 
 **src/index.ts:**
+
 ```typescript
 import { Main } from './main.js'
 import { error } from './utils/log.js'
@@ -149,35 +151,38 @@ export class Main {
 
   constructor() {
     // Parse CLI arguments using 'arg' library
-    this.args = arg({
-      '--branch': String,
-      '--db': String,
-      '--db-accept-recommended': Boolean,
-      '--db-connection-string': String,
-      '--example': String,
-      '--help': Boolean,
-      '--local-template': String,
-      '--name': String,
-      '--secret': String,
-      '--template': String,
-      '--version': String,
-      '--init-next': Boolean,
-      '--no-deps': Boolean,
-      '--use-bun': Boolean,
-      '--use-npm': Boolean,
-      '--use-pnpm': Boolean,
-      '--use-yarn': Boolean,
-      '--no-git': Boolean,
-      '--beta': Boolean,
-      '--debug': Boolean,
-      '--dry-run': Boolean,
-      // Aliases
-      '-d': '--db',
-      '-e': '--example',
-      '-h': '--help',
-      '-n': '--name',
-      '-t': '--template',
-    }, { permissive: true })
+    this.args = arg(
+      {
+        '--branch': String,
+        '--db': String,
+        '--db-accept-recommended': Boolean,
+        '--db-connection-string': String,
+        '--example': String,
+        '--help': Boolean,
+        '--local-template': String,
+        '--name': String,
+        '--secret': String,
+        '--template': String,
+        '--version': String,
+        '--init-next': Boolean,
+        '--no-deps': Boolean,
+        '--use-bun': Boolean,
+        '--use-npm': Boolean,
+        '--use-pnpm': Boolean,
+        '--use-yarn': Boolean,
+        '--no-git': Boolean,
+        '--beta': Boolean,
+        '--debug': Boolean,
+        '--dry-run': Boolean,
+        // Aliases
+        '-d': '--db',
+        '-e': '--example',
+        '-h': '--help',
+        '-n': '--name',
+        '-t': '--template',
+      },
+      { permissive: true },
+    )
   }
 
   async init(): Promise<void> {
@@ -520,29 +525,29 @@ export async function parseTemplate(
 
 The CLI supports extensive flags:
 
-| Flag | Type | Description |
-|------|------|-------------|
-| `--name, -n` | String | Project name |
-| `--template, -t` | String | Template to use |
-| `--example, -e` | String | Example to use |
-| `--db, -d` | String | Database type |
-| `--db-accept-recommended` | Boolean | Accept default DB connection |
-| `--db-connection-string` | String | Custom DB connection string |
-| `--secret` | String | Custom Payload secret |
-| `--version` | String | Override Payload version |
-| `--branch` | String | Git branch for template/example |
-| `--local-template` | String | Local template path (dev) |
-| `--local-example` | String | Local example path (dev) |
-| `--use-npm` | Boolean | Use npm |
-| `--use-yarn` | Boolean | Use yarn |
-| `--use-pnpm` | Boolean | Use pnpm |
-| `--use-bun` | Boolean | Use bun |
-| `--no-deps` | Boolean | Skip dependency installation |
-| `--no-git` | Boolean | Skip git initialization |
-| `--init-next` | Boolean | Initialize in Next.js project |
-| `--debug` | Boolean | Enable debug logging |
-| `--dry-run` | Boolean | Simulate without changes |
-| `--help, -h` | Boolean | Show help message |
+| Flag                      | Type    | Description                     |
+| ------------------------- | ------- | ------------------------------- |
+| `--name, -n`              | String  | Project name                    |
+| `--template, -t`          | String  | Template to use                 |
+| `--example, -e`           | String  | Example to use                  |
+| `--db, -d`                | String  | Database type                   |
+| `--db-accept-recommended` | Boolean | Accept default DB connection    |
+| `--db-connection-string`  | String  | Custom DB connection string     |
+| `--secret`                | String  | Custom Payload secret           |
+| `--version`               | String  | Override Payload version        |
+| `--branch`                | String  | Git branch for template/example |
+| `--local-template`        | String  | Local template path (dev)       |
+| `--local-example`         | String  | Local example path (dev)        |
+| `--use-npm`               | Boolean | Use npm                         |
+| `--use-yarn`              | Boolean | Use yarn                        |
+| `--use-pnpm`              | Boolean | Use pnpm                        |
+| `--use-bun`               | Boolean | Use bun                         |
+| `--no-deps`               | Boolean | Skip dependency installation    |
+| `--no-git`                | Boolean | Skip git initialization         |
+| `--init-next`             | Boolean | Initialize in Next.js project   |
+| `--debug`                 | Boolean | Enable debug logging            |
+| `--dry-run`               | Boolean | Simulate without changes        |
+| `--help, -h`              | Boolean | Show help message               |
 
 ---
 
@@ -708,6 +713,7 @@ export default buildConfig({
 ```
 
 Notice the special comments:
+
 - `// database-adapter-import` - Replaced with correct DB adapter import
 - `// database-adapter-config-start` and `// database-adapter-config-end` - Replaced with DB config
 - `// storage-adapter-placeholder` - Replaced with storage adapter config
@@ -884,7 +890,11 @@ export async function createProject(
   }
 
   if (cliArgs['--local-template']) {
-    const localTemplate = path.resolve(dirname, '../../../../templates/', cliArgs['--local-template'])
+    const localTemplate = path.resolve(
+      dirname,
+      '../../../../templates/',
+      cliArgs['--local-template'],
+    )
     await fse.copy(localTemplate, projectDir)
   }
   // 4. Download template from GitHub
@@ -1399,9 +1409,7 @@ export async function configurePayloadConfig(args: {
     // 8. Write updated config
     fse.writeFileSync(payloadConfigPath, configLines.join('\n'))
   } catch (err: unknown) {
-    warning(
-      `Unable to update payload.config.ts: ${err instanceof Error ? err.message : ''}`,
-    )
+    warning(`Unable to update payload.config.ts: ${err instanceof Error ? err.message : ''}`)
   }
 }
 
@@ -2190,9 +2198,7 @@ function getEnvironmentPackageManager(): PackageManager {
 
 async function commandExists(command: string): Promise<boolean> {
   try {
-    await execa.command(
-      process.platform === 'win32' ? `where ${command}` : `command -v ${command}`
-    )
+    await execa.command(process.platform === 'win32' ? `where ${command}` : `command -v ${command}`)
     return true
   } catch {
     return false
@@ -2418,6 +2424,7 @@ Based on the analysis, here's what we need for a simplified tiny-cms CLI:
 #### 12.1.1 Core Requirements
 
 **1. Single Template (Blog)**
+
 - No template selection needed
 - Pre-configured blog template with Posts, Categories, Tags
 - Simplified to one database choice (e.g., MongoDB or SQLite)
@@ -2489,6 +2496,7 @@ class TinyCMSCLI {
 #### 12.1.3 Key Modules to Implement
 
 **1. Project Creation** (`lib/create-project.ts`)
+
 ```typescript
 export async function createProject(args: CreateProjectArgs) {
   await createProjectDir(args.projectDir)
@@ -2502,15 +2510,17 @@ export async function createProject(args: CreateProjectArgs) {
 ```
 
 **2. Database Selection** (`lib/select-db.ts`)
+
 ```typescript
 export async function selectDb(args: CliArgs): Promise<DbDetails> {
-  const dbType = args['--db'] || await promptDbType()
-  const dbUri = args['--db-uri'] || await promptDbUri(dbType)
+  const dbType = args['--db'] || (await promptDbType())
+  const dbUri = args['--db-uri'] || (await promptDbUri(dbType))
   return { type: dbType, uri: dbUri }
 }
 ```
 
 **3. Template Download** (`lib/download-template.ts`)
+
 ```typescript
 export async function downloadTemplate(projectDir: string) {
   // Download from GitHub or copy from local template
@@ -2519,6 +2529,7 @@ export async function downloadTemplate(projectDir: string) {
 ```
 
 **4. Configuration** (`lib/configure-payload.ts`)
+
 ```typescript
 export async function configurePayloadConfig(args: ConfigArgs) {
   // Read payload.config.ts
@@ -2529,6 +2540,7 @@ export async function configurePayloadConfig(args: ConfigArgs) {
 ```
 
 **5. Environment Management** (`lib/manage-env.ts`)
+
 ```typescript
 export async function createEnvFile(args: EnvArgs) {
   const env = `
@@ -2545,12 +2557,12 @@ PAYLOAD_SECRET=${generateSecret()}
 ```json
 {
   "dependencies": {
-    "@clack/prompts": "^0.7.0",     // Interactive prompts
-    "chalk": "^4.1.0",              // Terminal styling
-    "arg": "^5.0.0",                // Argument parsing
-    "execa": "^5.0.0",              // Process execution
-    "fs-extra": "^9.0.1",           // File operations
-    "tar": "^7.4.3"                 // Template extraction
+    "@clack/prompts": "^0.7.0", // Interactive prompts
+    "chalk": "^4.1.0", // Terminal styling
+    "arg": "^5.0.0", // Argument parsing
+    "execa": "^5.0.0", // Process execution
+    "fs-extra": "^9.0.1", // File operations
+    "tar": "^7.4.3" // Template extraction
   }
 }
 ```
@@ -2739,6 +2751,7 @@ npx create-tiny-cms my-blog \
 #### 12.1.8 Implementation Checklist
 
 **Phase 1: Core CLI**
+
 - [ ] Set up project structure
 - [ ] Implement argument parsing with `arg`
 - [ ] Create Main CLI class
@@ -2746,30 +2759,35 @@ npx create-tiny-cms my-blog \
 - [ ] Implement project name parsing and slugification
 
 **Phase 2: Template System**
+
 - [ ] Create blog template with collections
 - [ ] Implement template download from GitHub
 - [ ] Add local template copy for development
 - [ ] Create template packing script
 
 **Phase 3: Configuration**
+
 - [ ] Implement database selection (MongoDB/SQLite)
 - [ ] Create payload.config.ts configuration logic
 - [ ] Add database adapter replacement
 - [ ] Implement package.json updates
 
 **Phase 4: Environment & Dependencies**
+
 - [ ] Implement secret generation
 - [ ] Create .env file management
 - [ ] Add package manager detection
 - [ ] Implement dependency installation
 
 **Phase 5: Git & Finalization**
+
 - [ ] Implement git initialization
 - [ ] Add success messages and help text
 - [ ] Create comprehensive error handling
 - [ ] Add dry-run mode for testing
 
 **Phase 6: Testing & Documentation**
+
 - [ ] Test all CLI flows
 - [ ] Add debug mode
 - [ ] Write README with examples
@@ -2791,6 +2809,7 @@ npx create-tiny-cms my-blog \
 #### 12.1.10 File Structure Comparison
 
 **create-payload-app (Complex):**
+
 ```
 src/
 ├── lib/ (15 files)
@@ -2817,6 +2836,7 @@ src/
 ```
 
 **create-tiny-cms (Simplified):**
+
 ```
 src/
 ├── lib/ (8 files)

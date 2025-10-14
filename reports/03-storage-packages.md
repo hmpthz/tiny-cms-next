@@ -19,6 +19,7 @@ This report analyzes Payload CMS's storage architecture, focusing on the cloud s
 **Version**: 3.59.1
 
 #### Dependencies
+
 ```json
 {
   "@payloadcms/ui": "workspace:*",
@@ -28,6 +29,7 @@ This report analyzes Payload CMS's storage architecture, focusing on the cloud s
 ```
 
 #### Directory Structure
+
 ```
 plugin-cloud-storage/
 └── src/
@@ -50,6 +52,7 @@ plugin-cloud-storage/
 **Version**: 3.59.1
 
 #### Dependencies
+
 ```json
 {
   "@aws-sdk/client-s3": "^3.614.0",
@@ -60,6 +63,7 @@ plugin-cloud-storage/
 ```
 
 #### Directory Structure
+
 ```
 storage-s3/
 └── src/
@@ -74,27 +78,32 @@ storage-s3/
 ### 3. Other Storage Adapters (Brief)
 
 #### storage-azure
+
 - **Location:** `payload-main/packages/storage-azure/`
 - **Purpose**: Azure Blob Storage adapter
 - **Dependencies**: `@azure/storage-blob: ^12.11.0`, `@azure/abort-controller: ^1.1.0`
 
 #### storage-gcs
+
 - **Location:** `payload-main/packages/storage-gcs/`
 - **Purpose**: Google Cloud Storage adapter
 - **Dependencies**: `@google-cloud/storage: ^7.7.0`
 
 #### storage-r2
+
 - **Location:** `payload-main/packages/storage-r2/`
 - **Purpose**: Cloudflare R2 adapter
 - **Dependencies**: No external storage SDK (uses Cloudflare Workers bindings)
 - **Note**: Designed for Cloudflare Workers environment
 
 #### storage-uploadthing
+
 - **Location:** `payload-main/packages/storage-uploadthing/`
 - **Purpose**: UploadThing service adapter
 - **Dependencies**: `uploadthing: 7.3.0`
 
 #### storage-vercel-blob
+
 - **Location:** `payload-main/packages/storage-vercel-blob/`
 - **Purpose**: Vercel Blob Storage adapter
 - **Dependencies**: `@vercel/blob: ^0.22.3`
@@ -152,19 +161,16 @@ type StaticHandler = (
 interface GeneratedAdapter {
   name: string
   clientUploads?: ClientUploadsConfig
-  fields?: Field[]                    // Additional fields to inject
-  generateURL?: GenerateURL           // Generate public URL
-  handleDelete: HandleDelete          // Delete file handler
-  handleUpload: HandleUpload          // Upload file handler
-  onInit?: () => void                 // Initialization hook
-  staticHandler: StaticHandler        // Serve files handler
+  fields?: Field[] // Additional fields to inject
+  generateURL?: GenerateURL // Generate public URL
+  handleDelete: HandleDelete // Delete file handler
+  handleUpload: HandleUpload // Upload file handler
+  onInit?: () => void // Initialization hook
+  staticHandler: StaticHandler // Serve files handler
 }
 
 // Adapter factory
-type Adapter = (args: {
-  collection: CollectionConfig
-  prefix?: string
-}) => GeneratedAdapter
+type Adapter = (args: { collection: CollectionConfig; prefix?: string }) => GeneratedAdapter
 ```
 
 ---
@@ -174,12 +180,14 @@ type Adapter = (args: {
 ### 1. Main Plugin (src/index.ts)
 
 **Lines 95-171**: Plugin factory function
+
 - Creates S3 client with connection pooling (keepAlive: true, maxSockets: 100)
 - Initializes client uploads if enabled
 - Wraps cloud storage plugin with S3-specific adapter
 - Sets `disableLocalStorage: true` for configured collections
 
 **Key Configuration Options**:
+
 ```typescript
 interface S3StorageOptions {
   acl?: 'private' | 'public-read'        // Access control
@@ -196,10 +204,12 @@ interface S3StorageOptions {
 ### 2. Upload Handler (src/handleUpload.ts)
 
 **Strategy**:
+
 - **Small files (< 50MB)**: Single `putObject` call
 - **Large files (>= 50MB)**: Multipart upload using `@aws-sdk/lib-storage`
 
 **Implementation Details** (Lines 19-61):
+
 ```typescript
 const multipartThreshold = 1024 * 1024 * 50 // 50MB
 
@@ -236,6 +246,7 @@ export const getHandleUpload = ({ acl, bucket, getStorageClient, prefix }): Hand
 ```
 
 **Key Points**:
+
 - Supports both buffers and temp file streams
 - Automatic multipart for large files
 - Configurable ACL per upload
@@ -244,6 +255,7 @@ export const getHandleUpload = ({ acl, bucket, getStorageClient, prefix }): Hand
 ### 3. Delete Handler (src/handleDelete.ts)
 
 **Lines 11-18**: Simple deletion
+
 ```typescript
 export const getHandleDelete = ({ bucket, getStorageClient }): HandleDelete => {
   return async ({ doc: { prefix = '' }, filename }) => {
@@ -260,6 +272,7 @@ export const getHandleDelete = ({ bucket, getStorageClient }): HandleDelete => {
 **Purpose**: Serves files with access control and optimization
 
 **Key Features** (Lines 58-177):
+
 - Pre-signed URL generation for private files
 - Stream-based file serving
 - ETag support for caching (304 responses)
@@ -268,8 +281,14 @@ export const getHandleDelete = ({ bucket, getStorageClient }): HandleDelete => {
 - Proper error handling and stream cleanup
 
 **Implementation Highlights**:
+
 ```typescript
-export const getHandler = ({ bucket, collection, getStorageClient, signedDownloads }): StaticHandler => {
+export const getHandler = ({
+  bucket,
+  collection,
+  getStorageClient,
+  signedDownloads,
+}): StaticHandler => {
   return async (req, { headers, params: { clientUploadContext, filename } }) => {
     const abortController = new AbortController()
 
@@ -297,8 +316,10 @@ export const getHandler = ({ bucket, collection, getStorageClient, signedDownloa
 ### 5. URL Generation (src/generateURL.ts)
 
 **Lines 11-16**: Simple URL construction
+
 ```typescript
-export const getGenerateURL = ({ bucket, config: { endpoint } }): GenerateURL =>
+export const getGenerateURL =
+  ({ bucket, config: { endpoint } }): GenerateURL =>
   ({ filename, prefix = '' }) => {
     const stringifiedEndpoint = typeof endpoint === 'string' ? endpoint : endpoint?.toString()
     return `${stringifiedEndpoint}/${bucket}/${path.posix.join(prefix, filename)}`
@@ -310,8 +331,15 @@ export const getGenerateURL = ({ bucket, config: { endpoint } }): GenerateURL =>
 **Purpose**: Generates pre-signed URLs for client-side uploads
 
 **Lines 21-63**:
+
 ```typescript
-export const getGenerateSignedURLHandler = ({ access, acl, bucket, collections, getStorageClient }): PayloadHandler => {
+export const getGenerateSignedURLHandler = ({
+  access,
+  acl,
+  bucket,
+  collections,
+  getStorageClient,
+}): PayloadHandler => {
   return async (req) => {
     const { collectionSlug, filename, mimeType } = await req.json()
 
@@ -326,7 +354,7 @@ export const getGenerateSignedURLHandler = ({ access, acl, bucket, collections, 
     const url = await getSignedUrl(
       getStorageClient(),
       new AWS.PutObjectCommand({ ACL: acl, Bucket: bucket, ContentType: mimeType, Key: fileKey }),
-      { expiresIn: 600 }
+      { expiresIn: 600 },
     )
 
     return Response.json({ url })
@@ -337,6 +365,7 @@ export const getGenerateSignedURLHandler = ({ access, acl, bucket, collections, 
 ### 7. Client Upload Handler (src/client/S3ClientUploadHandler.ts)
 
 **Lines 4-28**: Client-side upload implementation
+
 ```typescript
 export const S3ClientUploadHandler = createClientUploadHandler({
   handler: async ({ apiRoute, collectionSlug, file, prefix, serverHandlerPath, serverURL }) => {
@@ -402,17 +431,27 @@ export const getBeforeChangeHook = ({ adapter, collection }): CollectionBeforeCh
       if (originalDoc) {
         const filesToDelete = [
           originalDoc.filename,
-          ...Object.values(originalDoc.sizes || {}).map(size => size.filename)
+          ...Object.values(originalDoc.sizes || {}).map((size) => size.filename),
         ]
-        await Promise.all(filesToDelete.map(filename =>
-          adapter.handleDelete({ collection, doc: originalDoc, filename, req })
-        ))
+        await Promise.all(
+          filesToDelete.map((filename) =>
+            adapter.handleDelete({ collection, doc: originalDoc, filename, req }),
+          ),
+        )
       }
 
       // Upload new files (main + resized variants)
-      await Promise.all(files.map(file =>
-        adapter.handleUpload({ clientUploadContext: file.clientUploadContext, collection, data, file, req })
-      ))
+      await Promise.all(
+        files.map((file) =>
+          adapter.handleUpload({
+            clientUploadContext: file.clientUploadContext,
+            collection,
+            data,
+            file,
+            req,
+          }),
+        ),
+      )
     }
 
     return data
@@ -432,12 +471,12 @@ export const getAfterDeleteHook = ({ adapter, collection }): CollectionAfterDele
   return async ({ doc, req }) => {
     const filesToDelete = [
       doc.filename,
-      ...Object.values(doc.sizes || {}).map(size => size.filename)
+      ...Object.values(doc.sizes || {}).map((size) => size.filename),
     ]
 
-    await Promise.all(filesToDelete.map(filename =>
-      adapter.handleDelete({ collection, doc, filename, req })
-    ))
+    await Promise.all(
+      filesToDelete.map((filename) => adapter.handleDelete({ collection, doc, filename, req })),
+    )
 
     return doc
   }
@@ -453,7 +492,13 @@ export const getAfterDeleteHook = ({ adapter, collection }): CollectionAfterDele
 3. Otherwise, URLs point to Payload's static handler
 
 ```typescript
-export const getAfterReadHook = ({ adapter, collection, disablePayloadAccessControl, generateFileURL, size }): FieldHook => {
+export const getAfterReadHook = ({
+  adapter,
+  collection,
+  disablePayloadAccessControl,
+  generateFileURL,
+  size,
+}): FieldHook => {
   return async ({ data, value }) => {
     const filename = size ? data?.sizes?.[size.name]?.filename : data?.filename
     const prefix = data?.prefix
@@ -479,6 +524,7 @@ export const getAfterReadHook = ({ adapter, collection, disablePayloadAccessCont
 ### Image Size Handling
 
 **Key Files**:
+
 - `/plugin-cloud-storage/src/utilities/getIncomingFiles.ts` (Lines 28-40)
 - `/plugin-cloud-storage/src/fields/getFields.ts` (Lines 72-134)
 
@@ -490,6 +536,7 @@ export const getAfterReadHook = ({ adapter, collection, disablePayloadAccessCont
 4. Each size gets its own URL field in the `sizes` group
 
 **Data Structure**:
+
 ```typescript
 {
   filename: "image.jpg",
@@ -520,6 +567,7 @@ export const getAfterReadHook = ({ adapter, collection, disablePayloadAccessCont
 **Purpose**: Bypass server limits (e.g., Vercel 4.5MB limit) by uploading directly to cloud storage
 
 **Flow**:
+
 1. Client requests pre-signed URL from server
 2. Server generates pre-signed URL with auth check
 3. Client uploads file directly to cloud storage
@@ -547,14 +595,17 @@ export const getAfterReadHook = ({ adapter, collection, disablePayloadAccessCont
 ## Test Configuration
 
 ### Test Location
+
 `/payload-main/test/storage-s3/`
 
 ### Test Collections (from config.ts)
+
 1. **Media**: Basic S3 storage
 2. **MediaWithPrefix**: S3 storage with prefix support
 3. **MediaWithSignedDownloads**: S3 storage with pre-signed download URLs
 
 ### Configuration Example (Lines 40-64)
+
 ```typescript
 s3Storage({
   collections: {
@@ -562,9 +613,9 @@ s3Storage({
     'media-with-prefix': { prefix: 'custom-prefix' },
     'media-with-signed-downloads': {
       signedDownloads: {
-        shouldUseSignedURL: (args) => args.req.headers.get('X-Disable-Signed-URL') !== 'true'
-      }
-    }
+        shouldUseSignedURL: (args) => args.req.headers.get('X-Disable-Signed-URL') !== 'true',
+      },
+    },
   },
   bucket: process.env.S3_BUCKET,
   config: {
@@ -586,6 +637,7 @@ s3Storage({
 ### 1. Adapter Interface is Minimal
 
 The core adapter interface only requires 4 methods:
+
 - `handleUpload`: Upload file to storage
 - `handleDelete`: Delete file from storage
 - `staticHandler`: Serve file (can redirect to public URL)
@@ -594,6 +646,7 @@ The core adapter interface only requires 4 methods:
 ### 2. Plugin Handles All Hook Integration
 
 The `plugin-cloud-storage` package:
+
 - Automatically injects fields (url, prefix, sizes)
 - Registers lifecycle hooks (beforeChange, afterDelete, afterRead)
 - Handles file extraction and image size processing
@@ -601,14 +654,14 @@ The `plugin-cloud-storage` package:
 
 ### 3. Supabase Storage Mapping
 
-| Payload Concept | Supabase Storage Equivalent |
-|----------------|---------------------------|
-| Bucket | Bucket |
-| Prefix | Path prefix in bucket |
-| handleUpload | `storage.from(bucket).upload()` |
-| handleDelete | `storage.from(bucket).remove()` |
-| generateURL | `storage.from(bucket).getPublicUrl()` |
-| staticHandler | Redirect to public URL or use RLS |
+| Payload Concept | Supabase Storage Equivalent           |
+| --------------- | ------------------------------------- |
+| Bucket          | Bucket                                |
+| Prefix          | Path prefix in bucket                 |
+| handleUpload    | `storage.from(bucket).upload()`       |
+| handleDelete    | `storage.from(bucket).remove()`       |
+| generateURL     | `storage.from(bucket).getPublicUrl()` |
+| staticHandler   | Redirect to public URL or use RLS     |
 
 ### 4. Simplifications for Our CMS
 
@@ -623,6 +676,7 @@ We can simplify significantly:
 ### 5. Required Implementation
 
 **Minimal Supabase adapter**:
+
 ```typescript
 import { createClient } from '@supabase/storage-js'
 
@@ -633,7 +687,12 @@ interface SupabaseStorageOptions {
   collections: Record<string, { prefix?: string } | true>
 }
 
-function supabaseStorage({ bucket, supabaseUrl, supabaseKey, collections }: SupabaseStorageOptions): Adapter {
+function supabaseStorage({
+  bucket,
+  supabaseUrl,
+  supabaseKey,
+  collections,
+}: SupabaseStorageOptions): Adapter {
   const storage = createClient(supabaseUrl, supabaseKey)
 
   return ({ collection, prefix = '' }): GeneratedAdapter => ({
@@ -643,7 +702,7 @@ function supabaseStorage({ bucket, supabaseUrl, supabaseKey, collections }: Supa
       const path = `${data.prefix || prefix}/${file.filename}`
       await storage.from(bucket).upload(path, file.buffer, {
         contentType: file.mimeType,
-        upsert: false
+        upsert: false,
       })
     },
 
@@ -662,7 +721,7 @@ function supabaseStorage({ bucket, supabaseUrl, supabaseKey, collections }: Supa
       // Simply redirect to public URL
       const url = generateURL({ filename, prefix })
       return Response.redirect(url, 302)
-    }
+    },
   })
 }
 ```
@@ -717,6 +776,7 @@ function supabaseStorage({ bucket, supabaseUrl, supabaseKey, collections }: Supa
 ### Image Sizes
 
 Instead of storing multiple physical sizes:
+
 ```typescript
 // At read time, generate transformation URLs
 {
@@ -734,6 +794,7 @@ Instead of storing multiple physical sizes:
 ## Conclusion
 
 Payload's storage system is enterprise-grade with features like:
+
 - Multi-cloud support
 - Client-side uploads
 - Pre-signed URLs
@@ -742,12 +803,14 @@ Payload's storage system is enterprise-grade with features like:
 - Access control integration
 
 For our simplified CMS:
+
 - We can achieve 80% of functionality with 20% of code
 - Supabase Storage provides most features out-of-the-box
 - Focus on simple, maintainable implementation
 - Leverage Supabase's strengths (RLS, public URLs, image transformations)
 
 **Next Steps**:
+
 1. Design simplified storage schema
 2. Implement basic Supabase upload/delete handlers
 3. Add public URL generation
@@ -759,6 +822,7 @@ For our simplified CMS:
 ## Appendix: File References
 
 ### plugin-cloud-storage
+
 - Main plugin: `/packages/plugin-cloud-storage/src/plugin.ts:18-150`
 - Types: `/packages/plugin-cloud-storage/src/types.ts:1-117`
 - Upload hook: `/packages/plugin-cloud-storage/src/hooks/beforeChange.ts:13-66`
@@ -767,6 +831,7 @@ For our simplified CMS:
 - Field injection: `/packages/plugin-cloud-storage/src/fields/getFields.ts:17-161`
 
 ### storage-s3
+
 - Main adapter: `/packages/storage-s3/src/index.ts:95-216`
 - Upload handler: `/packages/storage-s3/src/handleUpload.ts:19-61`
 - Delete handler: `/packages/storage-s3/src/handleDelete.ts:11-18`
@@ -776,5 +841,6 @@ For our simplified CMS:
 - Client handler: `/packages/storage-s3/src/client/S3ClientUploadHandler.ts:4-28`
 
 ### Tests
+
 - S3 config: `/test/storage-s3/config.ts:23-70`
 - Integration tests: `/test/storage-s3/int.spec.ts`

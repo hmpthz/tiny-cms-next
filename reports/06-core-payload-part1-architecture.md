@@ -15,6 +15,7 @@
 The core Payload package (`packages/payload`) is a **massive, highly abstracted CMS framework** built on Next.js 15. It provides a complete headless CMS with collections, globals, authentication, versioning, localization, and extensive plugin architecture. The codebase is approximately **~150,000 lines of TypeScript** with deep abstraction layers and comprehensive feature coverage.
 
 **Key Characteristics:**
+
 - **Highly Pluggable:** Everything is extensible via hooks, plugins, and custom components
 - **Database Agnostic:** Abstract database layer with adapter pattern
 - **API Triple Layer:** Local API, REST API, and GraphQL API
@@ -22,6 +23,7 @@ The core Payload package (`packages/payload`) is a **massive, highly abstracted 
 - **Feature Rich:** Versions, drafts, localization, uploads, authentication, roles, jobs system
 
 **For Our Tiny CMS:**
+
 - 🚨 **90% of features are unnecessary bloat**
 - 🎯 **Core concepts we need:** Collection system, field handling, basic CRUD
 - ⚠️ **Complexity overhead is extreme:** Need radical simplification
@@ -64,37 +66,39 @@ packages/payload/
 **Location:** `packages/payload/package.json`
 
 **Key Dependencies:**
+
 ```json
 {
   "dependencies": {
-    "@next/env": "^15.1.5",           // Next.js environment handling
-    "@payloadcms/translations": "*",   // i18n system
-    "ajv": "8.17.1",                  // JSON Schema validation
-    "bson-objectid": "2.0.4",         // MongoDB-style IDs
-    "busboy": "^1.6.0",               // Multipart form parsing
-    "croner": "9.1.0",                // Cron job scheduler
-    "dataloader": "2.2.3",            // Batching & caching layer
-    "deepmerge": "4.3.1",             // Deep object merging
-    "file-type": "19.3.0",            // File type detection
-    "image-size": "2.0.2",            // Image dimensions
-    "jose": "5.9.6",                  // JWT handling
+    "@next/env": "^15.1.5", // Next.js environment handling
+    "@payloadcms/translations": "*", // i18n system
+    "ajv": "8.17.1", // JSON Schema validation
+    "bson-objectid": "2.0.4", // MongoDB-style IDs
+    "busboy": "^1.6.0", // Multipart form parsing
+    "croner": "9.1.0", // Cron job scheduler
+    "dataloader": "2.2.3", // Batching & caching layer
+    "deepmerge": "4.3.1", // Deep object merging
+    "file-type": "19.3.0", // File type detection
+    "image-size": "2.0.2", // Image dimensions
+    "jose": "5.9.6", // JWT handling
     "json-schema-to-typescript": "15.0.3", // Type generation
-    "pino": "9.5.0",                  // Logging
-    "pluralize": "8.0.0",             // String pluralization
-    "qs-esm": "7.0.2",                // Query string parsing
-    "sanitize-filename": "1.6.3",     // Filename sanitization
-    "sharp": "0.32.6",                // Image processing (peer)
-    "uuid": "10.0.0",                 // UUID generation
-    "ws": "^8.16.0"                   // WebSocket for HMR
+    "pino": "9.5.0", // Logging
+    "pluralize": "8.0.0", // String pluralization
+    "qs-esm": "7.0.2", // Query string parsing
+    "sanitize-filename": "1.6.3", // Filename sanitization
+    "sharp": "0.32.6", // Image processing (peer)
+    "uuid": "10.0.0", // UUID generation
+    "ws": "^8.16.0" // WebSocket for HMR
   }
 }
 ```
 
 **Export Structure:**
+
 ```json
 {
   "exports": {
-    ".": "./src/index.ts",           // Main entry
+    ".": "./src/index.ts", // Main entry
     "./shared": "./src/exports/shared.ts",
     "./node": "./src/exports/node.ts",
     "./i18n/*": "./src/exports/i18n/*.ts"
@@ -290,13 +294,16 @@ async init(options: InitOptions): Promise<Payload> {
 ```typescript
 // Line 1018-1164: getPayload function
 // Provides smart caching and HMR support
-let _cached: Map<string, {
-  payload: null | Payload
-  promise: null | Promise<Payload>
-  reload: boolean | Promise<void>
-  ws: null | WebSocket
-  initializedCrons: boolean
-}> = (global as any)._payload
+let _cached: Map<
+  string,
+  {
+    payload: null | Payload
+    promise: null | Promise<Payload>
+    reload: boolean | Promise<void>
+    ws: null | WebSocket
+    initializedCrons: boolean
+  }
+> = (global as any)._payload
 
 export const getPayload = async (options: InitOptions): Promise<Payload> => {
   // Smart caching logic
@@ -349,9 +356,7 @@ const sanitizeAdminConfig = (configToSanitize: Config): Partial<SanitizedConfig>
 
   // 3. Add default user collection if none provided
   if (!sanitizedConfig?.admin?.user) {
-    const firstCollectionWithAuth = sanitizedConfig.collections!.find(
-      ({ auth }) => Boolean(auth)
-    )
+    const firstCollectionWithAuth = sanitizedConfig.collections!.find(({ auth }) => Boolean(auth))
     if (firstCollectionWithAuth) {
       sanitizedConfig.admin!.user = firstCollectionWithAuth.slug
     } else {
@@ -366,7 +371,7 @@ const sanitizeAdminConfig = (configToSanitize: Config): Partial<SanitizedConfig>
   )
   if (!userCollection || !userCollection.auth) {
     throw new InvalidConfiguration(
-      `${sanitizedConfig.admin!.user} is not a valid admin user collection`
+      `${sanitizedConfig.admin!.user} is not a valid admin user collection`,
     )
   }
 
@@ -405,6 +410,7 @@ export type SanitizedConfig = DeepRequired<Config> & {
 **Defaults Applied (src/config/defaults.ts):**
 
 The config system applies extensive defaults including:
+
 - Auth endpoints
 - CORS settings
 - Upload paths
@@ -437,6 +443,7 @@ if (Array.isArray(config.plugins)) {
 ```
 
 **Plugin Capabilities:**
+
 - Modify collections
 - Add globals
 - Add custom fields
@@ -535,7 +542,7 @@ export interface PayloadRequest {
 }
 
 export interface RequestContext {
-  [key: string]: unknown  // Arbitrary context data
+  [key: string]: unknown // Arbitrary context data
 }
 ```
 
@@ -569,9 +576,9 @@ await payload.create({
   collection: 'posts',
   data: { title: 'Hello' },
   context: {
-    skipNotification: true,  // Custom flag
-    triggeredBy: 'cron-job'
-  }
+    skipNotification: true, // Custom flag
+    triggeredBy: 'cron-job',
+  },
 })
 
 // Then read it in hooks
@@ -678,7 +685,7 @@ const Posts: CollectionConfig = {
       type: 'select',
       options: ['draft', 'published'],
       defaultValue: 'draft',
-    }
+    },
   ],
   hooks: {
     beforeChange: [
@@ -687,22 +694,22 @@ const Posts: CollectionConfig = {
           data.createdAt = new Date()
         }
         return data
-      }
+      },
     ],
     afterChange: [
       async ({ doc, operation }) => {
         if (operation === 'create') {
           // Send notification
         }
-      }
-    ]
+      },
+    ],
   },
   access: {
     read: ({ req: { user } }) => {
       if (user?.role === 'admin') return true
       return { status: { equals: 'published' } }
-    }
-  }
+    },
+  },
 }
 ```
 
@@ -711,6 +718,7 @@ const Posts: CollectionConfig = {
 **Operation Flow Pattern:**
 
 All CRUD operations follow this pattern:
+
 1. Local API wrapper (e.g., `createLocal`)
 2. Main operation function (e.g., `createOperation`)
 3. Database adapter call
@@ -1059,8 +1067,8 @@ type WhereCondition = {
   less_than?: number | string
   less_than_equal?: number | string
   near?: [number, number, number?, number?]
-  within?: { type: 'Point' | 'Polygon', coordinates: number[][] }
-  intersects?: { type: 'Point' | 'Polygon', coordinates: number[][] }
+  within?: { type: 'Point' | 'Polygon'; coordinates: number[][] }
+  intersects?: { type: 'Point' | 'Polygon'; coordinates: number[][] }
 }
 ```
 
@@ -1072,21 +1080,18 @@ await payload.find({
   where: {
     and: [
       {
-        status: { equals: 'published' }
+        status: { equals: 'published' },
       },
       {
-        or: [
-          { author: { equals: userId } },
-          { collaborators: { in: [userId] } }
-        ]
+        or: [{ author: { equals: userId } }, { collaborators: { in: [userId] } }],
       },
       {
         publishedAt: {
-          greater_than: new Date('2024-01-01').toISOString()
-        }
-      }
-    ]
-  }
+          greater_than: new Date('2024-01-01').toISOString(),
+        },
+      },
+    ],
+  },
 })
 ```
 
@@ -1104,10 +1109,7 @@ await payload.find({
 **Query Combination (src/database/combineQueries.ts):**
 
 ```typescript
-export const combineQueries = (
-  where1: Where,
-  where2: Where
-): Where => {
+export const combineQueries = (where1: Where, where2: Where): Where => {
   // Intelligently combines two where queries
   // Used for merging user query with access control query
 }
@@ -1119,9 +1121,9 @@ export const combineQueries = (
 
 ```typescript
 type FindOptions = {
-  page?: number          // Page number (1-indexed)
-  limit?: number         // Items per page
-  pagination?: boolean   // Enable/disable pagination
+  page?: number // Page number (1-indexed)
+  limit?: number // Items per page
+  pagination?: boolean // Enable/disable pagination
 }
 ```
 
@@ -1148,9 +1150,9 @@ type PaginatedDocs<T> = {
 type Sort = string | string[]
 
 // Examples:
-sort: 'createdAt'           // ASC
-sort: '-createdAt'          // DESC
-sort: ['status', '-createdAt']  // Multiple fields
+sort: 'createdAt' // ASC
+sort: '-createdAt' // DESC
+sort: ['status', '-createdAt'] // Multiple fields
 ```
 
 **Sort Sanitization (src/collections/operations/utilities/sanitizeSortQuery.ts):**
@@ -1221,7 +1223,7 @@ export const getDataLoader = (req: PayloadRequest) => {
       async (keys) => {
         // Batch load documents
       },
-      { cache: true }
+      { cache: true },
     )
   }
   return req.payloadDataLoader
@@ -1233,6 +1235,7 @@ export const getDataLoader = (req: PayloadRequest) => {
 **Version Concept:**
 
 Every time a document is saved, a "version" is created in a separate versions table/collection. This allows:
+
 - Version history
 - Draft mode (unpublished changes)
 - Scheduled publishing
@@ -1243,13 +1246,13 @@ Every time a document is saved, a "version" is created in a separate versions ta
 ```typescript
 type CollectionConfig = {
   versions: {
-    maxPerDoc: 100,  // Keep last 100 versions
+    maxPerDoc: 100 // Keep last 100 versions
     drafts: {
       autosave: {
-        interval: 800  // ms
-      },
-      schedulePublish: true,  // Allow scheduled publishing
-      validate: false         // Don't validate drafts
+        interval: 800 // ms
+      }
+      schedulePublish: true // Allow scheduled publishing
+      validate: false // Don't validate drafts
     }
   }
 }
@@ -1260,10 +1263,10 @@ type CollectionConfig = {
 ```typescript
 export type TypeWithVersion<T> = {
   id: string
-  parent: number | string        // ID of main document
-  version: T                     // The versioned data
-  snapshot?: boolean             // Is this a snapshot version?
-  publishedLocale?: string       // Locale published
+  parent: number | string // ID of main document
+  version: T // The versioned data
+  snapshot?: boolean // Is this a snapshot version?
+  publishedLocale?: string // Locale published
   createdAt: string
   updatedAt: string
 }
@@ -1280,14 +1283,14 @@ export type TypeWithVersion<T> = {
 await payload.findByID({
   collection: 'posts',
   id: '123',
-  draft: false  // default
+  draft: false, // default
 })
 
 // Get draft version (latest changes)
 await payload.findByID({
   collection: 'posts',
   id: '123',
-  draft: true
+  draft: true,
 })
 ```
 
@@ -1297,19 +1300,19 @@ await payload.findByID({
 // Find all versions of a document
 await payload.findVersions({
   collection: 'posts',
-  where: { parent: { equals: '123' } }
+  where: { parent: { equals: '123' } },
 })
 
 // Get specific version
 await payload.findVersionByID({
   collection: 'posts',
-  id: 'version-id-456'
+  id: 'version-id-456',
 })
 
 // Restore a version (publish it)
 await payload.restoreVersion({
   collection: 'posts',
-  id: 'version-id-456'
+  id: 'version-id-456',
 })
 ```
 
@@ -1360,9 +1363,9 @@ export const saveVersion = async ({
 ```typescript
 type Config = {
   localization: {
-    locales: ['en', 'es', 'fr'],
-    defaultLocale: 'en',
-    fallback: true  // Use default locale as fallback
+    locales: ['en', 'es', 'fr']
+    defaultLocale: 'en'
+    fallback: true // Use default locale as fallback
   }
 }
 ```
@@ -1454,8 +1457,8 @@ await payload.findByID({
 await payload.findByID({
   collection: 'posts',
   id: '123',
-  locale: 'de',  // German (doesn't exist)
-  fallbackLocale: 'en'  // Falls back to English
+  locale: 'de', // German (doesn't exist)
+  fallbackLocale: 'en', // Falls back to English
 })
 ```
 
@@ -1470,6 +1473,7 @@ await payload.findByID({
 Globals are singleton configuration entities. Unlike collections (which have many documents), globals have exactly **one document per global**.
 
 **Use Cases:**
+
 - Site settings
 - Navigation menus
 - SEO metadata
@@ -1504,22 +1508,22 @@ const SiteSettings: GlobalConfig = {
         {
           name: 'url',
           type: 'text',
-        }
-      ]
-    }
-  ]
+        },
+      ],
+    },
+  ],
 }
 ```
 
 ### 4.2 Globals vs Collections Differences
 
-| Aspect | Collections | Globals |
-|--------|------------|---------|
-| **Documents** | Many | One (singleton) |
-| **Operations** | Create, Read, Update, Delete | Read, Update only |
-| **Endpoints** | `/api/:collection` | `/api/globals/:global` |
-| **Access Control** | Per-document & list | Single document only |
-| **Hooks** | Full set | Subset (no delete hooks) |
+| Aspect             | Collections                  | Globals                  |
+| ------------------ | ---------------------------- | ------------------------ |
+| **Documents**      | Many                         | One (singleton)          |
+| **Operations**     | Create, Read, Update, Delete | Read, Update only        |
+| **Endpoints**      | `/api/:collection`           | `/api/globals/:global`   |
+| **Access Control** | Per-document & list          | Single document only     |
+| **Hooks**          | Full set                     | Subset (no delete hooks) |
 
 ### 4.3 Global Implementation
 
@@ -1573,15 +1577,15 @@ export type GlobalConfig = {
 await payload.findGlobal({
   slug: 'site-settings',
   depth: 2,
-  locale: 'en'
+  locale: 'en',
 })
 
 // Update
 await payload.updateGlobal({
   slug: 'site-settings',
   data: {
-    siteName: 'My New Site Name'
-  }
+    siteName: 'My New Site Name',
+  },
 })
 ```
 
@@ -1598,7 +1602,7 @@ const SiteSettings: GlobalConfig = {
   slug: 'site-settings',
   versions: {
     drafts: true,
-    max: 50
+    max: 50,
   },
   // ...
 }
@@ -1606,12 +1610,12 @@ const SiteSettings: GlobalConfig = {
 // Get draft version
 await payload.findGlobal({
   slug: 'site-settings',
-  draft: true
+  draft: true,
 })
 
 // Find version history
 await payload.findGlobalVersions({
-  slug: 'site-settings'
+  slug: 'site-settings',
 })
 ```
 
@@ -1714,6 +1718,7 @@ export type FindArgs = {
 ### 5.2 Database Adapters
 
 **Available Adapters:**
+
 1. `@payloadcms/db-mongodb` - MongoDB adapter
 2. `@payloadcms/db-postgres` - PostgreSQL adapter (using Drizzle ORM)
 3. `@payloadcms/db-sqlite` - SQLite adapter
@@ -1730,14 +1735,14 @@ import { postgresAdapter } from '@payloadcms/db-postgres'
 export default buildConfig({
   // Use MongoDB
   db: mongooseAdapter({
-    url: process.env.DATABASE_URI
+    url: process.env.DATABASE_URI,
   }),
 
   // OR use PostgreSQL
   db: postgresAdapter({
     pool: {
-      connectionString: process.env.DATABASE_URI
-    }
+      connectionString: process.env.DATABASE_URI,
+    },
   }),
 
   // ...
@@ -1817,14 +1822,14 @@ type FieldTypes =
   | 'point'
   | 'ui'
   | 'join'
-  // ...more
+// ...more
 ```
 
 **Field Base Type:**
 
 ```typescript
 type FieldBase = {
-  name: string  // (not for presentational fields)
+  name: string // (not for presentational fields)
   type: FieldTypes
   label?: string | ((field) => string)
   admin?: {
@@ -1882,6 +1887,7 @@ type FieldBase = {
 **Field Hooks:**
 
 Every field can have hooks at 4 points:
+
 1. `beforeValidate` - Before validation
 2. `beforeChange` - Before saving to DB
 3. `afterChange` - After saving to DB
@@ -1927,7 +1933,7 @@ const Posts: CollectionConfig = {
           data.slug = slugify(data.title)
         }
         return data
-      }
+      },
     ],
     beforeChange: [
       async ({ data, req, operation, originalDoc }) => {
@@ -1936,7 +1942,7 @@ const Posts: CollectionConfig = {
           data.author = req.user.id
         }
         return data
-      }
+      },
     ],
     afterChange: [
       async ({ doc, req, operation, previousDoc }) => {
@@ -1944,16 +1950,16 @@ const Posts: CollectionConfig = {
         if (operation === 'update' && doc.status !== previousDoc.status) {
           await sendNotification({ doc, req })
         }
-      }
+      },
     ],
     afterOperation: [
       async ({ operation, result }) => {
         // Clear cache
         await clearCache(`posts-${result.id}`)
         return result
-      }
-    ]
-  }
+      },
+    ],
+  },
 }
 ```
 
@@ -2035,8 +2041,8 @@ const Posts: CollectionConfig = {
   fields: [
     { name: 'title', type: 'text', required: true },
     { name: 'status', type: 'select', options: ['draft', 'published'] },
-    { name: 'author', type: 'relationship', relationTo: 'users' }
-  ]
+    { name: 'author', type: 'relationship', relationTo: 'users' },
+  ],
 }
 
 // Generated type (in payload-types.ts)
@@ -2044,19 +2050,19 @@ export interface Post {
   id: string
   title: string
   status: 'draft' | 'published'
-  author: string | User  // ID or populated object
+  author: string | User // ID or populated object
   createdAt: string
   updatedAt: string
 }
 
 // Usage with full type safety
 const post = await payload.create({
-  collection: 'posts',  // Type-checked collection slug
+  collection: 'posts', // Type-checked collection slug
   data: {
     title: 'Hello',
-    status: 'draft',  // Only allows 'draft' | 'published'
-    author: userId
-  }
+    status: 'draft', // Only allows 'draft' | 'published'
+    author: userId,
+  },
 })
 // post is typed as Post
 ```
@@ -2106,7 +2112,9 @@ export async function GET(req: Request) {
 
   const data = await payload.find({
     collection: 'posts',
-    where: { /* ... */ }
+    where: {
+      /* ... */
+    },
   })
 
   return Response.json(data)
@@ -2122,30 +2130,24 @@ export async function GET(req: Request) {
 export const myPlugin = (pluginOptions): Plugin => {
   return (incomingConfig: Config): Config => {
     // 1. Modify collections
-    incomingConfig.collections = incomingConfig.collections.map(collection => {
+    incomingConfig.collections = incomingConfig.collections.map((collection) => {
       // Add fields
       collection.fields.push({
         name: 'pluginField',
-        type: 'text'
+        type: 'text',
       })
 
       // Add hooks
       collection.hooks = {
         ...collection.hooks,
-        beforeChange: [
-          ...(collection.hooks?.beforeChange || []),
-          myPluginHook
-        ]
+        beforeChange: [...(collection.hooks?.beforeChange || []), myPluginHook],
       }
 
       return collection
     })
 
     // 2. Add globals
-    incomingConfig.globals = [
-      ...(incomingConfig.globals || []),
-      myPluginGlobal
-    ]
+    incomingConfig.globals = [...(incomingConfig.globals || []), myPluginGlobal]
 
     // 3. Add endpoints
     incomingConfig.endpoints = [
@@ -2153,8 +2155,8 @@ export const myPlugin = (pluginOptions): Plugin => {
       {
         path: '/my-plugin',
         method: 'get',
-        handler: myPluginHandler
-      }
+        handler: myPluginHandler,
+      },
     ]
 
     return incomingConfig
@@ -2164,13 +2166,16 @@ export const myPlugin = (pluginOptions): Plugin => {
 // Usage
 export default buildConfig({
   plugins: [
-    myPlugin({ /* options */ })
+    myPlugin({
+      /* options */
+    }),
   ],
   // ...
 })
 ```
 
 **Official Plugins:**
+
 - `@payloadcms/plugin-cloud-storage` - Cloud storage adapters
 - `@payloadcms/plugin-seo` - SEO fields
 - `@payloadcms/plugin-form-builder` - Form builder
@@ -2185,9 +2190,7 @@ export default buildConfig({
 **Email Adapter Interface:**
 
 ```typescript
-export type EmailAdapter = (args: {
-  payload: Payload
-}) => InitializedEmailAdapter
+export type EmailAdapter = (args: { payload: Payload }) => InitializedEmailAdapter
 
 export type InitializedEmailAdapter = {
   name: string
@@ -2214,7 +2217,7 @@ export default buildConfig({
   email: resendAdapter({
     apiKey: process.env.RESEND_API_KEY,
     defaultFromAddress: 'noreply@mysite.com',
-    defaultFromName: 'My Site'
+    defaultFromName: 'My Site',
   }),
   // ...
 })
@@ -2223,7 +2226,7 @@ export default buildConfig({
 await payload.sendEmail({
   to: 'user@example.com',
   subject: 'Welcome!',
-  html: '<p>Welcome to our site!</p>'
+  html: '<p>Welcome to our site!</p>',
 })
 ```
 
@@ -2367,6 +2370,7 @@ await payload.sendEmail({
 **Core Simplifications:**
 
 1. **Collections:**
+
    ```typescript
    // Current: 500+ lines of types
    // Simplified: ~50 lines
@@ -2378,18 +2382,16 @@ await payload.sendEmail({
    ```
 
 2. **Fields:**
+
    ```typescript
    // Current: 30+ field types, 200+ options per field
    // Simplified: 8 field types, 10 options each
-   type Field =
-     | TextField
-     | NumberField
-     | SelectField
-     | RelationField
-     // ... 4 more
+   type Field = TextField | NumberField | SelectField | RelationField
+   // ... 4 more
    ```
 
 3. **Operations:**
+
    ```typescript
    // Current: 20+ hook points, 15+ steps per operation
    // Simplified: 2 hook points, 5 steps per operation
@@ -2404,6 +2406,7 @@ await payload.sendEmail({
    ```
 
 4. **Database:**
+
    ```typescript
    // Current: 30+ methods
    // Simplified: 8 methods
@@ -2435,17 +2438,20 @@ await payload.sendEmail({
 ### 9.1 Strengths
 
 ✅ **Well-Architected:**
+
 - Clean separation of concerns
 - Adapter pattern for database
 - Hook system is flexible
 - TypeScript usage is strong
 
 ✅ **Extensible:**
+
 - Plugin system is powerful
 - Everything is hookable
 - Custom components everywhere
 
 ✅ **Type-Safe:**
+
 - End-to-end type safety
 - Generated types from config
 - Extensive generic usage
@@ -2453,22 +2459,26 @@ await payload.sendEmail({
 ### 9.2 Weaknesses
 
 ❌ **Over-Abstraction:**
+
 - Too many layers
 - Hook chains are complex
 - Hard to trace execution flow
 
 ❌ **Performance Concerns:**
+
 - Many database queries per operation
 - Hook execution overhead
 - Extensive object transformation
 
 ❌ **Complexity:**
+
 - 582 TypeScript files
 - ~150,000 lines of code
 - Steep learning curve
 - Hard to debug
 
 ❌ **Feature Creep:**
+
 - Tries to do everything
 - Many niche features
 - Bloated bundle size
@@ -2545,6 +2555,7 @@ tiny-cms/
 ```
 
 **Estimated Size:**
+
 - ~3,000 lines of code (98% reduction)
 - 10-15 files total
 - Single package
@@ -2638,6 +2649,7 @@ tiny-cms/
 ## 12. Next Steps
 
 For **Part 2**, we'll analyze:
+
 - Fields system in detail
 - Auth system (to understand what NOT to do)
 - Upload system
@@ -2646,6 +2658,7 @@ For **Part 2**, we'll analyze:
 - Actual database adapter implementations
 
 **Questions to Answer in Part 2:**
+
 1. How does the field system handle validation?
 2. How are relationships populated?
 3. How does the admin UI communicate with the API?
@@ -2659,6 +2672,7 @@ For **Part 2**, we'll analyze:
 Payload's core package is a **massive, feature-complete CMS framework** with approximately 150,000 lines of TypeScript code. While architecturally sound, it suffers from extreme feature bloat with 90% of functionality unnecessary for a simple CMS.
 
 **Key Numbers:**
+
 - **Total Files:** 582 TypeScript files
 - **Main Entry:** 1,742 lines
 - **Core Collections:** ~15,000 lines
@@ -2669,6 +2683,7 @@ Payload's core package is a **massive, feature-complete CMS framework** with app
 - **Versions/Drafts:** ~5,000 lines (we don't need)
 
 **For Tiny CMS:**
+
 - Keep: Collection concept, field types, database adapter pattern, basic CRUD, simple hooks
 - Remove: Auth, Admin UI, Versions, Localization, Jobs, GraphQL, Migrations, 25+ field types
 - Result: ~3,000 lines vs 150,000 lines (98% reduction)

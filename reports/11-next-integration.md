@@ -33,20 +33,20 @@ next/src/
 ```json
 {
   "dependencies": {
-    "@dnd-kit/core": "6.0.8",              // Drag & drop
-    "@payloadcms/graphql": "workspace:*",   // GraphQL schema generation
+    "@dnd-kit/core": "6.0.8", // Drag & drop
+    "@payloadcms/graphql": "workspace:*", // GraphQL schema generation
     "@payloadcms/translations": "workspace:*",
-    "@payloadcms/ui": "workspace:*",        // UI primitives
-    "busboy": "^1.6.0",                     // File upload parsing
-    "dequal": "2.0.3",                      // Deep equality checks
-    "file-type": "19.3.0",                  // File type detection
-    "graphql-http": "^1.22.0",              // GraphQL over HTTP
-    "graphql-playground-html": "1.6.30",    // GraphQL playground UI
-    "http-status": "2.1.0",                 // HTTP status codes
-    "path-to-regexp": "6.3.0",              // Path matching
-    "qs-esm": "7.0.2",                      // Query string parsing
-    "sass": "1.77.4",                       // Sass compilation
-    "uuid": "10.0.0"                        // UUID generation
+    "@payloadcms/ui": "workspace:*", // UI primitives
+    "busboy": "^1.6.0", // File upload parsing
+    "dequal": "2.0.3", // Deep equality checks
+    "file-type": "19.3.0", // File type detection
+    "graphql-http": "^1.22.0", // GraphQL over HTTP
+    "graphql-playground-html": "1.6.30", // GraphQL playground UI
+    "http-status": "2.1.0", // HTTP status codes
+    "path-to-regexp": "6.3.0", // Path matching
+    "qs-esm": "7.0.2", // Query string parsing
+    "sass": "1.77.4", // Sass compilation
+    "uuid": "10.0.0" // UUID generation
   },
   "peerDependencies": {
     "graphql": "^16.8.1",
@@ -83,7 +83,7 @@ import { getPayloadHMR } from '@payloadcms/next/utilities'
 import { RootPage, DocumentView, ListView } from '@payloadcms/next/views'
 
 // Client components
-import { /* various */ } from '@payloadcms/next/client'
+import {} from /* various */ '@payloadcms/next/client'
 
 // Server components and RSC utilities
 import { DocumentHeader, Logo, DefaultNav } from '@payloadcms/next/rsc'
@@ -133,15 +133,12 @@ import { handleEndpoints, type SanitizedConfig } from 'payload'
 
 const handlerBuilder =
   (config: Promise<SanitizedConfig> | SanitizedConfig) =>
-  async (
-    request: Request,
-    args: { params: Promise<{ slug?: string[] }> }
-  ): Promise<Response> => {
+  async (request: Request, args: { params: Promise<{ slug?: string[] }> }): Promise<Response> => {
     const awaitedConfig = await config
     const awaitedParams = await args.params
 
     // Special OG image endpoint injection
-    if (!awaitedConfig.endpoints.some(e => e.path === '/og')) {
+    if (!awaitedConfig.endpoints.some((e) => e.path === '/og')) {
       awaitedConfig.endpoints.push({
         handler: generateOGImage,
         method: 'get',
@@ -230,8 +227,8 @@ export const POST = (config: SanitizedConfig) => async (request: Request) => {
         return {
           ...response,
           errors: await Promise.all(
-            result.errors.map(error => handleError({ err: error, payload, req }))
-          )
+            result.errors.map((error) => handleError({ err: error, payload, req })),
+          ),
         }
       }
       return response
@@ -248,6 +245,7 @@ export const POST = (config: SanitizedConfig) => async (request: Request) => {
 ```
 
 **Key patterns**:
+
 - Schema is cached globally and reused across requests (except in dev)
 - Uses `graphql-http` for HTTP transport (not Apollo)
 - Errors are processed through `handleError()` which respects `config.debug`
@@ -257,11 +255,11 @@ export const POST = (config: SanitizedConfig) => async (request: Request) => {
 
 Payload uses a **server-first architecture**:
 
-| Component Type | Purpose | Examples |
-|---|---|---|
-| **Server Components** | Data fetching, access control, rendering | `RootPage`, `DocumentView`, `ListView`, `RootLayout` |
-| **Client Components** | User interactions, forms, state management | Form inputs, buttons, modals, drag-drop |
-| **Hybrid** | Server renders shell, client provides interactivity | `RenderServerComponent` wrapper pattern |
+| Component Type        | Purpose                                             | Examples                                             |
+| --------------------- | --------------------------------------------------- | ---------------------------------------------------- |
+| **Server Components** | Data fetching, access control, rendering            | `RootPage`, `DocumentView`, `ListView`, `RootLayout` |
+| **Client Components** | User interactions, forms, state management          | Form inputs, buttons, modals, drag-drop              |
+| **Hybrid**            | Server renders shell, client provides interactivity | `RenderServerComponent` wrapper pattern              |
 
 **RenderServerComponent Pattern**:
 
@@ -290,6 +288,7 @@ export const RenderServerComponent = ({
 ```
 
 This pattern allows:
+
 1. Custom server components to access full server props (db queries, auth, etc.)
 2. Default client components to work without server context
 3. Type-safe separation of client and server props
@@ -330,6 +329,7 @@ Payload **does not use Next.js middleware** for the admin panel. All authenticat
 3. **Access control**: Checked per operation (find, create, update, delete)
 
 **Why no middleware?**
+
 - Middleware runs on Edge Runtime (limited Node.js APIs)
 - Payload needs full Node.js for database adapters, file uploads, etc.
 - More flexible to check auth per-route rather than globally
@@ -351,6 +351,7 @@ export default async function AdminPage({ params, searchParams }) {
 ```
 
 **Why?**
+
 - Admin panel is authentication-gated
 - Data changes frequently
 - User-specific preferences and permissions
@@ -394,7 +395,7 @@ export const withPayload = (nextConfig = {}, options = {}) => {
     // Add Client Hints headers for theme detection
     headers: async () => {
       return [
-        ...await nextConfig.headers(),
+        ...(await nextConfig.headers()),
         {
           source: '/:path*',
           headers: [
@@ -416,9 +417,8 @@ export const withPayload = (nextConfig = {}, options = {}) => {
       'graphql',
       // In dev mode, don't bundle Payload for faster builds
       ...(process.env.NODE_ENV === 'development' && options.devBundleServerPackages === false
-        ? ['payload', '@payloadcms/db-*', '@payloadcms/graphql', /* etc */]
-        : []
-      ),
+        ? ['payload', '@payloadcms/db-*', '@payloadcms/graphql' /* etc */]
+        : []),
     ],
 
     // Webpack config adjustments
@@ -427,17 +427,10 @@ export const withPayload = (nextConfig = {}, options = {}) => {
         ...incomingWebpackConfig,
 
         // Externalize native modules
-        externals: [
-          ...(incomingWebpackConfig?.externals || []),
-          'drizzle-kit',
-          'sharp',
-          'libsql',
-        ],
+        externals: [...(incomingWebpackConfig?.externals || []), 'drizzle-kit', 'sharp', 'libsql'],
 
         // Ignore MongoDB warnings
-        ignoreWarnings: [
-          { module: /node_modules\/mongodb\/lib\/utils\.js/ },
-        ],
+        ignoreWarnings: [{ module: /node_modules\/mongodb\/lib\/utils\.js/ }],
 
         // Ignore pg-native and cloudflare:sockets
         plugins: [
@@ -450,9 +443,9 @@ export const withPayload = (nextConfig = {}, options = {}) => {
         resolve: {
           fallback: {
             '@aws-sdk/credential-providers': false,
-            'kerberos': false,
+            kerberos: false,
             'mongodb-client-encryption': false,
-            'snappy': false,
+            snappy: false,
           },
         },
       }
@@ -483,6 +476,7 @@ export default withPayload({
 ```
 
 **What it does**:
+
 1. **Headers**: Adds Client Hints for automatic theme detection
 2. **Externals**: Prevents bundling of heavy packages (MongoDB, PostgreSQL native bindings)
 3. **Webpack**: Ignores false positive warnings, handles native modules
@@ -498,9 +492,9 @@ import { getPayload } from 'payload'
 
 // In any server component or route handler
 const payload = await getPayload({
-  config,           // Your Payload config
-  cron: true,       // Enable cron jobs (optional)
-  importMap,        // For custom components (optional)
+  config, // Your Payload config
+  cron: true, // Enable cron jobs (optional)
+  importMap, // For custom components (optional)
 })
 
 // Use Payload API
@@ -532,6 +526,7 @@ export async function getPayload(options: InitOptions): Promise<Payload> {
 ```
 
 **HMR handling**:
+
 - In dev mode, Payload reinitializes on every request
 - Config file changes are picked up automatically
 - Database connections are reused (connection pooling)
@@ -547,7 +542,7 @@ File: `src/utilities/getPayloadHMR.ts`
  */
 export const getPayloadHMR = async (options) => {
   const result = await getPayload(options)
-  result.logger.warn("Deprecation warning: Use getPayload() directly")
+  result.logger.warn('Deprecation warning: Use getPayload() directly')
   return result
 }
 ```
@@ -572,7 +567,7 @@ This is **the most critical function** for understanding request flow:
 export const initReq = async ({
   configPromise,
   importMap,
-  key,              // Cache key (e.g., 'RootLayout', 'initPage')
+  key, // Cache key (e.g., 'RootLayout', 'initPage')
   overrides,
   canSetHeaders,
 }: {
@@ -697,6 +692,7 @@ export function selectiveCache<TValue>(namespace: string) {
 ```
 
 **Why this pattern?**
+
 - React's `cache()` only works with stable functions
 - `selectiveCache` creates a stable cache function per namespace
 - Allows controlling cache scope (global vs per-key)
@@ -811,6 +807,7 @@ export const RootLayout = async ({
 ```
 
 **Key responsibilities**:
+
 1. Set HTML attributes (lang, dir, theme)
 2. Initialize authenticated request
 3. Load user preferences
@@ -819,6 +816,7 @@ export const RootLayout = async ({
 6. Create portal mount point for modals
 
 **RootProvider** (from `@payloadcms/ui`):
+
 - React Context provider for global state
 - Makes `config`, `user`, `permissions`, `translations` available
 - Handles theme switching
@@ -1284,6 +1282,7 @@ export const renderDocument = async ({
 ```
 
 **Key features**:
+
 1. **Parallel data fetching**: Uses `Promise.all()` to fetch multiple resources simultaneously
 2. **Autosave**: Automatically creates draft for new documents
 3. **Live preview**: Sets up live preview if enabled
@@ -1467,6 +1466,7 @@ export const renderListView = async (args: RenderListViewArgs) => {
 ```
 
 **Key features**:
+
 1. **Preferences**: Saves user's column/sort/filter preferences
 2. **Select API**: Only fetches displayed columns for performance
 3. **Search merging**: Combines search query with where clause
@@ -1544,6 +1544,7 @@ query.columns (string[])
 ```
 
 **HMR behavior**:
+
 - Config changes: Payload reinitializes on next request
 - React components: Fast Refresh (no Payload reinitialization)
 - Database changes: No auto-reload (manual restart required)
@@ -1575,23 +1576,25 @@ query.columns (string[])
 
 **Caching differences**:
 
-| Aspect | Development | Production |
-|--------|-------------|------------|
-| Payload instance | Reinitialized every request | Cached globally |
-| GraphQL schema | Regenerated every request | Cached globally |
-| Config file | Re-imported (HMR) | Bundled at build time |
-| Database connection | Pooled (reused) | Pooled (reused) |
-| React components | Fast Refresh | Static bundle |
+| Aspect              | Development                 | Production            |
+| ------------------- | --------------------------- | --------------------- |
+| Payload instance    | Reinitialized every request | Cached globally       |
+| GraphQL schema      | Regenerated every request   | Cached globally       |
+| Config file         | Re-imported (HMR)           | Bundled at build time |
+| Database connection | Pooled (reused)             | Pooled (reused)       |
+| React components    | Fast Refresh                | Static bundle         |
 
 ### 4.3 Cold Start Performance
 
 **Production cold start**:
+
 1. Load config: ~50ms
 2. Database connection: ~100-500ms (depends on DB)
 3. Initialize collections: ~50ms
 4. Total: ~200-600ms
 
 **Optimization strategies**:
+
 - Keep Payload instance alive between requests (done automatically)
 - Use connection pooling for database
 - Preload GraphQL schema on startup
@@ -1632,6 +1635,7 @@ Request ends (cache cleared)
 ```
 
 **Why separate caches?**
+
 - Auth and i18n are expensive but identical across layout and page
 - Permissions depend on URL and may differ between layout and page
 - Layout and page render in parallel (React 18 feature)
@@ -1805,7 +1809,7 @@ export async function executeAuthStrategies({
         responseHeaders.set('Set-Cookie', cookie)
       }
 
-      break  // First successful strategy wins
+      break // First successful strategy wins
     }
   }
 
@@ -1814,6 +1818,7 @@ export async function executeAuthStrategies({
 ```
 
 **Default auth strategies**:
+
 1. **JWT strategy**: Reads token from `Authorization: Bearer <token>` header
 2. **Cookie strategy**: Reads token from `payload-token` cookie
 3. **API key strategy**: Reads from `Authorization: <collection> API-Key <key>` header
@@ -1835,17 +1840,19 @@ export const myHook: CollectionBeforeChangeHook = async ({ req, context }) => {
 // Later in another hook
 export const anotherHook: CollectionAfterChangeHook = async ({ req, context }) => {
   // Access data from context
-  console.log(req.context.myCustomData)  // 'some value'
+  console.log(req.context.myCustomData) // 'some value'
 }
 ```
 
 **Context use cases**:
+
 - Pass IP address through to audit logs
 - Store temporary computation results
 - Flag special operations (e.g., seed data)
 - Pass transaction objects (for database transactions)
 
 **Context is NOT**:
+
 - Persisted to database
 - Sent to client
 - Available across requests
@@ -1882,12 +1889,14 @@ function handleError(err: Error, config: SanitizedConfig): Response {
 
   // Format error response
   const body = {
-    errors: [{
-      message,
-      name: err.name,
-      data: err.data,
-      stack: config.debug ? err.stack : undefined,
-    }]
+    errors: [
+      {
+        message,
+        name: err.name,
+        data: err.data,
+        stack: config.debug ? err.stack : undefined,
+      },
+    ],
   }
 
   return Response.json(body, { status })
@@ -1944,8 +1953,8 @@ config.hooks.afterError = async ({ error, context, req }) => {
     return {
       response: {
         status: 500,
-        body: { errors: [{ message: 'Internal server error. Please try again.' }] }
-      }
+        body: { errors: [{ message: 'Internal server error. Please try again.' }] },
+      },
     }
   }
 }
@@ -2006,13 +2015,10 @@ config.hooks.afterError = async ({ error, context, req }) => {
 
 ```typescript
 // In withPayload config
-config.cors = [
-  'https://example.com',
-  'https://*.example.com',
-]
+config.cors = ['https://example.com', 'https://*.example.com']
 
 // Response headers
-function headersWithCors({ headers, req }: { headers: Headers, req: PayloadRequest }) {
+function headersWithCors({ headers, req }: { headers: Headers; req: PayloadRequest }) {
   const origin = req.headers.get('origin')
 
   if (shouldAllowCors(origin, req.payload.config.cors)) {
@@ -2050,6 +2056,7 @@ export default async function AdminPage({ params, searchParams }) {
 ```
 
 **Benefits**:
+
 - Single entry point for admin
 - Easy to add new routes without file system changes
 - Consistent routing logic
@@ -2087,6 +2094,7 @@ function DocumentForm({ initialData, permissions }) {
 ```
 
 **Benefits**:
+
 - Faster initial page loads (no JS needed for static content)
 - Better SEO (if you expose admin to search engines)
 - Simpler data fetching (no client-side cache needed)
@@ -2097,13 +2105,7 @@ function DocumentForm({ initialData, permissions }) {
 **Adopt**: Single `initReq()` function that handles auth, i18n, permissions
 
 ```typescript
-export async function initReq({
-  config,
-  key,
-}: {
-  config: Config
-  key: string
-}) {
+export async function initReq({ config, key }: { config: Config; key: string }) {
   const headers = await headers()
   const cookies = parseCookies(headers)
 
@@ -2127,6 +2129,7 @@ export async function initReq({
 ```
 
 **Benefits**:
+
 - Consistent auth across all pages
 - Easy to add new initialization logic
 - Cached per request (via React's `cache()`)
@@ -2138,20 +2141,19 @@ export async function initReq({
 
 ```typescript
 // api/[...slug]/route.ts
-const handlerBuilder = (config: Config) => async (
-  request: Request,
-  { params }: { params: { slug: string[] } }
-) => {
-  const path = params.slug.join('/')
+const handlerBuilder =
+  (config: Config) =>
+  async (request: Request, { params }: { params: { slug: string[] } }) => {
+    const path = params.slug.join('/')
 
-  // Route to appropriate handler
-  return await routeRequest({
-    config,
-    method: request.method,
-    path,
-    request,
-  })
-}
+    // Route to appropriate handler
+    return await routeRequest({
+      config,
+      method: request.method,
+      path,
+      request,
+    })
+  }
 
 export const GET = handlerBuilder(config)
 export const POST = handlerBuilder(config)
@@ -2161,6 +2163,7 @@ export const DELETE = handlerBuilder(config)
 ```
 
 **Benefits**:
+
 - DRY (don't repeat yourself)
 - Easy to add middleware (auth, logging, etc.)
 - Consistent error handling
@@ -2189,6 +2192,7 @@ async function DocumentView({ docId }) {
 ```
 
 **Benefits**:
+
 - Faster page loads (requests happen concurrently)
 - Simpler than waterfall fetching
 - Works with React Server Components
@@ -2216,6 +2220,7 @@ export async function getAuthenticatedUser(token: string) {
 ```
 
 **Benefits**:
+
 - Prevents duplicate auth checks in same request
 - More control than automatic fetch deduplication
 - Works with any async function (not just fetch)
@@ -2269,6 +2274,7 @@ export function parseRoute(segments: string[]) {
 ```
 
 **Why simpler?**
+
 - Tiny-CMS doesn't need:
   - Global singletons
   - Trash bin
@@ -2316,6 +2322,7 @@ export default async function CollectionListPage({ params }) {
 ```
 
 **Why simpler?**
+
 - No slot system needed (React composition is enough)
 - No minimal/default templates (one layout fits all)
 - Easier to customize (just edit layout component)
@@ -2327,10 +2334,18 @@ export default async function CollectionListPage({ params }) {
 ```typescript
 export const withPayload = (nextConfig) => ({
   ...nextConfig,
-  headers: async () => { /* 20 lines */ },
-  serverExternalPackages: [ /* 20+ packages */ ],
-  webpack: (config) => { /* 50 lines */ },
-  outputFileTracingExcludes: { /* ... */ },
+  headers: async () => {
+    /* 20 lines */
+  },
+  serverExternalPackages: [
+    /* 20+ packages */
+  ],
+  webpack: (config) => {
+    /* 50 lines */
+  },
+  outputFileTracingExcludes: {
+    /* ... */
+  },
   // etc...
 })
 ```
@@ -2359,6 +2374,7 @@ export function withTinyCMS(nextConfig) {
 ```
 
 **Why simpler?**
+
 - SQLite has a single native dependency (better-sqlite3)
 - No need to support multiple database adapters
 - No MongoDB, PostgreSQL, Drizzle Kit complications
@@ -2376,7 +2392,7 @@ export async function authenticate(token: string) {
   try {
     const payload = jwt.verify(token, SECRET)
     const user = await db.query.users.findFirst({
-      where: eq(users.id, payload.userId)
+      where: eq(users.id, payload.userId),
     })
     return user
   } catch {
@@ -2389,10 +2405,10 @@ export async function POST(request: Request) {
   const { email, password } = await request.json()
 
   const user = await db.query.users.findFirst({
-    where: eq(users.email, email)
+    where: eq(users.email, email),
   })
 
-  if (!user || !await bcrypt.compare(password, user.password)) {
+  if (!user || !(await bcrypt.compare(password, user.password))) {
     return Response.json({ error: 'Invalid credentials' }, { status: 401 })
   }
 
@@ -2403,6 +2419,7 @@ export async function POST(request: Request) {
 ```
 
 **Why simpler?**
+
 - No need for multiple auth strategies
 - No API keys (JWT is enough for most cases)
 - No OAuth (can add later if needed)
@@ -2430,10 +2447,7 @@ export async function handleRequest(fn: () => Promise<Response>) {
       return Response.json({ error: 'Not found' }, { status: 404 })
     }
 
-    return Response.json(
-      { error: 'Something went wrong' },
-      { status: 500 }
-    )
+    return Response.json({ error: 'Something went wrong' }, { status: 500 })
   }
 }
 
@@ -2445,6 +2459,7 @@ export const POST = (request: Request) =>
 ```
 
 **Why simpler?**
+
 - No complex error hierarchy
 - No afterError hooks (console.error is enough for now)
 - No debug mode (use NODE_ENV instead)
@@ -2472,7 +2487,7 @@ type PayloadRequest<TUser = any> = {
 // Use generics for type safety
 async function findById<TCollection extends Collection>(
   collection: TCollection,
-  id: string
+  id: string,
 ): Promise<InferDocType<TCollection>> {
   // Implementation
 }
@@ -2577,6 +2592,7 @@ export function PreferencesForm() {
 ```
 
 **Benefits**:
+
 - No API route needed
 - Automatic CSRF protection
 - Progressive enhancement (works without JS)
@@ -2688,7 +2704,7 @@ import { cache } from 'react'
 
 export const getUser = cache(async (userId: string) => {
   return await db.query.users.findFirst({
-    where: eq(users.id, userId)
+    where: eq(users.id, userId),
   })
 })
 ```
@@ -2699,26 +2715,26 @@ export const getUser = cache(async (userId: string) => {
 
 ### 7.1 Feature Mapping
 
-| Payload Feature | Tiny-CMS Need | Implementation Strategy |
-|----------------|---------------|------------------------|
-| **Catch-all routing** | ✅ Need | Adopt exactly as-is |
-| **Server components** | ✅ Need | Adopt exactly as-is |
-| **Request initialization** | ✅ Need | Simplify (no HMR complexity) |
-| **Route handlers** | ✅ Need | Simplify (single builder pattern) |
-| **GraphQL** | ❌ Don't need | Skip entirely |
-| **Multiple DB adapters** | ❌ Don't need | SQLite only |
-| **Plugin system** | ❌ Don't need | Direct code instead |
-| **Custom components** | ⚠️ Maybe later | Start without, add if needed |
-| **i18n** | ⚠️ Maybe later | English only initially |
-| **Access control** | ✅ Need | Simplified (collection-level only) |
-| **Hooks** | ✅ Need | Simplified (fewer hook points) |
-| **File uploads** | ✅ Need | Simplified (local only initially) |
-| **Rich text** | ⚠️ Maybe later | Simple textarea initially |
-| **Relationships** | ✅ Need | Adopt pattern |
-| **Versions** | ❌ Don't need | Skip entirely |
-| **Drafts** | ⚠️ Maybe later | Skip initially |
-| **Localization** | ❌ Don't need | Skip entirely |
-| **Live preview** | ❌ Don't need | Skip entirely |
+| Payload Feature            | Tiny-CMS Need  | Implementation Strategy            |
+| -------------------------- | -------------- | ---------------------------------- |
+| **Catch-all routing**      | ✅ Need        | Adopt exactly as-is                |
+| **Server components**      | ✅ Need        | Adopt exactly as-is                |
+| **Request initialization** | ✅ Need        | Simplify (no HMR complexity)       |
+| **Route handlers**         | ✅ Need        | Simplify (single builder pattern)  |
+| **GraphQL**                | ❌ Don't need  | Skip entirely                      |
+| **Multiple DB adapters**   | ❌ Don't need  | SQLite only                        |
+| **Plugin system**          | ❌ Don't need  | Direct code instead                |
+| **Custom components**      | ⚠️ Maybe later | Start without, add if needed       |
+| **i18n**                   | ⚠️ Maybe later | English only initially             |
+| **Access control**         | ✅ Need        | Simplified (collection-level only) |
+| **Hooks**                  | ✅ Need        | Simplified (fewer hook points)     |
+| **File uploads**           | ✅ Need        | Simplified (local only initially)  |
+| **Rich text**              | ⚠️ Maybe later | Simple textarea initially          |
+| **Relationships**          | ✅ Need        | Adopt pattern                      |
+| **Versions**               | ❌ Don't need  | Skip entirely                      |
+| **Drafts**                 | ⚠️ Maybe later | Skip initially                     |
+| **Localization**           | ❌ Don't need  | Skip entirely                      |
+| **Live preview**           | ❌ Don't need  | Skip entirely                      |
 
 ### 7.2 Tiny-CMS Specific Requirements
 
@@ -2775,6 +2791,7 @@ const cms = createCMS({
 #### 7.2.3 Local File Uploads Only
 
 **No need for**:
+
 - S3 adapter
 - GCS adapter
 - Azure adapter
@@ -2797,6 +2814,7 @@ export async function uploadFile(file: File) {
 #### 7.2.4 No Plugin System
 
 **Instead of plugins**:
+
 - Provide composable functions
 - Encourage direct code modification
 - Supply code recipes in docs
@@ -2826,6 +2844,7 @@ const results = await searchDocuments('query', { collections: ['posts'] })
 **Tiny-CMS**: Single-tenant by design
 
 **Implications**:
+
 - No need to filter queries by `organizationId`
 - No need to isolate file uploads per tenant
 - Simpler database schema
@@ -2837,6 +2856,7 @@ const results = await searchDocuments('query', { collections: ['posts'] })
 **Tiny-CMS**: Admin panel only (build your own public API)
 
 **Rationale**:
+
 - Most apps need custom API logic anyway
 - Easier to secure (no public endpoints to protect)
 - Smaller surface area for bugs
@@ -2848,11 +2868,21 @@ const results = await searchDocuments('query', { collections: ['posts'] })
 // Provide this
 export function createCollectionAPI(collection: Collection) {
   return {
-    async find(where, options) { /* ... */ },
-    async findById(id) { /* ... */ },
-    async create(data) { /* ... */ },
-    async update(id, data) { /* ... */ },
-    async delete(id) { /* ... */ },
+    async find(where, options) {
+      /* ... */
+    },
+    async findById(id) {
+      /* ... */
+    },
+    async create(data) {
+      /* ... */
+    },
+    async update(id, data) {
+      /* ... */
+    },
+    async delete(id) {
+      /* ... */
+    },
   }
 }
 
@@ -2922,6 +2952,7 @@ export default function AdminLayout({ children }) {
 Based on this analysis, here's a suggested implementation order:
 
 ### Phase 1: Foundation (Weeks 1-2)
+
 1. ✅ Set up monorepo structure
 2. ✅ Implement `withTinyCMS()` Next.js wrapper
 3. ✅ Create `getDatabase()` singleton for SQLite
@@ -2929,6 +2960,7 @@ Based on this analysis, here's a suggested implementation order:
 5. ✅ Implement JWT auth (login, logout, refresh)
 
 ### Phase 2: Admin Routing (Weeks 3-4)
+
 1. ✅ Create `[...slug]` catch-all route
 2. ✅ Build `parseRoute()` for route parsing
 3. ✅ Implement `RootLayout` with providers
@@ -2936,6 +2968,7 @@ Based on this analysis, here's a suggested implementation order:
 5. ✅ Add dashboard view
 
 ### Phase 3: Collection Views (Weeks 5-7)
+
 1. ✅ Build collection list view with pagination
 2. ✅ Implement document create view
 3. ✅ Build document edit view with form state
@@ -2943,6 +2976,7 @@ Based on this analysis, here's a suggested implementation order:
 5. ✅ Implement form validation
 
 ### Phase 4: REST API (Weeks 8-9)
+
 1. ✅ Create route handler builder
 2. ✅ Implement REST endpoints (find, findById, create, update, delete)
 3. ✅ Add access control checks
@@ -2950,6 +2984,7 @@ Based on this analysis, here's a suggested implementation order:
 5. ✅ Add request logging
 
 ### Phase 5: Advanced Features (Weeks 10-12)
+
 1. ⏳ File uploads (local only)
 2. ⏳ Relationships (populate)
 3. ⏳ User preferences
@@ -2957,6 +2992,7 @@ Based on this analysis, here's a suggested implementation order:
 5. ⏳ Bulk operations
 
 ### Phase 6: Polish (Weeks 13-14)
+
 1. ⏳ Add loading states
 2. ⏳ Improve error messages
 3. ⏳ Optimize performance
@@ -2981,10 +3017,7 @@ export default withTinyCMS({
 export function withTinyCMS(nextConfig = {}) {
   return {
     ...nextConfig,
-    serverExternalPackages: [
-      ...(nextConfig.serverExternalPackages || []),
-      'better-sqlite3',
-    ],
+    serverExternalPackages: [...(nextConfig.serverExternalPackages || []), 'better-sqlite3'],
   }
 }
 ```
@@ -3038,10 +3071,7 @@ export const DELETE = handler
 
 // Implementation
 export function createRouteHandler(cms: CMS) {
-  return async (
-    request: Request,
-    { params }: { params: { slug: string[] } }
-  ) => {
+  return async (request: Request, { params }: { params: { slug: string[] } }) => {
     const path = params.slug.join('/')
 
     try {
@@ -3085,17 +3115,11 @@ export async function GET(request: Request) {
 }
 
 // app/api/posts/[id]/route.ts
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: Request, { params }: { params: { id: string } }) {
   const db = await getDatabase()
 
   const post = await db.query.posts.findFirst({
-    where: and(
-      eq(posts.id, params.id),
-      eq(posts.status, 'published')
-    ),
+    where: and(eq(posts.id, params.id), eq(posts.status, 'published')),
   })
 
   if (!post) {
@@ -3113,6 +3137,7 @@ export async function GET(
 The `@payloadcms/next` package provides a **comprehensive blueprint** for building a Next.js-only CMS. Key takeaways for tiny-cms:
 
 **Adopt wholesale**:
+
 1. Catch-all route pattern for admin panel
 2. Server-first architecture with strategic client components
 3. Request initialization pattern with caching
@@ -3120,6 +3145,7 @@ The `@payloadcms/next` package provides a **comprehensive blueprint** for buildi
 5. Parallel data fetching with Promise.all()
 
 **Simplify aggressively**:
+
 1. Route parsing (fewer edge cases)
 2. Templates (single layout instead of two)
 3. Config wrapper (minimal webpack config)
@@ -3127,6 +3153,7 @@ The `@payloadcms/next` package provides a **comprehensive blueprint** for buildi
 5. Error handling (simpler error classes)
 
 **Skip entirely**:
+
 1. GraphQL support
 2. Multiple database adapters
 3. Plugin system
@@ -3135,6 +3162,7 @@ The `@payloadcms/next` package provides a **comprehensive blueprint** for buildi
 6. Live preview
 
 **Key architectural principles**:
+
 1. **Convention over configuration**: Sensible defaults, minimal config
 2. **Direct over abstracted**: Use libraries directly, avoid unnecessary abstractions
 3. **Explicit over magic**: Clear data flow, no hidden behavior
@@ -3144,6 +3172,7 @@ The `@payloadcms/next` package provides a **comprehensive blueprint** for buildi
 The analysis shows that a **production-ready CMS can be built in ~2,000-3,000 lines** of TypeScript (compared to Payload's ~16,000+ lines in just the Next.js package), by ruthlessly cutting features not needed for the initial version and adopting simpler patterns.
 
 Next steps:
+
 1. Implement Phase 1 (Foundation) with simplified patterns
 2. Build Phase 2 (Admin Routing) following catch-all route pattern
 3. Create Phase 3 (Collection Views) with server components
