@@ -115,19 +115,17 @@ storage-s3/
 ### Core Types (from plugin-cloud-storage/src/types.ts)
 
 ```typescript
-// File representation
+// plugin-cloud-storage/src/types.ts
 interface File {
   buffer: Buffer
-  clientUploadContext?: unknown
   filename: string
   filesize: number
   mimeType: string
-  tempFilePath?: string
+  // ...
 }
 
 // Handler signatures
 type HandleUpload = (args: {
-  clientUploadContext: unknown
   collection: CollectionConfig
   data: any
   file: File
@@ -136,37 +134,27 @@ type HandleUpload = (args: {
 
 type HandleDelete = (args: {
   collection: CollectionConfig
-  doc: FileData & TypeWithID & TypeWithPrefix
+  doc: /** ... */
   filename: string
   req: PayloadRequest
 }) => Promise<void> | void
 
 type GenerateURL = (args: {
-  collection: CollectionConfig
-  data: any
   filename: string
   prefix?: string
+  // ...
 }) => Promise<string> | string
 
-type StaticHandler = (
-  req: PayloadRequest,
-  args: {
-    doc?: TypeWithID
-    headers?: Headers
-    params: { clientUploadContext?: unknown; collection: string; filename: string }
-  },
-) => Promise<Response> | Response
+type StaticHandler = (req: PayloadRequest, args: { /** ... */ }) => Promise<Response> | Response
 
 // Generated adapter
 interface GeneratedAdapter {
   name: string
-  clientUploads?: ClientUploadsConfig
-  fields?: Field[] // Additional fields to inject
-  generateURL?: GenerateURL // Generate public URL
-  handleDelete: HandleDelete // Delete file handler
-  handleUpload: HandleUpload // Upload file handler
-  onInit?: () => void // Initialization hook
-  staticHandler: StaticHandler // Serve files handler
+  handleUpload: HandleUpload
+  handleDelete: HandleDelete
+  staticHandler: StaticHandler
+  generateURL?: GenerateURL
+  // ...
 }
 
 // Adapter factory
@@ -189,15 +177,13 @@ type Adapter = (args: { collection: CollectionConfig; prefix?: string }) => Gene
 **Key Configuration Options**:
 
 ```typescript
+// storage-s3/src/index.ts:95-171
 interface S3StorageOptions {
-  acl?: 'private' | 'public-read'        // Access control
-  bucket: string                          // S3 bucket name
-  clientUploads?: ClientUploadsConfig     // Direct client uploads
-  collections: Record<...>                 // Collection mappings
-  config: AWS.S3ClientConfig              // AWS SDK config
-  disableLocalStorage?: boolean           // Disable local storage
-  enabled?: boolean                       // Enable/disable plugin
-  signedDownloads?: SignedDownloadsConfig // Pre-signed URLs
+  acl?: 'private' | 'public-read'
+  bucket: string
+  collections: Record<string, /** ... */>
+  config: AWS.S3ClientConfig
+  // ... more options
 }
 ```
 
@@ -208,36 +194,30 @@ interface S3StorageOptions {
 - **Small files (< 50MB)**: Single `putObject` call
 - **Large files (>= 50MB)**: Multipart upload using `@aws-sdk/lib-storage`
 
-**Implementation Details** (Lines 19-61):
+**Implementation Details**:
 
 ```typescript
+// storage-s3/src/handleUpload.ts:19-61
 const multipartThreshold = 1024 * 1024 * 50 // 50MB
 
 export const getHandleUpload = ({ acl, bucket, getStorageClient, prefix }): HandleUpload => {
   return async ({ data, file }) => {
     const fileKey = path.posix.join(data.prefix || prefix, file.filename)
 
-    // Use file buffer or temp file stream
     const fileBufferOrStream = file.tempFilePath
       ? fs.createReadStream(file.tempFilePath)
       : file.buffer
 
     if (file.buffer.length < multipartThreshold) {
       // Simple upload for small files
-      await getStorageClient().putObject({
-        ACL: acl,
-        Body: fileBufferOrStream,
-        Bucket: bucket,
-        ContentType: file.mimeType,
-        Key: fileKey,
-      })
+      await getStorageClient().putObject({ /** ... */ })
     } else {
       // Multipart upload for large files
       const parallelUploadS3 = new Upload({
         client: getStorageClient(),
-        params: { ACL: acl, Body: fileBufferOrStream, Bucket: bucket, ... },
-        partSize: multipartThreshold,  // 50MB parts
-        queueSize: 4,                  // 4 parallel uploads
+        params: { /** ... */ },
+        partSize: multipartThreshold,
+        queueSize: 4,
       })
       await parallelUploadS3.done()
     }
@@ -254,9 +234,10 @@ export const getHandleUpload = ({ acl, bucket, getStorageClient, prefix }): Hand
 
 ### 3. Delete Handler (src/handleDelete.ts)
 
-**Lines 11-18**: Simple deletion
+**Simple deletion**:
 
 ```typescript
+// storage-s3/src/handleDelete.ts:11-18
 export const getHandleDelete = ({ bucket, getStorageClient }): HandleDelete => {
   return async ({ doc: { prefix = '' }, filename }) => {
     await getStorageClient().deleteObject({
@@ -271,18 +252,19 @@ export const getHandleDelete = ({ bucket, getStorageClient }): HandleDelete => {
 
 **Purpose**: Serves files with access control and optimization
 
-**Key Features** (Lines 58-177):
+**Key Features**:
 
 - Pre-signed URL generation for private files
 - Stream-based file serving
 - ETag support for caching (304 responses)
 - Range request handling
-- Custom header modification via `collection.upload.modifyResponseHeaders`
+- Custom header modification
 - Proper error handling and stream cleanup
 
 **Implementation Highlights**:
 
 ```typescript
+// storage-s3/src/staticHandler.ts:58-177
 export const getHandler = ({
   bucket,
   collection,
@@ -294,13 +276,13 @@ export const getHandler = ({
 
     // Generate pre-signed URL if enabled
     if (signedDownloads && !clientUploadContext) {
-      const command = new GetObjectCommand({ Bucket: bucket, Key: key })
+      const command = new GetObjectCommand({ /** ... */ })
       const signedUrl = await getSignedUrl(getStorageClient(), command, { expiresIn: 7200 })
       return Response.redirect(signedUrl, 302)
     }
 
     // Stream file from S3
-    const object = await getStorageClient().getObject({ Bucket: bucket, Key: key }, { abortSignal })
+    const object = await getStorageClient().getObject({ /** ... */ }, { abortSignal })
 
     // Handle ETag caching
     if (etagFromHeaders === objectEtag) {
@@ -315,9 +297,10 @@ export const getHandler = ({
 
 ### 5. URL Generation (src/generateURL.ts)
 
-**Lines 11-16**: Simple URL construction
+**Simple URL construction**:
 
 ```typescript
+// storage-s3/src/generateURL.ts:11-16
 export const getGenerateURL =
   ({ bucket, config: { endpoint } }): GenerateURL =>
   ({ filename, prefix = '' }) => {
@@ -330,9 +313,8 @@ export const getGenerateURL =
 
 **Purpose**: Generates pre-signed URLs for client-side uploads
 
-**Lines 21-63**:
-
 ```typescript
+// storage-s3/src/generateSignedURL.ts:21-63
 export const getGenerateSignedURLHandler = ({
   access,
   acl,
@@ -353,7 +335,7 @@ export const getGenerateSignedURLHandler = ({
     // Generate pre-signed PUT URL (10 min expiry)
     const url = await getSignedUrl(
       getStorageClient(),
-      new AWS.PutObjectCommand({ ACL: acl, Bucket: bucket, ContentType: mimeType, Key: fileKey }),
+      new AWS.PutObjectCommand({ /** ... */ }),
       { expiresIn: 600 },
     )
 
@@ -364,14 +346,15 @@ export const getGenerateSignedURLHandler = ({
 
 ### 7. Client Upload Handler (src/client/S3ClientUploadHandler.ts)
 
-**Lines 4-28**: Client-side upload implementation
+**Client-side upload implementation**:
 
 ```typescript
+// storage-s3/src/client/S3ClientUploadHandler.ts:4-28
 export const S3ClientUploadHandler = createClientUploadHandler({
   handler: async ({ apiRoute, collectionSlug, file, prefix, serverHandlerPath, serverURL }) => {
     // 1. Request pre-signed URL from server
     const response = await fetch(`${serverURL}${apiRoute}${serverHandlerPath}`, {
-      body: JSON.stringify({ collectionSlug, filename: file.name, mimeType: file.type }),
+      body: JSON.stringify({ /** ... */ }),
       credentials: 'include',
       method: 'POST',
     })
@@ -381,7 +364,7 @@ export const S3ClientUploadHandler = createClientUploadHandler({
     // 2. Upload directly to S3
     await fetch(url, {
       body: file,
-      headers: { 'Content-Length': file.size.toString(), 'Content-Type': file.type },
+      headers: { /** ... */ },
       method: 'PUT',
     })
 
@@ -414,7 +397,7 @@ export const S3ClientUploadHandler = createClientUploadHandler({
 
 ### 2. Upload Flow (plugin-cloud-storage/src/hooks/beforeChange.ts)
 
-**Lines 13-66**: When a file is uploaded:
+**When a file is uploaded**:
 
 1. Extract incoming files using `getIncomingFiles()`
 2. If updating existing doc, delete old files first
@@ -422,6 +405,7 @@ export const S3ClientUploadHandler = createClientUploadHandler({
 4. Upload all image size variants (if any)
 
 ```typescript
+// plugin-cloud-storage/src/hooks/beforeChange.ts:13-66
 export const getBeforeChangeHook = ({ adapter, collection }): CollectionBeforeChangeHook => {
   return async ({ data, originalDoc, req }) => {
     const files = getIncomingFiles({ data, req })
@@ -435,7 +419,7 @@ export const getBeforeChangeHook = ({ adapter, collection }): CollectionBeforeCh
         ]
         await Promise.all(
           filesToDelete.map((filename) =>
-            adapter.handleDelete({ collection, doc: originalDoc, filename, req }),
+            adapter.handleDelete({ /** ... */ }),
           ),
         )
       }
@@ -443,13 +427,7 @@ export const getBeforeChangeHook = ({ adapter, collection }): CollectionBeforeCh
       // Upload new files (main + resized variants)
       await Promise.all(
         files.map((file) =>
-          adapter.handleUpload({
-            clientUploadContext: file.clientUploadContext,
-            collection,
-            data,
-            file,
-            req,
-          }),
+          adapter.handleUpload({ /** ... */ }),
         ),
       )
     }
@@ -461,12 +439,13 @@ export const getBeforeChangeHook = ({ adapter, collection }): CollectionBeforeCh
 
 ### 3. Delete Flow (plugin-cloud-storage/src/hooks/afterDelete.ts)
 
-**Lines 14-38**: When a document is deleted:
+**When a document is deleted**:
 
 1. Collect all filenames (main + sizes)
 2. Delete each file using `adapter.handleDelete()`
 
 ```typescript
+// plugin-cloud-storage/src/hooks/afterDelete.ts:14-38
 export const getAfterDeleteHook = ({ adapter, collection }): CollectionAfterDeleteHook => {
   return async ({ doc, req }) => {
     const filesToDelete = [
@@ -475,7 +454,7 @@ export const getAfterDeleteHook = ({ adapter, collection }): CollectionAfterDele
     ]
 
     await Promise.all(
-      filesToDelete.map((filename) => adapter.handleDelete({ collection, doc, filename, req })),
+      filesToDelete.map((filename) => adapter.handleDelete({ /** ... */ })),
     )
 
     return doc
@@ -485,13 +464,14 @@ export const getAfterDeleteHook = ({ adapter, collection }): CollectionAfterDele
 
 ### 4. URL Generation Flow (plugin-cloud-storage/src/hooks/afterRead.ts)
 
-**Lines 13-39**: When a document is read:
+**When a document is read**:
 
 1. If `disablePayloadAccessControl` is true, generate direct URL
 2. If `generateFileURL` is provided, use custom URL generation
 3. Otherwise, URLs point to Payload's static handler
 
 ```typescript
+// plugin-cloud-storage/src/hooks/afterRead.ts:13-39
 export const getAfterReadHook = ({
   adapter,
   collection,
@@ -505,11 +485,11 @@ export const getAfterReadHook = ({
     let url = value
 
     if (disablePayloadAccessControl && filename) {
-      url = await adapter.generateURL?.({ collection, data, filename, prefix })
+      url = await adapter.generateURL?.({ /** ... */ })
     }
 
     if (generateFileURL) {
-      url = await generateFileURL({ collection, filename, prefix, size })
+      url = await generateFileURL({ /** ... */ })
     }
 
     return url
@@ -604,28 +584,24 @@ export const getAfterReadHook = ({
 2. **MediaWithPrefix**: S3 storage with prefix support
 3. **MediaWithSignedDownloads**: S3 storage with pre-signed download URLs
 
-### Configuration Example (Lines 40-64)
+### Configuration Example
 
 ```typescript
+// test/storage-s3/config.ts:40-64
 s3Storage({
   collections: {
     media: true,
     'media-with-prefix': { prefix: 'custom-prefix' },
     'media-with-signed-downloads': {
-      signedDownloads: {
-        shouldUseSignedURL: (args) => args.req.headers.get('X-Disable-Signed-URL') !== 'true',
-      },
+      signedDownloads: { /** ... */ },
     },
   },
   bucket: process.env.S3_BUCKET,
   config: {
-    credentials: {
-      accessKeyId: process.env.S3_ACCESS_KEY_ID,
-      secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
-    },
+    credentials: { /** ... */ },
     endpoint: process.env.S3_ENDPOINT,
-    forcePathStyle: process.env.S3_FORCE_PATH_STYLE === 'true',
     region: process.env.S3_REGION,
+    // ...
   },
 })
 ```
@@ -675,24 +651,12 @@ We can simplify significantly:
 
 ### 5. Required Implementation
 
-**Minimal Supabase adapter**:
+**Minimal Supabase adapter** (example):
 
 ```typescript
 import { createClient } from '@supabase/storage-js'
 
-interface SupabaseStorageOptions {
-  bucket: string
-  supabaseUrl: string
-  supabaseKey: string
-  collections: Record<string, { prefix?: string } | true>
-}
-
-function supabaseStorage({
-  bucket,
-  supabaseUrl,
-  supabaseKey,
-  collections,
-}: SupabaseStorageOptions): Adapter {
+function supabaseStorage({ bucket, supabaseUrl, supabaseKey, collections }): Adapter {
   const storage = createClient(supabaseUrl, supabaseKey)
 
   return ({ collection, prefix = '' }): GeneratedAdapter => ({
@@ -700,10 +664,7 @@ function supabaseStorage({
 
     handleUpload: async ({ data, file }) => {
       const path = `${data.prefix || prefix}/${file.filename}`
-      await storage.from(bucket).upload(path, file.buffer, {
-        contentType: file.mimeType,
-        upsert: false,
-      })
+      await storage.from(bucket).upload(path, file.buffer, { /** ... */ })
     },
 
     handleDelete: async ({ doc: { prefix = '' }, filename }) => {
@@ -718,9 +679,7 @@ function supabaseStorage({
     },
 
     staticHandler: async (req, { params: { filename } }) => {
-      // Simply redirect to public URL
-      const url = generateURL({ filename, prefix })
-      return Response.redirect(url, 302)
+      /** ... redirect to public URL */
     },
   })
 }
