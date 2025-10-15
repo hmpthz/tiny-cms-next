@@ -869,6 +869,8 @@ export type FieldHookArgs<TData = any, TValue = any, TSiblingData = any> = {
 
 From `/packages/payload/src/collections/operations/create.ts`:
 
+`payload-main/packages/payload/src/collections/operations/create.ts` (lines 40-200)
+
 ```typescript
 export const createOperation = async (incomingArgs: Arguments) => {
   let args = incomingArgs
@@ -878,157 +880,53 @@ export const createOperation = async (incomingArgs: Arguments) => {
     const shouldCommit = await initTransaction(args.req)
 
     // 2. beforeOperation - Collection
-    if (args.collection.config.hooks.beforeOperation?.length) {
-      for (const hook of args.collection.config.hooks.beforeOperation) {
-        args =
-          (await hook({
-            args,
-            collection: args.collection.config,
-            context: args.req.context,
-            operation: 'create',
-            req: args.req,
-          })) || args
-      }
-    }
+    /** ... run collection beforeOperation hooks */
 
     let { data } = args
 
     // 3. Access control
-    if (!overrideAccess) {
-      await executeAccess({ data, req }, collectionConfig.access.create)
-    }
+    /** ... check create access */
 
     // 4. Generate file data (if upload collection)
-    const { data: newFileData, files } = await generateFileData({
-      collection,
-      data,
-      operation: 'create',
-      req,
-    })
-    data = newFileData
+    /** ... process file uploads */
 
     // 5. beforeValidate - Fields
-    data = await beforeValidate({
-      collection: collectionConfig,
-      data,
-      operation: 'create',
-      req,
-    })
+    /** ... run field beforeValidate hooks */
 
     // 6. beforeValidate - Collection
-    if (collectionConfig.hooks.beforeValidate?.length) {
-      for (const hook of collectionConfig.hooks.beforeValidate) {
-        data =
-          (await hook({
-            collection: collectionConfig,
-            context: req.context,
-            data,
-            operation: 'create',
-            req,
-          })) || data
-      }
-    }
+    /** ... run collection beforeValidate hooks */
 
     // 7. beforeChange - Collection
-    if (collectionConfig.hooks?.beforeChange?.length) {
-      for (const hook of collectionConfig.hooks.beforeChange) {
-        data =
-          (await hook({
-            collection: collectionConfig,
-            context: req.context,
-            data,
-            operation: 'create',
-            req,
-          })) || data
-      }
-    }
+    /** ... run collection beforeChange hooks */
 
     // 8. beforeChange - Fields
-    const resultWithLocales = await beforeChange({
-      collection: collectionConfig,
-      data,
-      operation: 'create',
-      req,
-    })
+    /** ... run field beforeChange hooks */
 
     // 9. Upload files
-    await uploadFiles(payload, filesToUpload, req)
+    /** ... upload files to storage */
 
     // 10. Database insert
-    doc = await payload.db.create({
-      collection: collectionConfig.slug,
-      data: resultWithLocales,
-      req,
-    })
+    doc = await payload.db.create({/** ... */})
 
     let result = sanitizeInternalFields(doc)
 
     // 11. Save version (if versioning enabled)
-    if (collectionConfig.versions) {
-      await saveVersion({
-        id: result.id,
-        collection: collectionConfig,
-        docWithLocales: result,
-        operation: 'create',
-        payload,
-        req,
-      })
-    }
+    /** ... save version snapshot */
 
     // 12. afterRead - Fields
-    result = await afterRead({
-      collection: collectionConfig,
-      doc: result,
-      operation: 'read', // Note: afterRead after create
-      req,
-    })
+    /** ... run field afterRead hooks */
 
     // 13. afterRead - Collection
-    if (collectionConfig.hooks?.afterRead?.length) {
-      for (const hook of collectionConfig.hooks.afterRead) {
-        result =
-          (await hook({
-            collection: collectionConfig,
-            context: req.context,
-            doc: result,
-            req,
-          })) || result
-      }
-    }
+    /** ... run collection afterRead hooks */
 
     // 14. afterChange - Fields
-    result = await afterChange({
-      collection: collectionConfig,
-      data,
-      doc: result,
-      operation: 'create',
-      previousDoc: {},
-      req,
-    })
+    /** ... run field afterChange hooks */
 
     // 15. afterChange - Collection
-    if (collectionConfig.hooks?.afterChange?.length) {
-      for (const hook of collectionConfig.hooks.afterChange) {
-        result =
-          (await hook({
-            collection: collectionConfig,
-            context: req.context,
-            data,
-            doc: result,
-            operation: 'create',
-            previousDoc: {},
-            req,
-          })) || result
-      }
-    }
+    /** ... run collection afterChange hooks */
 
     // 16. afterOperation - Collection
-    result = await buildAfterOperation({
-      args,
-      collection: collectionConfig,
-      operation: 'create',
-      result,
-    })
+    /** ... run afterOperation hooks */
 
     // 17. Commit transaction
     if (shouldCommit) {
@@ -1057,31 +955,20 @@ export const createOperation = async (incomingArgs: Arguments) => {
 
 From `/packages/payload/src/collections/operations/find.ts`:
 
+`payload-main/packages/payload/src/collections/operations/find.ts` (lines 50-180)
+
 ```typescript
 export const findOperation = async (incomingArgs: Arguments) => {
   let args = incomingArgs
 
   try {
     // 1. beforeOperation - Collection
-    if (args.collection.config.hooks?.beforeOperation?.length) {
-      for (const hook of args.collection.config.hooks.beforeOperation) {
-        args = (await hook({
-          args,
-          collection: args.collection.config,
-          context: args.req!.context,
-          operation: 'read',
-          req: args.req!,
-        })) || args
-      }
-    }
+    /** ... run collection beforeOperation hooks */
 
     // 2. Access control
     let accessResult: AccessResult
     if (!overrideAccess) {
-      accessResult = await executeAccess(
-        { disableErrors, req },
-        collectionConfig.access.read
-      )
+      accessResult = await executeAccess(/** ... */)
 
       if (accessResult === false) {
         return { docs: [], totalDocs: 0, ... }
@@ -1090,83 +977,26 @@ export const findOperation = async (incomingArgs: Arguments) => {
 
     // 3. Build and sanitize query
     let fullWhere = combineQueries(where!, accessResult!)
-    sanitizeWhereQuery({
-      fields: collectionConfig.flattenedFields,
-      where: fullWhere
-    })
+    /** ... sanitize query */
 
     // 4. Database query
-    result = await payload.db.find({
-      collection: collectionConfig.slug,
-      where: fullWhere,
-      limit,
-      page,
-      sort,
-      req,
-    })
+    result = await payload.db.find({/** ... */})
 
     // 5. beforeRead - Collection (per document)
-    if (collectionConfig?.hooks?.beforeRead?.length) {
-      result.docs = await Promise.all(
-        result.docs.map(async (doc) => {
-          let docRef = doc
-
-          for (const hook of collectionConfig.hooks.beforeRead) {
-            docRef = (await hook({
-              collection: collectionConfig,
-              context: req.context,
-              doc: docRef,
-              query: fullWhere,
-              req,
-            })) || docRef
-          }
-
-          return docRef
-        })
-      )
-    }
+    /** ... run collection beforeRead hooks for each doc */
 
     // 6. afterRead - Fields (per document)
     result.docs = await Promise.all(
       result.docs.map(async (doc) =>
-        afterRead({
-          collection: collectionConfig,
-          doc,
-          findMany: true,
-          req,
-        })
+        afterRead({/** ... */})
       )
     )
 
     // 7. afterRead - Collection (per document)
-    if (collectionConfig?.hooks?.afterRead?.length) {
-      result.docs = await Promise.all(
-        result.docs.map(async (doc) => {
-          let docRef = doc
-
-          for (const hook of collectionConfig.hooks.afterRead) {
-            docRef = (await hook({
-              collection: collectionConfig,
-              context: req.context,
-              doc: docRef,
-              findMany: true,
-              query: fullWhere,
-              req,
-            })) || doc
-          }
-
-          return docRef
-        })
-      )
-    }
+    /** ... run collection afterRead hooks for each doc */
 
     // 8. afterOperation - Collection
-    result = await buildAfterOperation({
-      args,
-      collection: collectionConfig,
-      operation: 'find',
-      result,
-    })
+    /** ... run afterOperation hooks */
 
     return result
   } catch (error) {
@@ -2367,34 +2197,18 @@ export const Posts: CollectionConfig = {
     // Tenant-scoped read access
     read: async ({ req }) => {
       if (!req.user) return false
-
-      if (req.user.role === 'admin') {
-        return true // Admins see all
-      }
+      if (req.user.role === 'admin') return true // Admins see all
 
       // Users see their tenant's posts
-      return {
-        tenant: {
-          equals: req.user.tenant,
-        },
-      }
+      return { tenant: { equals: req.user.tenant } }
     },
 
-    // Only authenticated users can create
     create: ({ req }) => !!req.user,
 
     // Owner or admin can update
     update: async ({ req, id }) => {
-      if (!req.user) return false
-
-      if (req.user.role === 'admin') {
-        return true
-      }
-
-      // Check ownership
-      return {
-        and: [{ tenant: { equals: req.user.tenant } }, { author: { equals: req.user.id } }],
-      }
+      /** ... check if admin or owner */
+      return { and: [/** ... tenant + author match */] }
     },
   },
 
@@ -2413,17 +2227,8 @@ export const Posts: CollectionConfig = {
     // Validate tenant hasn't changed
     beforeChange: [
       async ({ data, operation, originalDoc, req }) => {
-        if (operation === 'update') {
-          // Prevent tenant changes
-          if (data.tenant && data.tenant !== originalDoc.tenant) {
-            throw new Error('Cannot change tenant')
-          }
-        }
-
-        // Track modifications
-        data.lastModifiedBy = req.user?.id
-        data.lastModifiedAt = new Date()
-
+        /** ... prevent tenant changes */
+        /** ... track modifications */
         return data
       },
     ],
@@ -2431,21 +2236,12 @@ export const Posts: CollectionConfig = {
     // Audit logging after successful change
     afterChange: [
       async ({ doc, operation, previousDoc, req, context }) => {
-        // Skip audit for internal operations
         if (context.skipAudit) return doc
 
         // Create audit log entry
         await req.payload.create({
           collection: 'audit-logs',
-          data: {
-            action: operation,
-            collection: 'posts',
-            documentId: doc.id,
-            userId: req.user?.id,
-            tenant: doc.tenant,
-            changes: operation === 'update' ? calculateChanges(previousDoc, doc) : null,
-            timestamp: new Date(),
-          },
+          data: {/** ... audit details */},
           overrideAccess: true,
           context: { skipAudit: true }, // Prevent infinite loop
         })
@@ -2457,22 +2253,12 @@ export const Posts: CollectionConfig = {
     // Soft delete logging
     beforeDelete: [
       async ({ id, req }) => {
-        // Get document before delete
-        const doc = await req.payload.findByID({
-          collection: 'posts',
-          id,
-          overrideAccess: true,
-        })
+        const doc = await req.payload.findByID({/** ... */})
 
         // Archive document
         await req.payload.create({
           collection: 'deleted-posts',
-          data: {
-            ...doc,
-            originalId: id,
-            deletedBy: req.user?.id,
-            deletedAt: new Date(),
-          },
+          data: {/** ... archived doc */},
           overrideAccess: true,
         })
       },
@@ -2480,63 +2266,27 @@ export const Posts: CollectionConfig = {
   },
 
   fields: [
-    {
-      name: 'title',
-      type: 'text',
-      required: true,
-    },
-    {
-      name: 'content',
-      type: 'richText',
-      required: true,
-    },
+    { name: 'title' /** ... text, required */ },
+    { name: 'content' /** ... richText, required */ },
     {
       name: 'tenant',
-      type: 'text',
-      required: true,
-      access: {
-        // Tenant field is read-only after creation
-        update: () => false,
-      },
-      admin: {
-        readOnly: true,
-      },
+      /** ... text, required, read-only after creation */
+      access: { update: () => false },
     },
     {
       name: 'author',
-      type: 'relationship',
-      relationTo: 'users',
-      required: true,
-      access: {
-        update: () => false, // Author cannot be changed
-      },
+      /** ... relationship to users, cannot be changed */
+      access: { update: () => false },
     },
     {
       name: 'internalNotes',
-      type: 'textarea',
+      /** ... admin-only access */
       access: {
         read: ({ req }) => req.user?.role === 'admin',
         update: ({ req }) => req.user?.role === 'admin',
       },
     },
   ],
-}
-
-// Helper function
-function calculateChanges(before: any, after: any): any[] {
-  const changes = []
-
-  for (const key of Object.keys(after)) {
-    if (before[key] !== after[key]) {
-      changes.push({
-        field: key,
-        before: before[key],
-        after: after[key],
-      })
-    }
-  }
-
-  return changes
 }
 ```
 
@@ -2986,39 +2736,25 @@ field: {
 ```typescript
 describe('Access Control', () => {
   test('boolean access - granted', async () => {
-    const result = await payload.find({
-      collection: 'posts',
-      user: authenticatedUser,
-    })
+    const result = await payload.find({/** ... with authenticated user */})
     expect(result.docs.length).toBeGreaterThan(0)
   })
 
   test('boolean access - denied', async () => {
     await expect(
-      payload.find({
-        collection: 'posts',
-        user: null,
-      }),
+      payload.find({/** ... with null user */})
     ).rejects.toThrow(Forbidden)
   })
 
   test('query-based access - filters results', async () => {
-    const result = await payload.find({
-      collection: 'posts',
-      user: tenantUser,
-    })
+    const result = await payload.find({/** ... with tenant user */})
 
     // All results should be from user's tenant
     expect(result.docs.every((doc) => doc.tenant === tenantUser.tenant)).toBe(true)
   })
 
   test('field access - removes unauthorized fields', async () => {
-    const doc = await payload.findByID({
-      collection: 'posts',
-      id: postId,
-      user: regularUser,
-    })
-
+    const doc = await payload.findByID({/** ... */})
     expect(doc.internalNotes).toBeUndefined()
   })
 })
@@ -3029,56 +2765,33 @@ describe('Access Control', () => {
 ```typescript
 describe('Hooks', () => {
   test('beforeChange - transforms data', async () => {
-    const result = await payload.create({
-      collection: 'posts',
-      data: { title: 'Test' },
-    })
-
+    const result = await payload.create({/** ... */})
     // Hook should have set slug
     expect(result.slug).toBe('test')
   })
 
   test('afterChange - side effects', async () => {
-    await payload.create({
-      collection: 'posts',
-      data: { title: 'Test' },
-    })
+    await payload.create({/** ... */})
 
     // Hook should have created audit log
-    const logs = await payload.find({
-      collection: 'audit-logs',
-      where: { action: { equals: 'create' } },
-    })
-
+    const logs = await payload.find({/** ... audit logs */})
     expect(logs.totalDocs).toBeGreaterThan(0)
   })
 
   test('hooks run in order', async () => {
     const order = []
-
-    await payload.create({
-      collection: 'test-collection',
-      data: { value: 'test' },
-      context: { captureOrder: order },
-    })
+    await payload.create({/** ... with context to capture order */})
 
     expect(order).toEqual(['beforeValidate', 'beforeChange', 'afterRead', 'afterChange'])
   })
 
   test('hook error rolls back transaction', async () => {
     await expect(
-      payload.create({
-        collection: 'posts',
-        data: { triggerError: true },
-      }),
+      payload.create({/** ... trigger error */})
     ).rejects.toThrow()
 
     // Document should not exist
-    const result = await payload.find({
-      collection: 'posts',
-      where: { triggerError: { equals: true } },
-    })
-
+    const result = await payload.find({/** ... */})
     expect(result.totalDocs).toBe(0)
   })
 })

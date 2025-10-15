@@ -31,11 +31,11 @@ Note: 1. According to requirements, some packages are not needed, but you STILL 
 
 STAGE 2 Task:
 
-Fix code snippets for all of your stage 1 reports. (start from report 06, previous ones are fixed)
+Fix code snippets for all of your stage 1 reports. (start from report 10, previous ones are fixed)
 You should run command `git diff 5323fdcc5e863b88129dc8 5c051792d279fcb610b5f37 | cat` and read the changes you made for reference.
 
 - In stage 1, you simply copy-pasted the full code snippets from codebase into reports and some of them are too long that needs to be simplified. For example, if it's a long precedure with many steps, for each step try to omit most of the code with ellipsis and comments, so it looks more like "pseudo-code".
-- Also read the sourcecode to understand the snippet context. You MUST write down which file and which lines are involved for each snippet in the reports, so readers can find the full code.
+- Also read the sourcecode to understand the snippet context. You MUST write down which file and which lines are involved at the **first line of each snippet as comments**, so readers can find the full code. The file path should be relative to `payload-main/packages/`.
 
 Rules:
 

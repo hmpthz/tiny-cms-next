@@ -148,142 +148,82 @@ export class BasePayload {
 **Initialization Steps (Detailed):**
 
 ```typescript
-// Line 734-921
+// src/index.ts:734-921
 async init(options: InitOptions): Promise<Payload> {
-  // Step 1: Dependency checking (line 735-742)
-  if (process.env.NODE_ENV !== 'production' &&
-      process.env.PAYLOAD_DISABLE_DEPENDENCY_CHECKER !== 'true') {
+  // Step 1: Dependency checking
+  if (process.env.NODE_ENV !== 'production' /** ... */) {
     void checkPayloadDependencies()
   }
 
-  // Step 2: Import map (line 744)
+  // Step 2: Import map & Config validation
   this.importMap = options.importMap!
-
-  // Step 3: Config validation (line 746-750)
-  if (!options?.config) {
-    throw new Error('Error: the payload config is required to initialize payload.')
-  }
   this.config = await options.config
   this.logger = getLogger('payload', this.config.logger)
 
-  // Step 4: Secret hashing (line 752-757)
-  if (!this.config.secret) {
-    throw new Error('Error: missing secret key. A secret key is needed to secure Payload.')
-  }
+  // Step 3: Secret hashing
   this.secret = crypto.createHash('sha256')
     .update(this.config.secret)
     .digest('hex')
     .slice(0, 32)
 
-  // Step 5: Initialize globals structure (line 759-761)
-  this.globals = {
-    config: this.config.globals,
-  }
+  // Step 4: Initialize globals structure
+  this.globals = { config: this.config.globals }
 
-  // Step 6: Initialize collections (line 763-794)
+  // Step 5: Initialize collections
   for (const collection of this.config.collections) {
-    let customIDType: string | undefined = undefined
-    const findCustomID: TraverseFieldsCallback = ({ field }) => {
-      // Find custom ID field type
-      if (field.name === 'id') {
-        customIDType = field.type
-        return true
-      }
-    }
-
-    traverseFields({
-      callback: findCustomID,
-      config: this.config,
-      fields: collection.fields,
-      parentIsLocalized: false,
-    })
-
-    this.collections[collection.slug] = {
-      config: collection,
-      customIDType,
-    }
+    // Find custom ID field type
+    let customIDType = /** ... traverse fields to find custom ID type */
+    this.collections[collection.slug] = { config: collection, customIDType }
   }
 
-  // Step 7: Initialize blocks (line 796-802)
-  this.blocks = this.config.blocks!.reduce(
-    (blocks, block) => {
-      blocks[block.slug] = block
-      return blocks
-    },
-    {} as Record<string, FlattenedBlock>,
-  )
+  // Step 6: Initialize blocks
+  this.blocks = this.config.blocks!.reduce(/** ... build blocks map */)
 
-  // Step 8: Generate TypeScript types (line 804-812)
-  if (process.env.NODE_ENV !== 'production' &&
-      this.config.typescript.autoGenerate !== false) {
-    void this.bin({
-      args: ['generate:types'],
-      log: false,
-    })
+  // Step 7: Generate TypeScript types
+  if (process.env.NODE_ENV !== 'production' /** ... */) {
+    void this.bin({ args: ['generate:types'], log: false })
   }
 
-  // Step 9: Initialize database (line 814-823)
+  // Step 8: Initialize database
   this.db = this.config.db.init({ payload: this })
   this.db.payload = this
-  if (this.db?.init) {
-    await this.db.init()
-  }
+  if (this.db?.init) await this.db.init()
   if (!options.disableDBConnect && this.db.connect) {
     await this.db.connect()
   }
 
-  // Step 10: Initialize email adapter (line 825-839)
+  // Step 9: Initialize email adapter
   if (this.config.email instanceof Promise) {
     const awaitedAdapter = await this.config.email
     this.email = awaitedAdapter({ payload: this })
-  } else if (this.config.email) {
-    this.email = this.config.email({ payload: this })
   } else {
-    this.email = consoleEmailAdapter({ payload: this })
+    this.email = this.config.email?.({ payload: this }) || consoleEmailAdapter({ payload: this })
   }
   this.sendEmail = this.email['sendEmail']
 
-  // Step 11: Initialize auth strategies (line 869-900)
+  // Step 10: Initialize auth strategies
   let jwtStrategyEnabled = false
   this.authStrategies = this.config.collections.reduce((authStrategies, collection) => {
     if (collection?.auth) {
-      if (collection.auth.strategies.length > 0) {
-        authStrategies.push(...collection.auth.strategies)
-      }
-      if (collection.auth?.useAPIKey) {
-        authStrategies.push({
-          name: `${collection.slug}-api-key`,
-          authenticate: APIKeyAuthentication(collection),
-        })
-      }
-      if (!collection.auth.disableLocalStrategy && !jwtStrategyEnabled) {
-        jwtStrategyEnabled = true
-      }
+      // Push custom strategies, API key strategy if enabled
+      // Track if JWT strategy needed
+      /** ... build auth strategies array */
     }
     return authStrategies
   }, [] as AuthStrategy[])
 
   if (jwtStrategyEnabled) {
-    this.authStrategies.push({
-      name: 'local-jwt',
-      authenticate: JWTAuthentication,
-    })
+    this.authStrategies.push({ name: 'local-jwt', authenticate: JWTAuthentication })
   }
 
-  // Step 12: Run onInit hooks (line 902-914)
+  // Step 11: Run onInit hooks
   if (!options.disableOnInit) {
-    if (typeof options.onInit === 'function') {
-      await options.onInit(this)
-    }
-    if (typeof this.config.onInit === 'function') {
-      await this.config.onInit(this)
-    }
+    if (typeof options.onInit === 'function') await options.onInit(this)
+    if (typeof this.config.onInit === 'function') await this.config.onInit(this)
   }
 
-  // Step 13: Initialize cron jobs (line 916-918)
-  if (options.cron) {
-    await this._initializeCrons()
-  }
+  // Step 12: Initialize cron jobs
+  if (options.cron) await this._initializeCrons()
 
   return this
 }
@@ -292,24 +232,20 @@ async init(options: InitOptions): Promise<Payload> {
 **Singleton Pattern with Caching:**
 
 ```typescript
-// Line 1018-1164: getPayload function
-// Provides smart caching and HMR support
-let _cached: Map<
-  string,
-  {
-    payload: null | Payload
-    promise: null | Promise<Payload>
-    reload: boolean | Promise<void>
-    ws: null | WebSocket
-    initializedCrons: boolean
-  }
-> = (global as any)._payload
+// src/index.ts:1018-1164
+let _cached: Map<string, {
+  payload: null | Payload
+  promise: null | Promise<Payload>
+  reload: boolean | Promise<void>
+  ws: null | WebSocket
+  initializedCrons: boolean
+}> = (global as any)._payload
 
 export const getPayload = async (options: InitOptions): Promise<Payload> => {
-  // Smart caching logic
-  // HMR support via WebSocket
-  // Prevents multiple initializations
-  // Handles config reloading
+  // Smart caching logic to prevent multiple initializations
+  // HMR support via WebSocket connection
+  // Handles config reloading in development
+  /** ... cache management and initialization logic */
 }
 ```
 
@@ -337,7 +273,7 @@ export async function buildConfig(config: Config): Promise<SanitizedConfig> {
 **Config Sanitization (src/config/sanitize.ts):**
 
 ```typescript
-// Lines 39-100+
+// src/config/sanitize.ts:39-100+
 const sanitizeAdminConfig = (configToSanitize: Config): Partial<SanitizedConfig> => {
   // 1. Set compatibility flags
   if (configToSanitize?.compatibility?.allowLocalizedWithinLocalized) {
@@ -348,9 +284,7 @@ const sanitizeAdminConfig = (configToSanitize: Config): Partial<SanitizedConfig>
   sanitizedConfig.loggingLevels = {
     Forbidden: 'info',
     Locked: 'info',
-    MissingFile: 'info',
-    NotFound: 'info',
-    ValidationError: 'info',
+    // ... more error types
     ...(sanitizedConfig.loggingLevels || {}),
   }
 
@@ -360,6 +294,7 @@ const sanitizeAdminConfig = (configToSanitize: Config): Partial<SanitizedConfig>
     if (firstCollectionWithAuth) {
       sanitizedConfig.admin!.user = firstCollectionWithAuth.slug
     } else {
+      // Add default user collection
       sanitizedConfig.admin!.user = defaultUserCollection.slug
       sanitizedConfig.collections!.push(defaultUserCollection)
     }
@@ -367,22 +302,14 @@ const sanitizeAdminConfig = (configToSanitize: Config): Partial<SanitizedConfig>
 
   // 4. Validate admin user collection has auth
   const userCollection = sanitizedConfig.collections!.find(
-    ({ slug }) => slug === sanitizedConfig.admin!.user,
+    ({ slug }) => slug === sanitizedConfig.admin!.user
   )
   if (!userCollection || !userCollection.auth) {
-    throw new InvalidConfiguration(
-      `${sanitizedConfig.admin!.user} is not a valid admin user collection`,
-    )
+    throw new InvalidConfiguration(/** ... error message */)
   }
 
-  // 5. Sanitize timezones
-  if (!sanitizedConfig?.admin?.timezones?.supportedTimezones) {
-    sanitizedConfig.admin!.timezones = {
-      supportedTimezones: defaultTimezones,
-    }
-  }
-
-  // More sanitization...
+  // 5. Sanitize timezones, CORS, routes, etc.
+  /** ... more sanitization steps */
 }
 ```
 
@@ -727,7 +654,7 @@ All CRUD operations follow this pattern:
 **CREATE Operation (src/collections/operations/create.ts):**
 
 ```typescript
-// Lines 56-end
+// src/collections/operations/create.ts:56-end
 export const createOperation = async <TSlug, TSelect>(
   incomingArgs: Arguments<TSlug>,
 ): Promise<TransformCollectionWithSelect<TSlug, TSelect>> => {
@@ -735,35 +662,21 @@ export const createOperation = async <TSlug, TSelect>(
 
   try {
     // 1. Start transaction
-    const shouldCommit = !args.disableTransaction &&
-                         (await initTransaction(args.req))
+    const shouldCommit = !args.disableTransaction && (await initTransaction(args.req))
 
     // 2. Ensure username or email (for auth collections)
-    ensureUsernameOrEmail<TSlug>({
-      authOptions: args.collection.config.auth,
-      collectionSlug: args.collection.config.slug,
-      data: args.data,
-      operation: 'create',
-      req: args.req,
-    })
+    ensureUsernameOrEmail<TSlug>({ /** ... auth validation */ })
 
     // 3. beforeOperation hook (Collection level)
     if (args.collection.config.hooks.beforeOperation?.length) {
       for (const hook of args.collection.config.hooks.beforeOperation) {
-        args = (await hook({
-          args,
-          collection: args.collection.config,
-          context: args.req.context,
-          operation: 'create',
-          req: args.req,
-        })) || args
+        args = (await hook({ args, collection, context, operation: 'create', req })) || args
       }
     }
 
     // 4. Access control check
     if (!args.overrideAccess) {
-      await executeAccess({ data: args.data, req: args.req },
-                          args.collection.config.access.create)
+      await executeAccess({ data: args.data, req: args.req }, args.collection.config.access.create)
     }
 
     // 5. Handle file uploads (if collection has uploads)
@@ -774,43 +687,25 @@ export const createOperation = async <TSlug, TSelect>(
 
     // 6. Handle duplicate document (if duplicateFromID provided)
     if (args.duplicateFromID) {
-      const duplicateResult = await getDuplicateDocumentData({ ... })
-      // Merge duplicate data
+      const duplicateResult = await getDuplicateDocumentData({ /** ... */ })
+      /** ... merge duplicate data */
     }
 
-    // 7. beforeValidate hook (Collection level)
-    if (args.collection.config.hooks.beforeValidate?.length) {
-      for (const hook of args.collection.config.hooks.beforeValidate) {
-        args.data = await hook({ ... }) || args.data
-      }
+    // 7-8. beforeValidate hooks (Collection & Field level)
+    for (const hook of args.collection.config.hooks.beforeValidate || []) {
+      args.data = (await hook({ /** ... */ })) || args.data
     }
+    args.data = await beforeValidate({ collection, context, data, /** ... */ })
 
-    // 8. beforeValidate hooks (Field level)
-    args.data = await beforeValidate({
-      collection: args.collection.config,
-      context: args.req.context,
-      data: args.data,
-      // ...
-    })
-
-    // 9. beforeChange hook (Collection level)
-    if (args.collection.config.hooks.beforeChange?.length) {
-      for (const hook of args.collection.config.hooks.beforeChange) {
-        args.data = await hook({ ... }) || args.data
-      }
+    // 9-10. beforeChange hooks (Collection & Field level)
+    for (const hook of args.collection.config.hooks.beforeChange || []) {
+      args.data = (await hook({ /** ... */ })) || args.data
     }
-
-    // 10. beforeChange hooks (Field level)
-    args.data = await beforeChange({
-      collection: args.collection.config,
-      context: args.req.context,
-      data: args.data,
-      // ...
-    })
+    args.data = await beforeChange({ collection, context, data, /** ... */ })
 
     // 11. Upload files to storage
     if (req.file && args.collection.config.upload) {
-      await uploadFiles({ ... })
+      await uploadFiles({ /** ... */ })
     }
 
     // 12. DATABASE CREATE
@@ -821,74 +716,41 @@ export const createOperation = async <TSlug, TSelect>(
       select,
     })
 
-    // 13. afterRead hooks (Field level)
-    let result = await afterRead({
-      collection: args.collection.config,
-      context: args.req.context,
-      depth: args.depth,
-      doc,
-      // ...
-    })
+    // 13. afterRead hooks (Field level) - transform result
+    let result = await afterRead({ collection, context, depth, doc, /** ... */ })
 
-    // 14. afterChange hook (Collection level)
-    if (args.collection.config.hooks.afterChange?.length) {
-      for (const hook of args.collection.config.hooks.afterChange) {
-        await hook({
-          collection: args.collection.config,
-          context: args.req.context,
-          doc: result,
-          operation: 'create',
-          previousDoc: {},
-          req: args.req,
-        })
-      }
+    // 14-15. afterChange hooks (Collection & Field level)
+    for (const hook of args.collection.config.hooks.afterChange || []) {
+      await hook({ collection, context, doc: result, operation: 'create', previousDoc: {}, req })
     }
-
-    // 15. afterChange hooks (Field level)
-    await afterChange({
-      collection: args.collection.config,
-      context: args.req.context,
-      data: args.data,
-      doc: result,
-      // ...
-    })
+    await afterChange({ collection, context, data, doc: result, /** ... */ })
 
     // 16. Save version (if versions enabled)
     if (args.collection.config.versions) {
-      await saveVersion({ ... })
+      await saveVersion({ /** ... */ })
     }
 
     // 17. Send verification email (if auth collection with verification)
     if (args.collection.config.auth?.verify) {
-      await sendVerificationEmail({ ... })
+      await sendVerificationEmail({ /** ... */ })
     }
 
     // 18. Commit transaction
-    if (shouldCommit) {
-      await commitTransaction(args.req)
-    }
+    if (shouldCommit) await commitTransaction(args.req)
 
     // 19. afterOperation hook
     if (args.collection.config.hooks.afterOperation?.length) {
-      result = await buildAfterOperation({
-        args,
-        operation: 'create',
-        result,
-      })
+      result = await buildAfterOperation({ args, operation: 'create', result })
     }
 
     // 20. Return result
     return result
 
   } catch (error: unknown) {
-    // Error handling with afterError hooks
     await killTransaction(args.req)
     throw error
   } finally {
-    // Cleanup temp files
-    if (req.file) {
-      unlinkTempFiles({ req })
-    }
+    if (req.file) unlinkTempFiles({ req })
   }
 }
 ```
@@ -896,7 +758,7 @@ export const createOperation = async <TSlug, TSelect>(
 **FIND Operation (src/collections/operations/find.ts):**
 
 ```typescript
-// Lines 58-end
+// src/collections/operations/find.ts:58-end
 export const findOperation = async <TSlug, TSelect>(
   incomingArgs: Arguments,
 ): Promise<PaginatedDocs<TransformCollectionWithSelect<TSlug, TSelect>>> => {
@@ -904,32 +766,22 @@ export const findOperation = async <TSlug, TSelect>(
 
   try {
     // 1. beforeOperation hook
-    if (args.collection.config.hooks?.beforeOperation?.length) {
-      for (const hook of args.collection.config.hooks.beforeOperation) {
-        args = (await hook({ ... })) || args
-      }
+    for (const hook of args.collection.config.hooks?.beforeOperation || []) {
+      args = (await hook({ args, collection, context, operation: 'read', req })) || args
     }
 
-    // 2. Access control
+    // 2. Access control - get constraints
     let accessResult: AccessResult
     if (!args.overrideAccess) {
-      accessResult = await executeAccess({ req: args.req },
-                                         args.collection.config.access.read)
+      accessResult = await executeAccess({ req }, args.collection.config.access.read)
     }
 
     // 3. Combine access query with user query
-    const fullWhere = combineQueries(
-      args.where,
-      accessResult  // Adds constraints based on access control
-    )
+    const fullWhere = combineQueries(args.where, accessResult)
 
     // 4. Handle drafts (if querying versions)
     if (args.draft && args.collection.config.versions?.drafts) {
-      // Query from versions table/collection
-      result = await args.req.payload.db.queryDrafts({
-        collection: args.collection.config.slug,
-        // ...
-      })
+      result = await args.req.payload.db.queryDrafts({ collection, /** ... */ })
     } else {
       // 5. DATABASE FIND
       result = await args.req.payload.db.find({
@@ -947,56 +799,37 @@ export const findOperation = async <TSlug, TSelect>(
     }
 
     // 6. beforeRead hook (for each doc)
-    if (args.collection.config.hooks?.beforeRead?.length) {
-      for (const doc of result.docs) {
-        for (const hook of args.collection.config.hooks.beforeRead) {
-          await hook({ ... })
-        }
+    for (const doc of result.docs) {
+      for (const hook of args.collection.config.hooks?.beforeRead || []) {
+        await hook({ doc, req, /** ... */ })
       }
     }
 
     // 7. afterRead hooks (Field level, for each doc)
     const afterReadDocs = await Promise.all(
-      result.docs.map(async (doc) => {
-        return await afterRead({
-          collection: args.collection.config,
-          context: args.req.context,
-          depth: args.depth,
-          doc,
-          // ...
-        })
-      })
+      result.docs.map(async (doc) =>
+        await afterRead({ collection, context, depth, doc, /** ... */ })
+      )
     )
 
     // 8. afterRead hook (Collection level, for each doc)
-    if (args.collection.config.hooks?.afterRead?.length) {
-      for (const doc of afterReadDocs) {
-        for (const hook of args.collection.config.hooks.afterRead) {
-          await hook({ ... })
-        }
+    for (const doc of afterReadDocs) {
+      for (const hook of args.collection.config.hooks?.afterRead || []) {
+        await hook({ doc, req, /** ... */ })
       }
     }
 
-    // 9. afterOperation hook
+    // 9. Build paginated result
     let result = {
       docs: afterReadDocs,
       hasNextPage: result.hasNextPage,
       hasPrevPage: result.hasPrevPage,
-      limit: result.limit,
-      nextPage: result.nextPage,
-      page: result.page,
-      pagingCounter: result.pagingCounter,
-      prevPage: result.prevPage,
-      totalDocs: result.totalDocs,
-      totalPages: result.totalPages,
+      // ... other pagination fields
     }
 
+    // 10. afterOperation hook
     if (args.collection.config.hooks?.afterOperation?.length) {
-      result = await buildAfterOperation({
-        args,
-        operation: 'read',
-        result,
-      })
+      result = await buildAfterOperation({ args, operation: 'read', result })
     }
 
     return result
@@ -1016,13 +849,11 @@ export async function createLocal<TSlug, TSelect>(
   payload: Payload,
   options: Options<TSlug, TSelect>,
 ): Promise<TransformCollectionWithSelect<TSlug, TSelect>> {
-  const { collection: collectionSlug, data, ... } = options
+  const { collection: collectionSlug, data, /** ... */ } = options
 
   // 1. Get collection config
   const collection = payload.collections[collectionSlug]
-  if (!collection) {
-    throw new APIError(`Collection ${collectionSlug} not found`)
-  }
+  if (!collection) throw new APIError(`Collection ${collectionSlug} not found`)
 
   // 2. Create local request
   const req = await createLocalReq(options, payload)
@@ -1037,7 +868,7 @@ export async function createLocal<TSlug, TSelect>(
     depth,
     req,
     select,
-    // ...all options
+    /** ... all options */
   })
 }
 ```
@@ -1319,6 +1150,7 @@ await payload.restoreVersion({
 **Version Creation (src/versions/saveVersion.ts):**
 
 ```typescript
+// src/versions/saveVersion.ts
 export const saveVersion = async ({
   collection,
   req,
@@ -1341,18 +1173,10 @@ export const saveVersion = async ({
   }
 
   // 3. Create version in database
-  await req.payload.db.createVersion({
-    collection: collection.config.slug,
-    req,
-    versionData,
-  })
+  await req.payload.db.createVersion({ collection, req, versionData })
 
-  // 4. Enforce max versions
-  await enforceMaxVersions({
-    collection: collection.config,
-    req,
-    id: docWithLocales.id,
-  })
+  // 4. Enforce max versions (delete old versions if exceeds limit)
+  await enforceMaxVersions({ collection: collection.config, req, id: docWithLocales.id })
 }
 ```
 
