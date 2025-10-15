@@ -47,11 +47,18 @@ The ecommerce plugin transforms Payload into a full e-commerce platform by addin
 **From `packages/plugin-ecommerce/src/index.ts`:**
 
 ```typescript
-// Lines 22-24
+// packages/plugin-ecommerce/src/index.ts Lines 22-24
 export const ecommercePlugin =
   (pluginConfig?: EcommercePluginConfig) =>
   async (incomingConfig: Config): Promise<Config> => {
+    // ... Creates up to 8 new collections
+    // ... Adds payment endpoints
+    // ... Supports multiple currencies
+    // ... Custom UI components and access control
+  }
 ```
+
+Key features:
 
 - Creates up to 8 new collections (products, carts, orders, transactions, addresses, variants, variant types, variant options)
 - Adds payment endpoints (`/api/initiate-payment`, `/api/confirm-order`)
@@ -106,23 +113,15 @@ Enables creation of dynamic forms with submission handling:
 **From `packages/plugin-form-builder/src/index.ts`:**
 
 ```typescript
-// Lines 11-39
+// packages/plugin-form-builder/src/index.ts Lines 11-39
 export const formBuilderPlugin =
   (incomingFormConfig: FormBuilderPluginConfig) =>
   (config: Config): Config => {
     const formConfig: FormBuilderPluginConfig = {
       ...incomingFormConfig,
       fields: {
-        checkbox: true,
-        country: true,
-        email: true,
-        message: true,
-        number: true,
-        payment: false,
-        select: true,
-        state: true,
-        text: true,
-        textarea: true,
+        /** ... checkbox, country, email, message, number, select, state, text, textarea: true */
+        /** ... payment: false */
         ...incomingFormConfig.fields,
       },
     }
@@ -191,7 +190,7 @@ plugin-import-export/
 **From `packages/plugin-import-export/src/index.ts`:**
 
 ```typescript
-// Lines 20-80
+// packages/plugin-import-export/src/index.ts Lines 20-80
 export const importExportPlugin =
   (pluginConfig: ImportExportPluginConfig) =>
   (config: Config): Config => {
@@ -200,16 +199,18 @@ export const importExportPlugin =
       config.collections.push(exportCollection)
     }
 
-    // inject custom import export provider
-    config.admin.components.providers
-      .push('@payloadcms/plugin-import-export/rsc#ImportExportProvider')
-      (
-        // inject the createExport job into the config
-        ((config.jobs ??= {}).tasks ??= []),
-      )
-      .push(getCreateCollectionExportTask(config, pluginConfig))
+    // Inject custom import export provider
+    config.admin.components.providers.push(
+      '@payloadcms/plugin-import-export/rsc#ImportExportProvider'
+    )
+
+    // Inject the createExport job into the config
+    ((config.jobs ??= {}).tasks ??= []).push(
+      getCreateCollectionExportTask(config, pluginConfig)
+    )
 
     collectionsToUpdate.forEach((collection) => {
+      // Add list menu items for import/export
       components.listMenuItems.push({
         clientProps: { exportCollectionSlug: exportCollection.slug },
         path: '@payloadcms/plugin-import-export/rsc#ExportListMenuItem',
@@ -217,9 +218,7 @@ export const importExportPlugin =
 
       // Store disabled field accessors in admin config
       collection.admin.custom = {
-        'plugin-import-export': {
-          disabledFields: disabledFieldAccessors,
-        },
+        'plugin-import-export': { disabledFields: /** ... */ },
       }
     })
   }
@@ -286,7 +285,7 @@ plugin-multi-tenant/
 **From `packages/plugin-multi-tenant/src/index.ts`:**
 
 ```typescript
-// Lines 21-80
+// packages/plugin-multi-tenant/src/index.ts Lines 21-80
 export const multiTenantPlugin =
   <ConfigType>(pluginConfig: MultiTenantPluginConfig<ConfigType>) =>
   (incomingConfig: Config): Config => {
@@ -307,6 +306,7 @@ export const multiTenantPlugin =
       ({ slug, auth }) => slug === incomingConfig.admin.user || auth,
     )
     // ... adds tenant fields to user collection
+    // ... injects tenant isolation to all collections
   }
 ```
 
@@ -367,7 +367,7 @@ plugin-nested-docs/
 **From `packages/plugin-nested-docs/src/index.ts`:**
 
 ```typescript
-// Lines 15-70
+// packages/plugin-nested-docs/src/index.ts Lines 15-70
 export const nestedDocsPlugin =
   (pluginConfig: NestedDocsPluginConfig): Plugin =>
   (config) => ({
@@ -377,9 +377,7 @@ export const nestedDocsPlugin =
         const fields = [...(collection?.fields || [])]
 
         // Check for existing parent/breadcrumb fields
-        const existingParentField = collection.fields.find(
-          (field) => 'name' in field && field.name === 'parent',
-        )
+        const existingParentField = /** ... find parent field */
 
         if (!existingParentField) {
           fields.push(createParentField(collection.slug))
@@ -455,7 +453,7 @@ export const nestedDocsPlugin =
 **From `packages/plugin-redirects/src/index.ts`:**
 
 ```typescript
-// Lines 8-10
+// packages/plugin-redirects/src/index.ts Lines 8-10
 export const redirectsPlugin =
   (pluginConfig: RedirectsPluginConfig) =>
   (incomingConfig: Config): Config => {
@@ -463,9 +461,7 @@ export const redirectsPlugin =
       name: 'type',
       type: 'select',
       label: 'Redirect Type',
-      options: redirectOptions.filter((option) =>
-        pluginConfig?.redirectTypes?.includes(option.value),
-      ),
+      options: /** ... filtered redirect types (301, 302, 307, 308) */,
       required: true,
     }
 
@@ -482,24 +478,9 @@ export const redirectsPlugin =
         name: 'to',
         type: 'group',
         fields: [
-          {
-            name: 'type',
-            type: 'radio',
-            options: [
-              { label: 'Internal link', value: 'reference' },
-              { label: 'Custom URL', value: 'custom' },
-            ],
-          },
-          {
-            name: 'reference',
-            type: 'relationship',
-            relationTo: pluginConfig.collections,
-          },
-          {
-            name: 'url',
-            type: 'text',
-            label: 'Custom URL',
-          },
+          { name: 'type' /** ... radio: 'reference' or 'custom' */ },
+          { name: 'reference' /** ... relationship to collections */ },
+          { name: 'url' /** ... text: Custom URL */ },
         ],
       },
     ]
@@ -560,15 +541,13 @@ const redirects = await payload.find({ collection: 'redirects' })
 **From `packages/plugin-sentry/src/index.ts`:**
 
 ```typescript
-// Lines 29-60
+// packages/plugin-sentry/src/index.ts Lines 29-60
 export const sentryPlugin =
   (pluginOptions: PluginOptions) =>
   (config: Config): Config => {
     const { enabled = true, options = {}, Sentry } = pluginOptions
 
-    if (!enabled || !Sentry) {
-      return config
-    }
+    if (!enabled || !Sentry) return config
 
     const { captureErrors = [], debug = false } = options
 
@@ -590,8 +569,7 @@ export const sentryPlugin =
           async (args) => {
             const status = (args.error as APIError).status ?? 500
             if (status >= 500 || captureErrors.includes(status)) {
-              // Capture to Sentry with context
-              Sentry.captureException(args.error, { contexts: context })
+              Sentry.captureException(args.error, { contexts: /** ... */ })
             }
           },
         ],
@@ -662,29 +640,16 @@ plugin-seo/
 **From `packages/plugin-seo/src/index.tsx`:**
 
 ```typescript
-// Lines 20-56
+// packages/plugin-seo/src/index.tsx Lines 20-56
 export const seoPlugin =
   (pluginConfig: SEOPluginConfig) =>
   (config: Config): Config => {
     const defaultFields: Field[] = [
       OverviewField({}),
-      MetaTitleField({
-        hasGenerateFn: typeof pluginConfig?.generateTitle === 'function',
-      }),
-      MetaDescriptionField({
-        hasGenerateFn: typeof pluginConfig?.generateDescription === 'function',
-      }),
-      ...(pluginConfig?.uploadsCollection
-        ? [
-            MetaImageField({
-              hasGenerateFn: typeof pluginConfig?.generateImage === 'function',
-              relationTo: pluginConfig.uploadsCollection,
-            }),
-          ]
-        : []),
-      PreviewField({
-        hasGenerateFn: typeof pluginConfig?.generateURL === 'function',
-      }),
+      MetaTitleField({ hasGenerateFn: /** ... */ }),
+      MetaDescriptionField({ hasGenerateFn: /** ... */ }),
+      /** ... MetaImageField (conditionally if uploadsCollection) */
+      PreviewField({ hasGenerateFn: /** ... */ }),
     ]
 
     const seoFields: GroupField[] = [
@@ -706,9 +671,9 @@ export const seoPlugin =
         if (isEnabled) {
           // Add SEO tab or fields to collection
           if (pluginConfig?.tabbedUI) {
-            // Add as separate tab
+            /** ... Add as separate tab */
           } else {
-            // Add as field group
+            /** ... Add as field group */
           }
         }
         return collection
@@ -751,9 +716,9 @@ export const seoPlugin =
 ```typescript
 // In collection config
 fields: [
-  { name: 'metaTitle', type: 'text' },
-  { name: 'metaDescription', type: 'textarea', maxLength: 160 },
-  { name: 'ogImage', type: 'upload', relationTo: 'media' },
+  { name: 'metaTitle' /** ... text type */ },
+  { name: 'metaDescription' /** ... textarea, maxLength: 160 */ },
+  { name: 'ogImage' /** ... upload, relationTo: 'media' */ },
 ]
 
 // In Next.js page
@@ -793,7 +758,7 @@ plugin-stripe/
 **From `packages/plugin-stripe/src/index.ts`:**
 
 ```typescript
-// Lines 14-80
+// packages/plugin-stripe/src/index.ts Lines 14-80
 export const stripePlugin =
   (incomingStripeConfig: StripePluginConfig) =>
   (config: Config): Config => {
@@ -803,24 +768,13 @@ export const stripePlugin =
       sync: incomingStripeConfig?.sync || [],
     }
 
+    // Add webhook endpoint (and optionally REST proxy endpoint)
     const endpoints: Endpoint[] = [
-      {
-        handler: async (req) => {
-          return await stripeWebhooks({ config, pluginConfig, req })
-        },
-        method: 'post',
-        path: '/stripe/webhooks',
-      },
+      { handler: /** ... stripeWebhooks */, method: 'post', path: '/stripe/webhooks' },
+      /** ... optional REST proxy endpoint if config.rest */
     ]
 
-    if (incomingStripeConfig?.rest) {
-      endpoints.push({
-        handler: async (req) => stripeREST({ pluginConfig, req }),
-        method: 'post',
-        path: '/stripe/rest',
-      })
-    }
-
+    // Inject Stripe fields and sync hooks into collections
     for (const collection of collections!) {
       const syncConfig = pluginConfig.sync?.find((sync) => sync.collection === collection.slug)
 

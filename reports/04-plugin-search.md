@@ -102,38 +102,23 @@ The plugin extends Payload through three key mechanisms:
 **File:** `packages/plugin-search/src/types.ts`
 
 ```typescript
-// Lines 32-65
+// packages/plugin-search/src/types.ts Lines 32-65
 export type SearchPluginConfig = {
-  // Deprecated - plugin auto-detects from config
-  apiBasePath?: string
-
-  // Hook to transform search documents before syncing
-  beforeSync?: BeforeSync
-
-  // Array of collection slugs to enable search on
-  collections?: string[]
-
-  // Default priority values (higher = better ranking)
+  apiBasePath?: string // Deprecated - plugin auto-detects from config
+  beforeSync?: BeforeSync // Hook to transform search documents before syncing
+  collections?: string[] // Array of collection slugs to enable search on
   defaultPriorities?: {
+    // Default priority values (higher = better ranking)
     [collection: string]: ((doc: any) => number | Promise<number>) | number
   }
-
-  // Delete search indexes when documents are drafted
-  deleteDrafts?: boolean // default: true
-
-  // Enable localization for search collection
-  localize?: boolean
-
-  // Batch size for reindexing operations
-  reindexBatchSize?: number // default: 50
-
-  // Override search collection configuration
+  deleteDrafts?: boolean // default: true - Delete search indexes when documents are drafted
+  localize?: boolean // Enable localization for search collection
+  reindexBatchSize?: number // default: 50 - Batch size for reindexing operations
   searchOverrides?: {
+    // Override search collection configuration
     fields?: FieldsOverride
   } & Partial<Omit<CollectionConfig, 'fields'>>
-
-  // Include draft documents in search index
-  syncDrafts?: boolean // default: false
+  syncDrafts?: boolean // default: false - Include draft documents in search index
 }
 ```
 
@@ -142,7 +127,7 @@ export type SearchPluginConfig = {
 From test config (`test/plugin-search/config.ts`):
 
 ```typescript
-// Lines 51-102
+// test/plugin-search/config.ts Lines 51-102
 searchPlugin({
   // Transform documents before indexing
   beforeSync: ({ originalDoc, searchDoc }) => ({
@@ -167,16 +152,8 @@ searchPlugin({
     },
     fields: ({ defaultFields }) => [
       ...defaultFields,
-      {
-        name: 'excerpt',
-        type: 'textarea',
-        admin: { position: 'sidebar' },
-      },
-      {
-        name: 'slug',
-        type: 'text',
-        localized: true,
-      },
+      { name: 'excerpt' /** ... textarea type */ },
+      { name: 'slug' /** ... text type, localized */ },
     ],
   },
 })
@@ -191,45 +168,19 @@ searchPlugin({
 The plugin generates a `search` collection with default fields:
 
 ```typescript
-// Lines 16-56
+// packages/plugin-search/src/Search/index.ts Lines 16-56
 const defaultFields: Field[] = [
-  {
-    name: 'title',
-    type: 'text',
-    admin: { readOnly: true },
-    localized: pluginConfig.localize,
-  },
-  {
-    name: 'priority',
-    type: 'number',
-    admin: { position: 'sidebar' },
-  },
-  {
-    name: 'doc',
-    type: 'relationship',
-    admin: { position: 'sidebar', readOnly: true },
-    index: true,
-    maxDepth: 0,
-    relationTo: searchCollections, // polymorphic relationship
-    required: true,
-  },
-  {
-    name: 'docUrl',
-    type: 'ui',
-    admin: {
-      components: {
-        Field: { path: '@payloadcms/plugin-search/client#LinkToDoc' },
-      },
-      position: 'sidebar',
-    },
-  },
+  { name: 'title' /** ... text type, readOnly, localized */ },
+  { name: 'priority' /** ... number type, sidebar */ },
+  { name: 'doc' /** ... relationship type, polymorphic to searchCollections */ },
+  { name: 'docUrl' /** ... ui type, LinkToDoc component */ },
 ]
 ```
 
 **Generated Collection Config:**
 
 ```typescript
-// Lines 62-116
+// packages/plugin-search/src/Search/index.ts Lines 62-116
 {
   slug: 'search',
   access: {
@@ -238,28 +189,17 @@ const defaultFields: Field[] = [
   },
   admin: {
     components: {
-      views: {
-        list: {
-          actions: [{ path: '@payloadcms/plugin-search/client#ReindexButton' }]
-        }
-      }
+      views: { list: { actions: [/** ReindexButton */] } }
     },
     defaultColumns: ['title'],
-    enableRichTextRelationship: false,
     useAsTitle: 'title',
+    // ... more admin config
   },
   endpoints: [
-    {
-      handler: generateReindexHandler(pluginConfig),
-      method: 'post',
-      path: '/reindex',
-    }
+    { path: '/reindex', method: 'post', handler: generateReindexHandler(pluginConfig) }
   ],
   fields: defaultFields,
-  labels: {
-    plural: 'Search Results',
-    singular: 'Search Result',
-  }
+  labels: { plural: 'Search Results', singular: 'Search Result' }
 }
 ```
 
@@ -278,14 +218,9 @@ The plugin uses **synchronous, real-time indexing** triggered by collection life
 The core sync logic handles both create and update operations:
 
 ```typescript
-// Lines 3-260
+// packages/plugin-search/src/utilities/syncDocAsSearchIndex.ts Lines 3-260
 export const syncDocAsSearchIndex = async ({
-  collection,
-  doc,
-  locale,
-  operation,
-  pluginConfig,
-  req,
+  collection, doc, locale, operation, pluginConfig, req,
 }: SyncDocArgs) => {
   const { id, _status: status, title } = doc || {}
   const searchSlug = searchOverrides?.slug || 'search'
@@ -293,10 +228,7 @@ export const syncDocAsSearchIndex = async ({
 
   // Build search document
   let dataToSave: DocToSync = {
-    doc: {
-      relationTo: collection,
-      value: id,
-    },
+    doc: { relationTo: collection, value: id },
     title,
   }
 
@@ -309,29 +241,15 @@ export const syncDocAsSearchIndex = async ({
 
   // Apply beforeSync transformation
   if (typeof beforeSync === 'function') {
-    const docToSyncWith = await payload.findByID({
-      id,
-      collection,
-      locale: syncLocale,
-      req,
-    })
-    dataToSave = await beforeSync({
-      originalDoc: docToSyncWith,
-      payload,
-      req,
-      searchDoc: dataToSave,
-    })
+    const docToSyncWith = await payload.findByID({ id, collection, locale: syncLocale, req })
+    dataToSave = await beforeSync({ originalDoc: docToSyncWith, payload, req, searchDoc: dataToSave })
   }
 
-  // Calculate priority
+  // Calculate priority (static or dynamic function)
   let defaultPriority = 0
   if (defaultPriorities?.[collection]) {
     const priority = defaultPriorities[collection]
-    if (typeof priority === 'function') {
-      defaultPriority = await priority(doc)
-    } else if (priority !== undefined) {
-      defaultPriority = priority
-    }
+    defaultPriority = typeof priority === 'function' ? await priority(doc) : priority
   }
 
   const doSync = syncDrafts || (!syncDrafts && status !== 'draft')
@@ -341,9 +259,7 @@ export const syncDocAsSearchIndex = async ({
     await payload.create({
       collection: searchSlug,
       data: { ...dataToSave, priority: defaultPriority },
-      depth: 0,
-      locale: syncLocale,
-      req,
+      /** ... locale, depth, req */
     })
   }
 
@@ -352,83 +268,48 @@ export const syncDocAsSearchIndex = async ({
     // Find existing search doc
     const searchDocQuery = await payload.find({
       collection: searchSlug,
-      depth: 0,
-      locale: syncLocale,
-      req,
       where: {
         'doc.relationTo': { equals: collection },
         'doc.value': { equals: id },
       },
+      /** ... locale, depth, req */
     })
 
     const [foundDoc, ...duplicativeDocs] = searchDocQuery?.docs || []
 
-    // Delete duplicate search docs
+    // Delete duplicate search docs if any
     if (duplicativeDocs.length > 0) {
-      await payload.delete({
-        collection: searchSlug,
-        where: { id: { in: duplicativeDocs.map(({ id }) => id) } },
-      })
+      await payload.delete({ collection: searchSlug, where: { id: { in: /** ... */ } } })
     }
 
     if (foundDoc) {
       // Update existing search doc
       if (doSync) {
-        await payload.update({
-          id: foundDoc.id,
-          collection: searchSlug,
-          data: {
-            ...dataToSave,
-            priority: foundDoc.priority || defaultPriority,
-          },
-          depth: 0,
-          locale: syncLocale,
-          req,
-        })
+        await payload.update({ id: foundDoc.id, collection: searchSlug, data: { ...dataToSave, priority: /** ... */ } })
       }
 
       // Delete if trashed
       const isTrashDocument = doc && 'deletedAt' in doc && doc.deletedAt
       if (isTrashDocument) {
-        await payload.delete({
-          id: foundDoc.id,
-          collection: searchSlug,
-          depth: 0,
-          req,
-        })
+        await payload.delete({ id: foundDoc.id, collection: searchSlug /** ... */ })
       }
 
       // Delete if draft (when deleteDrafts enabled)
       if (deleteDrafts && status === 'draft') {
         // Check if published version exists
-        const {
-          docs: [docWithPublish],
-        } = await payload.find({
+        const { docs: [docWithPublish] } = await payload.find({
           collection,
-          where: {
-            and: [{ _status: { equals: 'published' } }, { id: { equals: id } }],
-          },
+          where: { and: [{ _status: { equals: 'published' } }, { id: { equals: id } }] },
         })
 
         // Only delete if no published version exists
         if (!docWithPublish && !isTrashDocument) {
-          await payload.delete({
-            id: foundDoc.id,
-            collection: searchSlug,
-            depth: 0,
-            req,
-          })
+          await payload.delete({ id: foundDoc.id, collection: searchSlug /** ... */ })
         }
       }
     } else if (doSync) {
       // Create search doc if it doesn't exist
-      await payload.create({
-        collection: searchSlug,
-        data: { ...dataToSave, priority: defaultPriority },
-        depth: 0,
-        locale: syncLocale,
-        req,
-      })
+      await payload.create({ collection: searchSlug, data: { ...dataToSave, priority: defaultPriority } /** ... */ })
     }
   }
 
@@ -441,7 +322,7 @@ export const syncDocAsSearchIndex = async ({
 **File:** `packages/plugin-search/src/Search/hooks/deleteFromSearch.ts`
 
 ```typescript
-// Lines 3-28
+// packages/plugin-search/src/Search/hooks/deleteFromSearch.ts Lines 3-28
 export const deleteFromSearch: DeleteFromSearch =
   (pluginConfig) =>
   async ({ id, collection, req: { payload }, req }) => {
@@ -450,18 +331,14 @@ export const deleteFromSearch: DeleteFromSearch =
     try {
       await payload.delete({
         collection: searchSlug,
-        depth: 0,
-        req,
         where: {
           'doc.relationTo': { equals: collection.slug },
           'doc.value': { equals: id },
         },
+        /** ... depth, req */
       })
     } catch (err: unknown) {
-      payload.logger.error({
-        err,
-        msg: `Error deleting ${searchSlug} doc.`,
-      })
+      payload.logger.error({ err, msg: `Error deleting ${searchSlug} doc.` })
     }
   }
 ```
@@ -485,7 +362,7 @@ export const deleteFromSearch: DeleteFromSearch =
 **File:** `packages/plugin-search/src/utilities/generateReindexHandler.ts`
 
 ```typescript
-// Lines 21-182
+// packages/plugin-search/src/utilities/generateReindexHandler.ts Lines 21-182
 export const generateReindexHandler =
   (pluginConfig: SanitizedSearchPluginConfig): PayloadHandler =>
   async (req) => {
@@ -539,6 +416,7 @@ export const generateReindexHandler =
               page: i + 1,
             })
 
+            // Sync each doc in batch
             for (const doc of docs) {
               await syncDocAsSearchIndex({
                 collection,
@@ -557,9 +435,7 @@ export const generateReindexHandler =
       await commitTransaction(req)
 
       return Response.json(
-        {
-          message: `Successfully reindexed ${collections.join(', ')}`,
-        },
+        { message: `Successfully reindexed ${collections.join(', ')}` },
         { status: 200 },
       )
     } catch (err: any) {
@@ -592,21 +468,16 @@ Resolves collection labels for display.
 **Client Component:** `packages/plugin-search/src/Search/ui/ReindexButton/index.client.tsx`
 
 ```typescript
-// Lines 22-149
+// packages/plugin-search/src/Search/ui/ReindexButton/index.client.tsx Lines 22-149
 export const ReindexButtonClient: React.FC<ReindexButtonProps> = ({
-  collectionLabels,
-  searchCollections,
-  searchSlug,
+  collectionLabels, searchCollections, searchSlug,
 }) => {
   const [reindexCollections, setReindexCollections] = useState<string[]>([])
 
   const handleReindexSubmit = useCallback(async () => {
     const res = await fetch(
       `${config.routes.api}/${searchSlug}/reindex?locale=${locale.code}`,
-      {
-        body: JSON.stringify({ collections: reindexCollections }),
-        method: 'POST',
-      }
+      { body: JSON.stringify({ collections: reindexCollections }), method: 'POST' }
     )
 
     const { message } = await res.json()
@@ -625,13 +496,13 @@ export const ReindexButtonClient: React.FC<ReindexButtonProps> = ({
         button={<ReindexButtonLabel />}
         render={({ close }) => (
           <PopupList.ButtonGroup>
+            {/** Render buttons for each collection */}
             {searchCollections.map((collectionSlug) => (
-              <PopupList.Button
-                onClick={() => handlePopupButtonClick(close, collectionSlug)}
-              >
+              <PopupList.Button onClick={() => handlePopupButtonClick(close, collectionSlug)}>
                 {pluralizedLabels[collectionSlug]}
               </PopupList.Button>
             ))}
+            {/** "All Collections" button */}
             <PopupList.Button onClick={() => handlePopupButtonClick(close)}>
               {t('general:allCollections')}
             </PopupList.Button>
@@ -654,12 +525,10 @@ export const ReindexButtonClient: React.FC<ReindexButtonProps> = ({
 **File:** `packages/plugin-search/src/Search/ui/LinkToDoc/index.client.tsx`
 
 ```typescript
-// Lines 7-56
+// packages/plugin-search/src/Search/ui/LinkToDoc/index.client.tsx Lines 7-56
 export const LinkToDocClient: React.FC = () => {
   const { config } = useConfig()
-  const { value } = useField<{ relationTo?: string; value?: string }>({
-    path: 'doc'
-  })
+  const { value } = useField<{ relationTo?: string; value?: string }>({ path: 'doc' })
 
   if (!value?.relationTo || !value?.value) return null
 
@@ -672,9 +541,7 @@ export const LinkToDocClient: React.FC = () => {
     <div>
       <span className="label">Doc URL</span>
       <CopyToClipboard value={href} />
-      <Link href={href} target="_blank">
-        {href}
-      </Link>
+      <Link href={href} target="_blank">{href}</Link>
     </div>
   )
 }
@@ -897,12 +764,11 @@ From `test/plugin-search/collections/`:
 **Posts.ts:**
 
 ```typescript
+// test/plugin-search/collections/Posts.ts
 {
   slug: 'posts',
   trash: true,           // Soft delete support
-  versions: {
-    drafts: true,        // Draft/published workflow
-  },
+  versions: { drafts: true },  // Draft/published workflow
   fields: [
     { name: 'title', type: 'text', required: true },
     { name: 'excerpt', type: 'text' },
@@ -914,11 +780,10 @@ From `test/plugin-search/collections/`:
 **Pages.ts:**
 
 ```typescript
+// test/plugin-search/collections/Pages.ts
 {
   slug: 'pages',
-  versions: {
-    drafts: true,
-  },
+  versions: { drafts: true },
   fields: [
     { name: 'title', type: 'text', required: true },
     { name: 'excerpt', type: 'text' },

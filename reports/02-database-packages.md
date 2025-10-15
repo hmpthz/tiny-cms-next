@@ -476,11 +476,15 @@ export const buildQuery = function buildQuery({
 
   // Parse where conditions
   if (incomingWhere && Object.keys(incomingWhere).length > 0) {
-    where = parseParams({ /** ... args */ })
+    where = parseParams({
+      /** ... args */
+    })
   }
 
   // Build ORDER BY
-  const orderBy = buildOrderBy({ /** ... args */ })
+  const orderBy = buildOrderBy({
+    /** ... args */
+  })
 
   return { joins, orderBy, selectFields, where }
 }
@@ -544,7 +548,7 @@ export const find: Find = async function find(
 // drizzle/src/create.ts:10-36
 export const create: Create = async function create(
   this: DrizzleAdapter,
-  { collection: collectionSlug, data, req, /** ... */ },
+  { collection: collectionSlug, data, req /** ... */ },
 ) {
   const db = await getTransaction(this, req)
   const collection = this.payload.collections[collectionSlug].config
@@ -645,7 +649,9 @@ export const init: Init = async function init(this: BasePostgresAdapter) {
   await executeSchemaHooks({ type: 'afterSchemaInit', adapter: this })
 
   // Combine into final schema
-  this.schema = { /** ... combine tables, relations, enums */ }
+  this.schema = {
+    /** ... combine tables, relations, enums */
+  }
 }
 ```
 
@@ -683,8 +689,8 @@ export const buildDrizzleTable = ({
     }
 
     // Add constraints
-    if (column.reference) /** ... add foreign key reference */
-    if (column.primaryKey) columns[key].primaryKey()
+    if (column.reference)
+      if (column.primaryKey) /** ... add foreign key reference */ columns[key].primaryKey()
     if (column.notNull) columns[key].notNull()
     // ... more constraints
   }
@@ -963,7 +969,9 @@ db: postgresAdapter({
         table: schema.tables.posts,
         columns: (cols) => ({
           ...cols,
-          search_vector: vector('search_vector', { /** ... */ }),
+          search_vector: vector('search_vector', {
+            /** ... */
+          }),
         }),
         extraConfig: (cols) => ({
           searchIndex: index('search_idx').on(cols.search_vector),
@@ -1154,24 +1162,29 @@ Total: ~1,000 lines vs current ~10,000 lines
 ### Key Files with Line Numbers
 
 **db-postgres/src/index.ts**:
+
 - Lines 68-89: Adapter configuration setup
 - Lines 99-213: Database adapter creation with all operations
 
 **db-postgres/src/connect.ts**:
+
 - Lines 10-45: Auto-reconnect logic
 - Lines 56-79: Drizzle initialization and read replicas
 - Lines 88-106: Auto database creation
 - Lines 116-131: Dev schema push and production migrations
 
 **db-postgres/src/types.ts**:
+
 - Lines 23-79: Args type definition
 - Lines 93-98: PostgresAdapter type
 
 **drizzle/src/schema/buildRawSchema.ts**:
+
 - Lines 25-39: Create table names
 - Lines 41-90: Build collection tables
 
 **drizzle/src/schema/build.ts**:
+
 - Lines 92-114: Table initialization
 - Lines 116-146: Traverse fields to build columns
 - Lines 157-177: Add timestamps
@@ -1181,21 +1194,27 @@ Total: ~1,000 lines vs current ~10,000 lines
 - Lines 522-698: Relationships table
 
 **drizzle/src/queries/buildQuery.ts**:
+
 - Lines 41-95: Main query builder
 
 **drizzle/src/find.ts**:
+
 - Lines 9-46: Find operation
 
 **drizzle/src/create.ts**:
+
 - Lines 10-36: Create operation using upsertRow
 
 **drizzle/src/transactions/beginTransaction.ts**:
+
 - Lines 7-66: Transaction session management
 
 **drizzle/src/postgres/init.ts**:
+
 - Lines 11-45: Schema initialization process
 
 **drizzle/src/postgres/schema/buildDrizzleTable.ts**:
+
 - Lines 39-204: Convert RawTable to Drizzle table
 
 ---

@@ -181,7 +181,7 @@ type Adapter = (args: { collection: CollectionConfig; prefix?: string }) => Gene
 interface S3StorageOptions {
   acl?: 'private' | 'public-read'
   bucket: string
-  collections: Record<string, /** ... */>
+  collections: Record<string /** ... */>
   config: AWS.S3ClientConfig
   // ... more options
 }
@@ -210,12 +210,16 @@ export const getHandleUpload = ({ acl, bucket, getStorageClient, prefix }): Hand
 
     if (file.buffer.length < multipartThreshold) {
       // Simple upload for small files
-      await getStorageClient().putObject({ /** ... */ })
+      await getStorageClient().putObject({
+        /** ... */
+      })
     } else {
       // Multipart upload for large files
       const parallelUploadS3 = new Upload({
         client: getStorageClient(),
-        params: { /** ... */ },
+        params: {
+          /** ... */
+        },
         partSize: multipartThreshold,
         queueSize: 4,
       })
@@ -276,13 +280,20 @@ export const getHandler = ({
 
     // Generate pre-signed URL if enabled
     if (signedDownloads && !clientUploadContext) {
-      const command = new GetObjectCommand({ /** ... */ })
+      const command = new GetObjectCommand({
+        /** ... */
+      })
       const signedUrl = await getSignedUrl(getStorageClient(), command, { expiresIn: 7200 })
       return Response.redirect(signedUrl, 302)
     }
 
     // Stream file from S3
-    const object = await getStorageClient().getObject({ /** ... */ }, { abortSignal })
+    const object = await getStorageClient().getObject(
+      {
+        /** ... */
+      },
+      { abortSignal },
+    )
 
     // Handle ETag caching
     if (etagFromHeaders === objectEtag) {
@@ -335,7 +346,9 @@ export const getGenerateSignedURLHandler = ({
     // Generate pre-signed PUT URL (10 min expiry)
     const url = await getSignedUrl(
       getStorageClient(),
-      new AWS.PutObjectCommand({ /** ... */ }),
+      new AWS.PutObjectCommand({
+        /** ... */
+      }),
       { expiresIn: 600 },
     )
 
@@ -354,7 +367,9 @@ export const S3ClientUploadHandler = createClientUploadHandler({
   handler: async ({ apiRoute, collectionSlug, file, prefix, serverHandlerPath, serverURL }) => {
     // 1. Request pre-signed URL from server
     const response = await fetch(`${serverURL}${apiRoute}${serverHandlerPath}`, {
-      body: JSON.stringify({ /** ... */ }),
+      body: JSON.stringify({
+        /** ... */
+      }),
       credentials: 'include',
       method: 'POST',
     })
@@ -364,7 +379,9 @@ export const S3ClientUploadHandler = createClientUploadHandler({
     // 2. Upload directly to S3
     await fetch(url, {
       body: file,
-      headers: { /** ... */ },
+      headers: {
+        /** ... */
+      },
       method: 'PUT',
     })
 
@@ -419,7 +436,9 @@ export const getBeforeChangeHook = ({ adapter, collection }): CollectionBeforeCh
         ]
         await Promise.all(
           filesToDelete.map((filename) =>
-            adapter.handleDelete({ /** ... */ }),
+            adapter.handleDelete({
+              /** ... */
+            }),
           ),
         )
       }
@@ -427,7 +446,9 @@ export const getBeforeChangeHook = ({ adapter, collection }): CollectionBeforeCh
       // Upload new files (main + resized variants)
       await Promise.all(
         files.map((file) =>
-          adapter.handleUpload({ /** ... */ }),
+          adapter.handleUpload({
+            /** ... */
+          }),
         ),
       )
     }
@@ -454,7 +475,11 @@ export const getAfterDeleteHook = ({ adapter, collection }): CollectionAfterDele
     ]
 
     await Promise.all(
-      filesToDelete.map((filename) => adapter.handleDelete({ /** ... */ })),
+      filesToDelete.map((filename) =>
+        adapter.handleDelete({
+          /** ... */
+        }),
+      ),
     )
 
     return doc
@@ -485,11 +510,15 @@ export const getAfterReadHook = ({
     let url = value
 
     if (disablePayloadAccessControl && filename) {
-      url = await adapter.generateURL?.({ /** ... */ })
+      url = await adapter.generateURL?.({
+        /** ... */
+      })
     }
 
     if (generateFileURL) {
-      url = await generateFileURL({ /** ... */ })
+      url = await generateFileURL({
+        /** ... */
+      })
     }
 
     return url
@@ -593,12 +622,16 @@ s3Storage({
     media: true,
     'media-with-prefix': { prefix: 'custom-prefix' },
     'media-with-signed-downloads': {
-      signedDownloads: { /** ... */ },
+      signedDownloads: {
+        /** ... */
+      },
     },
   },
   bucket: process.env.S3_BUCKET,
   config: {
-    credentials: { /** ... */ },
+    credentials: {
+      /** ... */
+    },
     endpoint: process.env.S3_ENDPOINT,
     region: process.env.S3_REGION,
     // ...
@@ -664,7 +697,9 @@ function supabaseStorage({ bucket, supabaseUrl, supabaseKey, collections }): Ada
 
     handleUpload: async ({ data, file }) => {
       const path = `${data.prefix || prefix}/${file.filename}`
-      await storage.from(bucket).upload(path, file.buffer, { /** ... */ })
+      await storage.from(bucket).upload(path, file.buffer, {
+        /** ... */
+      })
     },
 
     handleDelete: async ({ doc: { prefix = '' }, filename }) => {
