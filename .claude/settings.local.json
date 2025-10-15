@@ -7,6 +7,7 @@
       "Bash(cat:*)",
       "Bash(tree:*)",
       "Bash(test:*)",
+      "Bash(grep:*)",
       "Bash(pnpm tsc:*)",
       "Bash(pnpm type-check:*)",
       "Bash(pnpm test:*)",

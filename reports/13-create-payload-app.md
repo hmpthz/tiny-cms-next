@@ -626,9 +626,7 @@ templates/blank/
 ├── src/
 │   ├── app/
 │   │   ├── (frontend)/
-│   │   │   ├── layout.tsx
 │   │   │   ├── page.tsx
-│   │   │   └── styles.css
 │   │   ├── (payload)/
 │   │   │   ├── admin/
 │   │   │   │   └── [[...segments]]/
@@ -636,26 +634,15 @@ templates/blank/
 │   │   │   │       └── not-found.tsx
 │   │   │   ├── api/
 │   │   │   │   ├── [...slug]/
-│   │   │   │   │   └── route.ts
 │   │   │   │   ├── graphql/
-│   │   │   │   │   └── route.ts
 │   │   │   │   └── graphql-playground/
-│   │   │   │       └── route.ts
 │   │   │   ├── custom.scss
 │   │   │   └── layout.tsx
 │   │   └── my-route/
 │   │       └── route.ts
 │   ├── collections/
-│   │   ├── Users.ts
-│   │   └── Media.ts
 │   ├── payload.config.ts
 │   └── payload-types.ts
-├── .env.example
-├── .gitignore
-├── next.config.mjs
-├── package.json
-├── tsconfig.json
-└── README.md
 ```
 
 **Key Files:**
@@ -2585,17 +2572,8 @@ templates/blog/
 │   │       ├── api/[...slug]/route.ts
 │   │       └── layout.tsx
 │   ├── collections/
-│   │   ├── Posts.ts
-│   │   ├── Categories.ts
-│   │   ├── Tags.ts
-│   │   ├── Users.ts
-│   │   └── Media.ts
 │   ├── payload.config.ts
 │   └── payload-types.ts
-├── .env.example
-├── next.config.mjs
-├── package.json
-└── tsconfig.json
 ```
 
 #### 12.1.6 Example Collections

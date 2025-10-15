@@ -150,7 +150,6 @@ export async function sendVerificationEmail(args: Args): Promise<void> {
 | **Dependencies**   | nodemailer@7.0.9 | None     |
 | **Protocol**       | SMTP             | REST API |
 | **Test mode**      | Ethereal.email   | N/A      |
-| **Bundle size**    | ~500KB           | ~50KB    |
 
 ### Why We Don't Need Them
 
@@ -177,16 +176,6 @@ For tiny-cms MVP:
 Payload provides two rich text editor adapters: **Lexical** (modern, complex) and **Slate** (simpler, older). Both are significantly more complex than needed for a simple CMS.
 
 **Locations:** `packages/richtext-lexical`, `packages/richtext-slate`
-
-### Complexity Comparison
-
-| Metric            | Lexical      | Slate          | Simple Markdown  |
-| ----------------- | ------------ | -------------- | ---------------- |
-| **Files**         | ~490         | ~142           | ~5-10            |
-| **Lines of Code** | ~23,785      | ~5,483         | ~500-1000        |
-| **Dependencies**  | 19+ packages | 4 packages     | 1-2              |
-| **Features**      | 22+ features | Basic elements | Basic formatting |
-| **Bundle Size**   | 2.7 MB       | 712 KB         | ~100KB           |
 
 ### Lexical Package
 
