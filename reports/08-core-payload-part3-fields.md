@@ -1457,52 +1457,20 @@ if (minRows && array.length < minRows) {
 
 ### 5.1 Hook Execution Order
 
-```
-Operation Flow:
-┌─────────────────────┐
-│  Request Arrives    │
-└─────────┬───────────┘
-          │
-          ▼
-┌─────────────────────┐
-│  beforeValidate     │  ← Sanitize input, compute values
-└─────────┬───────────┘
-          │
-          ▼
-┌─────────────────────┐
-│  Field Validation   │  ← Built-in + custom validators
-└─────────┬───────────┘
-          │
-          ▼
-┌─────────────────────┐
-│  beforeChange       │  ← Transform data before save
-└─────────┬───────────┘
-          │
-          ▼
-┌─────────────────────┐
-│  Write to Database  │
-└─────────┬───────────┘
-          │
-          ▼
-┌─────────────────────┐
-│  afterChange        │  ← Post-save side effects
-└─────────┬───────────┘
-          │
-          ▼
-┌─────────────────────┐
-│  afterRead          │  ← Transform on retrieval
-└─────────┬───────────┘
-          │
-          ▼
-┌─────────────────────┐
-│  Return to Client   │
-└─────────────────────┘
+**Operation Flow:**
 
-Special:
-┌─────────────────────┐
-│  beforeDuplicate    │  ← Before document duplication
-└─────────────────────┘
-```
+1. Request Arrives
+2. **beforeValidate** - Sanitize input, compute values
+3. **Field Validation** - Built-in + custom validators
+4. **beforeChange** - Transform data before save
+5. Write to Database
+6. **afterChange** - Post-save side effects
+7. **afterRead** - Transform on retrieval
+8. Return to Client
+
+**Special Hooks:**
+
+- **beforeDuplicate** - Before document duplication
 
 ### 5.2 Hook Types and Arguments
 
