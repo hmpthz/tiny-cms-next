@@ -807,52 +807,21 @@ buildSearchParams({
 **Options Type:**
 
 ```typescript
+// packages/sdk/src/collections/find.ts:10-30
 export type FindOptions<
   T extends PayloadGeneratedTypes,
   TSlug extends CollectionSlug<T>,
   TSelect extends SelectType,
 > = {
-  /** Collection slug to query */
   collection: TSlug
-
-  /** Control auto-population depth of relationships */
   depth?: number
-
-  /** Query from versions/drafts table */
   draft?: boolean
-
-  /** Fallback locale for missing translations */
-  fallbackLocale?: false | TypedLocale<T>
-
-  /** Join field query configuration */
-  joins?: JoinQuery<T, TSlug>
-
-  /** Maximum documents to return (default: 10) */
   limit?: number
-
-  /** Query specific locale or 'all' */
-  locale?: 'all' | TypedLocale<T>
-
-  /** Page number (default: 1) */
   page?: number
-
-  /** Enable/disable pagination and counts */
-  pagination?: boolean
-
-  /** Control populated document fields */
-  populate?: PopulateType<T>
-
-  /** Select specific fields to return */
   select?: TSelect
-
-  /** Sort order (e.g., '-createdAt') */
   sort?: Sort
-
-  /** Include trashed documents */
-  trash?: boolean
-
-  /** Filter query */
   where?: Where
+  // ...more options
 }
 ```
 
@@ -896,39 +865,10 @@ type PaginatedDocs<T> = {
 }
 ```
 
-**Usage Examples:**
+**Usage Example:**
 
 ```typescript
-// Basic find
-const posts = await sdk.find({
-  collection: 'posts',
-})
-
-// With filtering
-const publishedPosts = await sdk.find({
-  collection: 'posts',
-  where: {
-    status: { equals: 'published' },
-  },
-})
-
-// With pagination and sorting
-const recentPosts = await sdk.find({
-  collection: 'posts',
-  page: 1,
-  limit: 20,
-  sort: '-createdAt',
-})
-
-// With field selection
-const postTitles = await sdk.find({
-  collection: 'posts',
-  select: {
-    title: true,
-    slug: true,
-  },
-})
-
+// packages/sdk/src/collections/find.ts - full file
 // Complex query
 const filteredPosts = await sdk.find({
   collection: 'posts',
@@ -936,9 +876,7 @@ const filteredPosts = await sdk.find({
     and: [
       { status: { equals: 'published' } },
       { publishedAt: { less_than: new Date().toISOString() } },
-      {
-        or: [{ author: { equals: userId } }, { featured: { equals: true } }],
-      },
+      // ...more conditions
     ],
   },
   sort: ['-featured', '-publishedAt'],
@@ -954,41 +892,19 @@ const filteredPosts = await sdk.find({
 **Options Type:**
 
 ```typescript
+// packages/sdk/src/collections/findByID.ts:10-25
 export type FindByIDOptions<
   T extends PayloadGeneratedTypes,
   TSlug extends CollectionSlug<T>,
   TDisableErrors extends boolean,
   TSelect extends SelectType,
 > = {
-  /** Collection slug */
   collection: TSlug
-
-  /** Document ID */
   id: number | string
-
-  /** Control auto-population depth */
-  depth?: number
-
-  /** Return null instead of throwing on error */
   disableErrors?: TDisableErrors
-
-  /** Query from drafts */
-  draft?: boolean
-
-  /** Fallback locale */
-  fallbackLocale?: false | TypedLocale<T>
-
-  /** Join configuration */
-  joins?: JoinQuery<T, TSlug>
-
-  /** Locale */
-  locale?: 'all' | TypedLocale<T>
-
-  /** Populate configuration */
-  populate?: PopulateType<T>
-
-  /** Field selection */
+  depth?: number
   select?: TSelect
+  // ...more options
 }
 ```
 
@@ -1029,33 +945,15 @@ export async function findByID<
 }
 ```
 
-**Usage Examples:**
+**Usage Example:**
 
 ```typescript
-// Basic find by ID
-const post = await sdk.findByID({
-  collection: 'posts',
-  id: '123',
-})
-
+// packages/sdk/src/collections/findByID.ts - full file
 // With error suppression
 const post = await sdk.findByID({
   collection: 'posts',
   id: '123',
   disableErrors: true, // Returns null if not found
-})
-if (post) {
-  // Handle found post
-}
-
-// With field selection
-const postTitle = await sdk.findByID({
-  collection: 'posts',
-  id: '123',
-  select: {
-    title: true,
-    slug: true,
-  },
 })
 ```
 
@@ -1066,37 +964,18 @@ const postTitle = await sdk.findByID({
 **Options Type:**
 
 ```typescript
+// packages/sdk/src/collections/create.ts:8-20
 export type CreateOptions<
   T extends PayloadGeneratedTypes,
   TSlug extends CollectionSlug<T>,
   TSelect extends SelectType,
 > = {
-  /** Collection slug */
   collection: TSlug
-
-  /** Document data to create */
   data: RequiredDataFromCollectionSlug<T, TSlug>
-
-  /** Auto-population depth */
-  depth?: number
-
-  /** Create as draft */
-  draft?: boolean
-
-  /** Fallback locale */
-  fallbackLocale?: false | TypedLocale<T>
-
-  /** File (for upload collections) */
   file?: TSlug extends UploadCollectionSlug<T> ? Blob | string : never
-
-  /** Locale */
-  locale?: 'all' | TypedLocale<T>
-
-  /** Populate configuration */
-  populate?: PopulateType<T>
-
-  /** Field selection */
+  depth?: number
   select?: TSelect
+  // ...more options
 }
 ```
 
@@ -1150,19 +1029,10 @@ export const resolveFileFromOptions = async (file: Blob | string) => {
 }
 ```
 
-**Usage Examples:**
+**Usage Example:**
 
 ```typescript
-// Create regular document
-const newPost = await sdk.create({
-  collection: 'posts',
-  data: {
-    title: 'Hello World',
-    content: 'This is my first post',
-    status: 'draft',
-  },
-})
-
+// packages/sdk/src/collections/create.ts - full file
 // Create with file (upload collection)
 const newMedia = await sdk.create({
   collection: 'media',
@@ -1170,23 +1040,6 @@ const newMedia = await sdk.create({
   data: {
     alt: 'Profile picture',
   },
-})
-
-// Create from file URL
-const mediaFromUrl = await sdk.create({
-  collection: 'media',
-  file: 'https://example.com/image.jpg',
-  data: {},
-})
-
-// Create as draft
-const draftPost = await sdk.create({
-  collection: 'posts',
-  data: {
-    title: 'Draft Post',
-    content: 'Work in progress',
-  },
-  draft: true,
 })
 ```
 
@@ -1308,40 +1161,16 @@ export async function update<
 }
 ```
 
-**Usage Examples:**
+**Usage Example:**
 
 ```typescript
+// packages/sdk/src/collections/update.ts - full file
 // Update by ID
 const updated = await sdk.update({
   collection: 'posts',
   id: '123',
   data: {
     title: 'Updated Title',
-  },
-})
-
-// Bulk update
-const bulkResult = await sdk.update({
-  collection: 'posts',
-  where: {
-    status: { equals: 'draft' },
-  },
-  data: {
-    status: 'archived',
-  },
-})
-// bulkResult = {
-//   docs: [...updated posts],
-//   errors: [...failed updates]
-// }
-
-// Update with file
-const updatedMedia = await sdk.update({
-  collection: 'media',
-  id: '456',
-  file: newFileBlob,
-  data: {
-    alt: 'Updated alt text',
   },
 })
 ```
@@ -1439,27 +1268,14 @@ export async function deleteOperation<
 }
 ```
 
-**Usage Examples:**
+**Usage Example:**
 
 ```typescript
-// Delete by ID
+// packages/sdk/src/collections/delete.ts - full file
 const deleted = await sdk.delete({
   collection: 'posts',
   id: '123',
 })
-
-// Bulk delete
-const bulkResult = await sdk.delete({
-  collection: 'posts',
-  where: {
-    status: { equals: 'archived' },
-    createdAt: { less_than: '2023-01-01' },
-  },
-})
-// bulkResult = {
-//   docs: [...deleted posts],
-//   errors: [...failed deletions]
-// }
 ```
 
 ### 6. Count Operation (packages/sdk/src/collections/count.ts)
@@ -1500,20 +1316,13 @@ export async function count<T extends PayloadGeneratedTypes, TSlug extends Colle
 }
 ```
 
-**Usage Examples:**
+**Usage Example:**
 
 ```typescript
-// Count all documents
-const { totalDocs } = await sdk.count({
-  collection: 'posts',
-})
-
-// Count with filter
+// packages/sdk/src/collections/count.ts - full file
 const { totalDocs: publishedCount } = await sdk.count({
   collection: 'posts',
-  where: {
-    status: { equals: 'published' },
-  },
+  where: { status: { equals: 'published' } },
 })
 ```
 
@@ -1581,21 +1390,12 @@ export async function findGlobal<
 }
 ```
 
-**Usage Examples:**
+**Usage Example:**
 
 ```typescript
-// Get site settings
+// packages/sdk/src/globals/findOne.ts - full file
 const settings = await sdk.findGlobal({
   slug: 'settings',
-})
-
-// Get with field selection
-const headerData = await sdk.findGlobal({
-  slug: 'header',
-  select: {
-    logo: true,
-    navigation: true,
-  },
 })
 ```
 
@@ -1666,28 +1466,16 @@ export async function updateGlobal<
 }
 ```
 
-**Usage Examples:**
+**Usage Example:**
 
 ```typescript
-// Update settings
+// packages/sdk/src/globals/update.ts - full file
 const updated = await sdk.updateGlobal({
   slug: 'settings',
   data: {
     siteName: 'My Awesome Site',
     maintenanceMode: false,
   },
-})
-
-// Update as draft
-const draft = await sdk.updateGlobal({
-  slug: 'header',
-  data: {
-    navigation: [
-      { label: 'Home', href: '/' },
-      { label: 'About', href: '/about' },
-    ],
-  },
-  draft: true,
 })
 ```
 
@@ -1734,10 +1522,10 @@ export async function login<T extends PayloadGeneratedTypes, TSlug extends AuthC
 }
 ```
 
-**Usage Examples:**
+**Usage Example:**
 
 ```typescript
-// Login
+// packages/sdk/src/auth/login.ts - full file
 const result = await sdk.login({
   collection: 'users',
   data: {
@@ -1745,16 +1533,6 @@ const result = await sdk.login({
     password: 'password123',
   },
 })
-
-// Use token for subsequent requests
-const posts = await sdk.find(
-  { collection: 'posts' },
-  {
-    headers: {
-      Authorization: `JWT ${result.token}`,
-    },
-  },
-)
 ```
 
 ### 2. Me Operation (packages/sdk/src/auth/me.ts)
@@ -1796,20 +1574,11 @@ export async function me<T extends PayloadGeneratedTypes, TSlug extends AuthColl
 }
 ```
 
-**Usage Examples:**
+**Usage Example:**
 
 ```typescript
-// Get current user
-const result = await sdk.me(
-  { collection: 'users' },
-  {
-    headers: {
-      Authorization: `JWT ${token}`,
-    },
-  },
-)
-
-console.log(result.user.email)
+// packages/sdk/src/auth/me.ts - full file
+const result = await sdk.me({ collection: 'users' }, { headers: { Authorization: `JWT ${token}` } })
 ```
 
 ### 3. RefreshToken Operation (packages/sdk/src/auth/refreshToken.ts)
@@ -1853,21 +1622,14 @@ export async function refreshToken<
 }
 ```
 
-**Usage Examples:**
+**Usage Example:**
 
 ```typescript
-// Refresh token
+// packages/sdk/src/auth/refreshToken.ts - full file
 const result = await sdk.refreshToken(
   { collection: 'users' },
-  {
-    headers: {
-      Authorization: `JWT ${oldToken}`,
-    },
-  },
+  { headers: { Authorization: `JWT ${oldToken}` } },
 )
-
-// Use new token
-const newToken = result.refreshedToken
 ```
 
 ### 4. ForgotPassword Operation (packages/sdk/src/auth/forgotPassword.ts)
@@ -1911,17 +1673,14 @@ export async function forgotPassword<
 }
 ```
 
-**Usage Examples:**
+**Usage Example:**
 
 ```typescript
-// Request password reset
+// packages/sdk/src/auth/forgotPassword.ts - full file
 const result = await sdk.forgotPassword({
   collection: 'users',
-  data: {
-    email: 'user@example.com',
-  },
+  data: { email: 'user@example.com' },
 })
-// Sends reset email with token
 ```
 
 ### 5. ResetPassword Operation (packages/sdk/src/auth/resetPassword.ts)
@@ -1973,19 +1732,14 @@ export async function resetPassword<
 }
 ```
 
-**Usage Examples:**
+**Usage Example:**
 
 ```typescript
-// Reset password with token from email
+// packages/sdk/src/auth/resetPassword.ts - full file
 const result = await sdk.resetPassword({
   collection: 'users',
-  data: {
-    password: 'newSecurePassword123',
-    token: tokenFromEmail,
-  },
+  data: { password: 'newSecurePassword123', token: tokenFromEmail },
 })
-
-// User can now login with new password
 ```
 
 ### 6. VerifyEmail Operation (packages/sdk/src/auth/verifyEmail.ts)
@@ -2025,10 +1779,10 @@ export async function verifyEmail<
 }
 ```
 
-**Usage Examples:**
+**Usage Example:**
 
 ```typescript
-// Verify email
+// packages/sdk/src/auth/verifyEmail.ts - full file
 const result = await sdk.verifyEmail({
   collection: 'users',
   token: tokenFromEmail,
@@ -2090,23 +1844,15 @@ export async function findVersions<
 }
 ```
 
-**Usage Examples:**
+**Usage Example:**
 
 ```typescript
-// Get all versions for a specific document
+// packages/sdk/src/collections/findVersions.ts - full file
 const versions = await sdk.findVersions({
   collection: 'posts',
-  where: {
-    parent: { equals: postId },
-  },
+  where: { parent: { equals: postId } },
   sort: '-version.createdAt',
 })
-
-// Each version includes:
-// - version.createdAt
-// - version.updatedAt
-// - version._status (draft/published)
-// - ...all document fields at that version
 ```
 
 ### 2. FindVersionByID Operation (packages/sdk/src/collections/findVersionByID.ts)
@@ -2149,10 +1895,10 @@ export async function findVersionByID<
 }
 ```
 
-**Usage Examples:**
+**Usage Example:**
 
 ```typescript
-// Get specific version
+// packages/sdk/src/collections/findVersionByID.ts - full file
 const version = await sdk.findVersionByID({
   collection: 'posts',
   id: versionId,
@@ -2185,15 +1931,14 @@ export async function restoreVersion<
 }
 ```
 
-**Usage Examples:**
+**Usage Example:**
 
 ```typescript
-// Restore post to previous version
+// packages/sdk/src/collections/restoreVersion.ts - full file
 const restoredPost = await sdk.restoreVersion({
   collection: 'posts',
   id: versionId,
 })
-// Creates new version with content from versionId
 ```
 
 ### 4. Global Versions

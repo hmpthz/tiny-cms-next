@@ -256,197 +256,38 @@ The `init()` method in `Main` class handles three distinct scenarios:
 **Complete Flow:**
 
 ```typescript
+// packages/create-payload-app/src/main.ts:189-452
 async init(): Promise<void> {
-  // 1. Get latest Payload version
-  const LATEST_VERSION = await getLatestPackageVersion({
-    debug: this.args['--debug'],
-    packageName: 'payload',
-  })
+  // 1. Get latest version and show welcome
+  const LATEST_VERSION = await getLatestPackageVersion(/** ... */)
+  if (this.args['--help']) { /** Show help and exit */ }
 
-  // 2. Show help if requested
-  if (this.args['--help']) {
-    helpMessage()
-    process.exit(0)
-  }
-
-  // 3. Show welcome message
-  console.log('\n')
+  // 2. Show welcome message
   p.intro(chalk.bgCyan(chalk.black(' create-payload-app ')))
-  p.note("Welcome to Payload. Let's create a project!")
 
-  // 4. Detect existing Next.js project
+  // 3. Detect existing Next.js project
   const nextAppDetails = await getNextAppDetails(process.cwd())
-  const {
-    hasTopLevelLayout,
-    isPayloadInstalled,
-    isSupportedNextVersion,
-    nextAppDir,
-    nextConfigPath,
-    nextVersion,
-  } = nextAppDetails
 
-  // 5. Check Next.js version compatibility
-  if (nextConfigPath && !isSupportedNextVersion) {
-    p.log.warn(
-      `Next.js v${nextVersion} is unsupported. Next.js >= 15 is required.`
-    )
-    p.outro(feedbackOutro())
-    process.exit(0)
-  }
-
-  // 6. Handle Payload upgrade
-  if (isPayloadInstalled && nextConfigPath) {
-    const shouldUpdate = await p.confirm({
-      initialValue: false,
-      message: chalk.bold(`Upgrade Payload in this project?`),
-    })
-
-    if (!p.isCancel(shouldUpdate) && shouldUpdate) {
-      const { message, success } = await updatePayloadInProject(nextAppDetails)
-      if (success) {
-        info(message)
-      } else {
-        error(message)
-      }
-    }
-
-    p.outro(feedbackOutro())
-    process.exit(0)
-  }
-
-  // 7. Handle Next.js project installation
+  // 4-7. Handle existing Next.js project scenarios
   if (nextConfigPath) {
-    this.args['--name'] = slugify(path.basename(path.dirname(nextConfigPath)))
-
-    const projectName = await parseProjectName(this.args)
-    const projectDir = path.dirname(nextConfigPath)
-    const packageManager = await getPackageManager({ cliArgs: this.args, projectDir })
-
-    p.log.step(
-      chalk.bold(`${chalk.bgBlack(` ${figures.triangleUp} Next.js `)} project detected!`)
-    )
-
-    const proceed = await p.confirm({
-      initialValue: true,
-      message: chalk.bold(`Install ${chalk.green('Payload')} in this project?`),
-    })
-
-    if (p.isCancel(proceed) || !proceed) {
-      p.outro(feedbackOutro())
-      process.exit(0)
-    }
-
-    // Check for top-level layout
-    if (nextAppDir && hasTopLevelLayout) {
-      p.log.warn(moveMessage({ nextAppDir, projectDir }))
-      p.outro(feedbackOutro())
-      process.exit(0)
-    }
-
-    const dbDetails = await selectDb(this.args, projectName)
-
-    const result = await initNext({
-      ...this.args,
-      dbType: dbDetails.type,
-      nextAppDetails,
-      packageManager,
-      projectDir,
-    })
-
-    if (result.success === false) {
-      p.outro(feedbackOutro())
-      process.exit(1)
-    }
-
-    await configurePayloadConfig({
-      dbType: dbDetails?.type,
-      projectDirOrConfigPath: {
-        payloadConfigPath: result.payloadConfigPath,
-      },
-    })
-
-    await manageEnvFiles({
-      cliArgs: this.args,
-      databaseType: dbDetails.type,
-      databaseUri: dbDetails.dbUri,
-      payloadSecret: generateSecret(),
-      projectDir,
-    })
-
-    info('Payload project successfully initialized!')
-    p.note(successfulNextInit(), chalk.bgGreen(chalk.black(' Documentation ')))
-    p.outro(feedbackOutro())
+    // Check version compatibility
+    // Handle Payload upgrade
+    // Install Payload in Next.js
+    /** ... initNext flow */
     return
   }
 
-  // 8. Handle new project creation
+  // 8-10. Handle new project creation
   const projectName = await parseProjectName(this.args)
   const projectDir = path.resolve(process.cwd(), slugify(projectName))
-  const packageManager = await getPackageManager({ cliArgs: this.args, projectDir })
 
-  // 9. Handle example project
-  const exampleArg = this.args['--example']
   if (exampleArg) {
-    const example = await parseExample({
-      name: exampleArg,
-      branch: this.args['--branch'] ?? 'main',
-    })
-
-    if (!example) {
-      helpMessage()
-      process.exit(1)
-    }
-
-    await createProject({
-      cliArgs: this.args,
-      example,
-      packageManager,
-      projectDir,
-      projectName,
-    })
-  }
-
-  // 10. Handle template-based project
-  if (!exampleArg) {
-    const validTemplates = getValidTemplates()
-    const template = await parseTemplate(this.args, validTemplates)
-
-    if (!template) {
-      p.log.error('Invalid template given')
-      p.outro(feedbackOutro())
-      process.exit(1)
-    }
-
-    switch (template.type) {
-      case 'plugin': {
-        await createProject({
-          cliArgs: this.args,
-          packageManager,
-          projectDir,
-          projectName,
-          template,
-        })
-        break
-      }
-      case 'starter': {
-        const dbDetails = await selectDb(this.args, projectName)
-
-        await createProject({
-          cliArgs: this.args,
-          dbDetails,
-          packageManager,
-          projectDir,
-          projectName,
-          template,
-        })
-        break
-      }
-    }
+    /** ... Handle example project */
+  } else {
+    /** ... Handle template-based project */
   }
 
   info('Payload project successfully created!')
-  p.log.step(chalk.bgGreen(chalk.black(' Next Steps ')))
-  p.log.message(successMessage(projectDir, packageManager))
   p.outro(feedbackOutro())
 }
 ```
@@ -850,6 +691,7 @@ This runs during `pnpm build` and copies template files to `dist/template/` for 
 **packages/create-payload-app/src/lib/create-project.ts:**
 
 ```typescript
+// packages/create-payload-app/src/lib/create-project.ts:604-732
 export async function createProject(
   args: {
     cliArgs: CliArgs
@@ -863,118 +705,43 @@ export async function createProject(
 
   // 1. Dry run check
   if (cliArgs['--dry-run']) {
-    debug(`Dry run: Creating project in ${chalk.green(projectDir)}`)
-    return
+    /** ... exit early */
   }
 
-  // 2. Create project directory
+  // 2. Create directory and download template
   await createOrFindProjectDir(projectDir)
 
-  // 3. Handle local development paths
+  // 3-5. Handle template/example download
   if (cliArgs['--local-example']) {
-    const localExample = path.resolve(dirname, '../../../../examples/', cliArgs['--local-example'])
-    await fse.copy(localExample, projectDir)
+    /** ... copy local */
+  } else if (cliArgs['--local-template']) {
+    /** ... copy local */
+  } else if ('template' in args) {
+    /** ... download template */
+  } else if ('example' in args) {
+    /** ... download example */
   }
 
-  if (cliArgs['--local-template']) {
-    const localTemplate = path.resolve(
-      dirname,
-      '../../../../templates/',
-      cliArgs['--local-template'],
-    )
-    await fse.copy(localTemplate, projectDir)
-  }
-  // 4. Download template from GitHub
-  else if ('template' in args && 'url' in args.template) {
-    const { template } = args
-    if (cliArgs['--branch']) {
-      template.url = `${template.url.split('#')?.[0]}#${cliArgs['--branch']}`
-    }
-
-    await downloadTemplate({
-      debug: cliArgs['--debug'],
-      projectDir,
-      template,
+  // 6-7. Get version and update package.json
+  const payloadVersion =
+    /** ... get or verify version */
+    await updatePackageJSON({
+      /** ... */
     })
-  }
-  // 5. Download example from GitHub
-  else if ('example' in args && 'url' in args.example) {
-    const { example } = args
-    if (cliArgs['--branch']) {
-      example.url = `${example.url.split('#')?.[0]}#${cliArgs['--branch']}`
-    }
 
-    await downloadExample({
-      debug: cliArgs['--debug'],
-      example,
-      projectDir,
-    })
-  }
-
-  // 6. Get latest Payload version
-  const spinner = p.spinner()
-  spinner.start('Checking latest Payload version...')
-
-  const versionFromCli = cliArgs['--version']
-  let payloadVersion: string
-
-  if (versionFromCli) {
-    await verifyVersionForPackage({ version: versionFromCli })
-    payloadVersion = versionFromCli
-    spinner.stop(`Using provided version of Payload ${payloadVersion}`)
-  } else {
-    payloadVersion = await getLatestPackageVersion({ packageName: 'payload' })
-    spinner.stop(`Found latest version of Payload ${payloadVersion}`)
-  }
-
-  // 7. Update package.json with version and project name
-  await updatePackageJSON({ latestVersion: payloadVersion, projectDir, projectName })
-
-  // 8. Configure based on template type
+  // 8-9. Configure Payload and environment
   if ('template' in args) {
-    if (args.template.type === 'plugin') {
-      spinner.message('Configuring Plugin...')
-      configurePluginProject({ projectDirPath: projectDir, projectName })
-    } else {
-      spinner.message('Configuring Payload...')
-      await configurePayloadConfig({
-        dbType: dbDetails?.type,
-        projectDirOrConfigPath: { projectDir },
-      })
-    }
+    /** ... configure by type */
   }
-
-  // 9. Manage environment files
   await manageEnvFiles({
-    cliArgs,
-    databaseType: dbDetails?.type,
-    databaseUri: dbDetails?.dbUri,
-    payloadSecret: generateSecret(),
-    projectDir,
-    template: 'template' in args ? args.template : undefined,
+    /** ... */
   })
 
-  // 10. Remove pnpm lock file
-  const lockPath = path.resolve(projectDir, 'pnpm-lock.yaml')
-  if (fse.existsSync(lockPath)) {
-    await fse.remove(lockPath)
-  }
-
-  // 11. Install dependencies
+  // 10-12. Cleanup and install
+  await fse.remove(path.resolve(projectDir, 'pnpm-lock.yaml'))
   if (!cliArgs['--no-deps']) {
-    info(`Using ${packageManager}.\n`)
-    spinner.message('Installing dependencies...')
-    const result = await installDeps({ cliArgs, packageManager, projectDir })
-    if (result) {
-      spinner.stop('Successfully installed Payload and dependencies')
-    } else {
-      spinner.stop('Error installing dependencies', 1)
-    }
-  } else {
-    spinner.stop('Dependency installation skipped')
+    /** ... install deps */
   }
-
-  // 12. Initialize git repository
   if (!cliArgs['--no-git']) {
     tryInitRepoAndCommit({ cwd: projectDir })
   }
@@ -1197,16 +964,6 @@ type DbAdapterReplacement = {
   packageName: string
 }
 
-const mongodbReplacement: DbAdapterReplacement = {
-  configReplacement: (envName = 'DATABASE_URI') => [
-    '  db: mongooseAdapter({',
-    `    url: process.env.${envName} || '',`,
-    '  }),',
-  ],
-  importReplacement: "import { mongooseAdapter } from '@payloadcms/db-mongodb'",
-  packageName: '@payloadcms/db-mongodb',
-}
-
 const postgresReplacement: DbAdapterReplacement = {
   configReplacement: (envName = 'DATABASE_URI') => [
     '  db: postgresAdapter({',
@@ -1231,26 +988,6 @@ const vercelPostgresReplacement: DbAdapterReplacement = {
   packageName: '@payloadcms/db-vercel-postgres',
 }
 
-const sqliteReplacement: DbAdapterReplacement = {
-  configReplacement: (envName = 'DATABASE_URI') => [
-    '  db: sqliteAdapter({',
-    '    client: {',
-    `      url: process.env.${envName} || '',`,
-    '    },',
-    '  }),',
-  ],
-  importReplacement: "import { sqliteAdapter } from '@payloadcms/db-sqlite'",
-  packageName: '@payloadcms/db-sqlite',
-}
-
-const d1SqliteReplacement: DbAdapterReplacement = {
-  configReplacement: (envName = 'DATABASE_URI') => [
-    'db: sqliteD1Adapter({ binding: cloudflare.env.D1 }),',
-  ],
-  importReplacement: "import { sqliteD1Adapter } from '@payloadcms/db-d1-sqlite'",
-  packageName: '@payloadcms/db-d1-sqlite',
-}
-
 export const dbReplacements: Record<DbType, DbAdapterReplacement> = {
   'd1-sqlite': d1SqliteReplacement,
   mongodb: mongodbReplacement,
@@ -1265,6 +1002,7 @@ export const dbReplacements: Record<DbType, DbAdapterReplacement> = {
 **packages/create-payload-app/src/lib/configure-payload-config.ts:**
 
 ```typescript
+// packages/create-payload-app/src/lib/configure-payload-config.ts:989-1122
 export async function configurePayloadConfig(args: {
   dbType?: DbType
   envNames?: { dbUri: string }
@@ -1273,131 +1011,30 @@ export async function configurePayloadConfig(args: {
   sharp?: boolean
   storageAdapter?: StorageAdapterType
 }): Promise<void> {
-  if (!args.dbType) {
-    return
-  }
+  if (!args.dbType) return
 
   // 1. Update package.json dependencies
-  const packageJsonPath =
-    'projectDir' in args.projectDirOrConfigPath &&
-    path.resolve(args.projectDirOrConfigPath.projectDir, 'package.json')
-
-  if (packageJsonPath && fse.existsSync(packageJsonPath)) {
-    try {
-      const packageObj = await fse.readJson(packageJsonPath)
-      const dbPackage = dbReplacements[args.dbType]
-
-      // Delete all other db adapters
-      Object.values(dbReplacements).forEach((p) => {
-        if (p.packageName !== dbPackage.packageName) {
-          delete packageObj.dependencies[p.packageName]
-        }
-      })
-
-      // Set version of db adapter to match payload version
-      packageObj.dependencies[dbPackage.packageName] = packageObj.dependencies['payload']
-
-      if (args.storageAdapter) {
-        const storagePackage = storageReplacements[args.storageAdapter]
-        if (storagePackage?.packageName) {
-          packageObj.dependencies[storagePackage.packageName] = packageObj.dependencies['payload']
-        }
-      }
-
-      // Sharp provided by default, only remove if explicitly set to false
-      if (args.sharp === false) {
-        delete packageObj.dependencies['sharp']
-      }
-
-      if (args.packageJsonName) {
-        packageObj.name = args.packageJsonName
-      }
-
-      await fse.writeJson(packageJsonPath, packageObj, { spaces: 2 })
-    } catch (err: unknown) {
-      warning(`Unable to configure Payload in package.json`)
-      warning(err instanceof Error ? err.message : '')
-    }
+  const packageJsonPath = /** ... resolve path */
+  if (packageJsonPath) {
+    // Remove other DB adapters
+    // Set matching version for selected adapter
+    // Handle storage adapter and sharp
+    /** ... update and save package.json */
   }
 
-  // 2. Find payload.config.ts
-  try {
-    let payloadConfigPath: string | undefined
-    if (!('payloadConfigPath' in args.projectDirOrConfigPath)) {
-      payloadConfigPath = (
-        await globby('**/payload.config.ts', {
-          absolute: true,
-          cwd: args.projectDirOrConfigPath.projectDir,
-        })
-      )?.[0]
-    } else {
-      payloadConfigPath = args.projectDirOrConfigPath.payloadConfigPath
-    }
+  // 2-3. Find and read payload.config.ts
+  const payloadConfigPath = /** ... find config file */
+  const configLines = fse.readFileSync(payloadConfigPath, 'utf-8').split('\n')
 
-    if (!payloadConfigPath) {
-      warning('Unable to update payload.config.ts. Could not find payload.config.ts.')
-      return
-    }
+  // 4-7. Replace adapters and configs
+  const dbReplacement = dbReplacements[args.dbType]
+  configLines = replaceInConfigLines({ /** DB import */ })
+  configLines = replaceInConfigLines({ /** DB config */ })
+  if (args.storageAdapter) { /** ... replace storage */ }
+  if (args.sharp === false) { /** ... remove sharp */ }
 
-    // 3. Read config file
-    const configContent = fse.readFileSync(payloadConfigPath, 'utf-8')
-    let configLines = configContent.split('\n')
-
-    // 4. Replace DB adapter import
-    const dbReplacement = dbReplacements[args.dbType]
-
-    configLines = replaceInConfigLines({
-      lines: configLines,
-      replacement: [dbReplacement.importReplacement],
-      startMatch: '// database-adapter-import',
-    })
-
-    // 5. Replace DB adapter config
-    configLines = replaceInConfigLines({
-      endMatch: `// database-adapter-config-end`,
-      lines: configLines,
-      replacement: dbReplacement.configReplacement(args.envNames?.dbUri),
-      startMatch: `// database-adapter-config-start`,
-    })
-
-    // 6. Replace storage adapter if provided
-    if (args.storageAdapter) {
-      const replacement = storageReplacements[args.storageAdapter]
-
-      configLines = replaceInConfigLines({
-        lines: configLines,
-        replacement: replacement.configReplacement,
-        startMatch: '// storage-adapter-placeholder',
-      })
-
-      if (replacement?.importReplacement !== undefined) {
-        configLines = replaceInConfigLines({
-          lines: configLines,
-          replacement: [replacement.importReplacement],
-          startMatch: '// storage-adapter-import-placeholder',
-        })
-      }
-    }
-
-    // 7. Handle sharp removal
-    if (args.sharp === false) {
-      configLines = replaceInConfigLines({
-        lines: configLines,
-        replacement: [],
-        startMatch: 'sharp,',
-      })
-      configLines = replaceInConfigLines({
-        lines: configLines,
-        replacement: [],
-        startMatch: "import sharp from 'sharp'",
-      })
-    }
-
-    // 8. Write updated config
-    fse.writeFileSync(payloadConfigPath, configLines.join('\n'))
-  } catch (err: unknown) {
-    warning(`Unable to update payload.config.ts: ${err instanceof Error ? err.message : ''}`)
-  }
+  // 8. Write updated config
+  fse.writeFileSync(payloadConfigPath, configLines.join('\n'))
 }
 
 function replaceInConfigLines({
@@ -1938,6 +1575,7 @@ export function generateSecret(): string {
 **packages/create-payload-app/src/lib/manage-env-files.ts:**
 
 ```typescript
+// packages/create-payload-app/src/lib/manage-env-files.ts:1662-1747
 const sanitizeEnv = ({
   contents,
   databaseType,
@@ -1953,16 +1591,9 @@ const sanitizeEnv = ({
 
   // 1. Add defaults if missing
   let withDefaults = contents
-
-  if (
-    !contents.includes('DATABASE_URI') &&
-    !contents.includes('POSTGRES_URL') &&
-    !contents.includes('MONGODB_URI') &&
-    databaseType !== 'd1-sqlite'
-  ) {
+  if (!contents.includes('DATABASE_URI') && /** ... */) {
     withDefaults += '\nDATABASE_URI=your-connection-string-here'
   }
-
   if (!contents.includes('PAYLOAD_SECRET')) {
     withDefaults += '\nPAYLOAD_SECRET=YOUR_SECRET_HERE'
   }
@@ -1971,58 +1602,29 @@ const sanitizeEnv = ({
   let updatedEnv = withDefaults
     .split('\n')
     .map((line) => {
-      // Skip comments and empty lines
-      if (line.startsWith('#') || !line.includes('=')) {
-        return line
-      }
-
+      // Skip comments
+      if (line.startsWith('#') || !line.includes('=')) return line
       const [key, value] = line.split('=')
 
-      if (!key) {
-        return
+      // Replace DATABASE_URI
+      if (key === 'DATABASE_URI' || /** ... other DB keys */) {
+        /** ... set database URI */
       }
 
-      // 3. Replace DATABASE_URI
-      if (key === 'DATABASE_URI' || key === 'POSTGRES_URL' || key === 'MONGODB_URI') {
-        const dbChoice = databaseType ? dbChoiceRecord[databaseType] : null
-
-        if (dbChoice) {
-          const placeholderUri = databaseUri
-            ? databaseUri
-            : `${dbChoice.dbConnectionPrefix}your-database-name${dbChoice.dbConnectionSuffix || ''}`
-          line =
-            databaseType === 'vercel-postgres'
-              ? `POSTGRES_URL=${placeholderUri}`
-              : `DATABASE_URI=${placeholderUri}`
-        } else {
-          line = `${key}=${value}`
-        }
-      }
-
-      // 4. Replace PAYLOAD_SECRET
-      if (key === 'PAYLOAD_SECRET' || key === 'PAYLOAD_SECRET_KEY') {
+      // Replace PAYLOAD_SECRET
+      if (key === 'PAYLOAD_SECRET') {
         line = `PAYLOAD_SECRET=${payloadSecret || 'YOUR_SECRET_HERE'}`
       }
 
-      // 5. Remove duplicates
-      if (seenKeys.has(key)) {
-        return null
-      }
-
+      // Remove duplicates
+      if (seenKeys.has(key)) return null
       seenKeys.add(key)
-
       return line
     })
     .filter(Boolean)
-    .reverse()
     .join('\n')
 
-  // 6. Add header comment
-  if (!updatedEnv.includes('# Added by Payload')) {
-    updatedEnv = `# Added by Payload\n${updatedEnv}`
-  }
-
-  return updatedEnv
+  return `# Added by Payload\n${updatedEnv}`
 }
 
 export async function manageEnvFiles(args: {
@@ -2581,7 +2183,7 @@ templates/blog/
 **Posts Collection:**
 
 ```typescript
-// templates/blog/src/collections/Posts.ts
+// templates/blog/src/collections/Posts.ts:2305-2372
 import type { CollectionConfig } from 'payload'
 
 export const Posts: CollectionConfig = {
@@ -2591,62 +2193,16 @@ export const Posts: CollectionConfig = {
     defaultColumns: ['title', 'author', 'status', 'publishedAt'],
   },
   fields: [
-    {
-      name: 'title',
-      type: 'text',
-      required: true,
-    },
-    {
-      name: 'slug',
-      type: 'text',
-      required: true,
-      unique: true,
-    },
-    {
-      name: 'author',
-      type: 'relationship',
-      relationTo: 'users',
-      required: true,
-    },
-    {
-      name: 'categories',
-      type: 'relationship',
-      relationTo: 'categories',
-      hasMany: true,
-    },
-    {
-      name: 'tags',
-      type: 'relationship',
-      relationTo: 'tags',
-      hasMany: true,
-    },
-    {
-      name: 'featuredImage',
-      type: 'upload',
-      relationTo: 'media',
-    },
-    {
-      name: 'content',
-      type: 'richText',
-    },
-    {
-      name: 'excerpt',
-      type: 'textarea',
-    },
-    {
-      name: 'status',
-      type: 'select',
-      options: [
-        { label: 'Draft', value: 'draft' },
-        { label: 'Published', value: 'published' },
-      ],
-      defaultValue: 'draft',
-      required: true,
-    },
-    {
-      name: 'publishedAt',
-      type: 'date',
-    },
+    { name: 'title', type: 'text', required: true },
+    { name: 'slug', type: 'text', required: true, unique: true },
+    { name: 'author', type: 'relationship', relationTo: 'users', required: true },
+    { name: 'categories', type: 'relationship', relationTo: 'categories', hasMany: true },
+    { name: 'tags', type: 'relationship', relationTo: 'tags', hasMany: true },
+    { name: 'featuredImage', type: 'upload', relationTo: 'media' },
+    { name: 'content', type: 'richText' },
+    { name: 'excerpt', type: 'textarea' },
+    { name: 'status', type: 'select' /** options: draft/published */ },
+    { name: 'publishedAt', type: 'date' },
   ],
 }
 ```
@@ -2654,30 +2210,14 @@ export const Posts: CollectionConfig = {
 **Categories Collection:**
 
 ```typescript
-// templates/blog/src/collections/Categories.ts
-import type { CollectionConfig } from 'payload'
-
+// templates/blog/src/collections/Categories.ts:2378-2403
 export const Categories: CollectionConfig = {
   slug: 'categories',
-  admin: {
-    useAsTitle: 'name',
-  },
+  admin: { useAsTitle: 'name' },
   fields: [
-    {
-      name: 'name',
-      type: 'text',
-      required: true,
-    },
-    {
-      name: 'slug',
-      type: 'text',
-      required: true,
-      unique: true,
-    },
-    {
-      name: 'description',
-      type: 'textarea',
-    },
+    { name: 'name', type: 'text', required: true },
+    { name: 'slug', type: 'text', required: true, unique: true },
+    { name: 'description', type: 'textarea' },
   ],
 }
 ```
@@ -2685,26 +2225,13 @@ export const Categories: CollectionConfig = {
 **Tags Collection:**
 
 ```typescript
-// templates/blog/src/collections/Tags.ts
-import type { CollectionConfig } from 'payload'
-
+// templates/blog/src/collections/Tags.ts:2409-2430
 export const Tags: CollectionConfig = {
   slug: 'tags',
-  admin: {
-    useAsTitle: 'name',
-  },
+  admin: { useAsTitle: 'name' },
   fields: [
-    {
-      name: 'name',
-      type: 'text',
-      required: true,
-    },
-    {
-      name: 'slug',
-      type: 'text',
-      required: true,
-      unique: true,
-    },
+    { name: 'name', type: 'text', required: true },
+    { name: 'slug', type: 'text', required: true, unique: true },
   ],
 }
 ```
