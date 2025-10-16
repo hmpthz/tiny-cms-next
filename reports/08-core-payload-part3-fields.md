@@ -25,6 +25,7 @@ Payload CMS implements a sophisticated field system with **23+ field types** cov
 ### 1.1 Primitive Data Fields (8 types)
 
 ```typescript
+// payload/src/fields/config/types.ts
 // Text-based
 type TextField = {
   type: 'text'
@@ -39,10 +40,7 @@ type TextareaField = {
   type: 'textarea'
   minLength?: number
   maxLength?: number
-  admin?: {
-    rows?: number // Visual height
-    rtl?: boolean
-  }
+  admin?: { rows?: number; rtl?: boolean }
 } & FieldBase
 
 type EmailField = {
@@ -56,9 +54,7 @@ type NumberField = {
   hasMany?: boolean // Array of numbers
   min?: number
   max?: number
-  admin?: {
-    step?: number // Increment step
-  }
+  admin?: { step?: number }
 } & FieldBase
 
 // Boolean
@@ -74,7 +70,7 @@ type DateField = {
   admin?: {
     date?: {
       displayFormat?: string
-      pickerAppearance?: 'default' | 'dayAndTime' | 'timeOnly' | 'dayOnly' | 'monthOnly'
+      pickerAppearance?: 'default' | 'dayAndTime' | /** ... more options */
     }
   }
 } & FieldBase
@@ -83,24 +79,21 @@ type DateField = {
 type CodeField = {
   type: 'code'
   admin?: {
-    language?: string // Syntax highlighting
+    language?: string
     editorOptions?: EditorProps['options']
   }
 } & FieldBase
 
 type JSONField = {
   type: 'json'
-  jsonSchema?: {
-    // Optional JSON Schema validation
-    uri: string
-    schema: JSONSchema4
-  }
+  jsonSchema?: { uri: string; schema: JSONSchema4 }
 } & FieldBase
 ```
 
 ### 1.2 Choice/Selection Fields (3 types)
 
 ```typescript
+// payload/src/fields/config/types.ts
 type SelectField = {
   type: 'select'
   options: Option[] // Array of {label, value} or strings
@@ -115,22 +108,19 @@ type SelectField = {
 type RadioField = {
   type: 'radio'
   options: Option[]
-  admin?: {
-    layout?: 'horizontal' | 'vertical'
-  }
+  admin?: { layout?: 'horizontal' | 'vertical' }
 } & FieldBase
 
 type PointField = {
   type: 'point' // Geographic coordinates [lng, lat]
-  admin?: {
-    step?: number
-  }
+  admin?: { step?: number }
 } & FieldBase
 ```
 
 ### 1.3 Relationship/Reference Fields (2 types)
 
 ```typescript
+// payload/src/fields/config/types.ts
 // Relationship to other collections
 type RelationshipField = {
   type: 'relationship'
@@ -174,23 +164,18 @@ type RichTextField<TValue, TAdapterProps, TExtraProperties> = {
 ### 1.5 Compositional/Layout Fields (6 types)
 
 ```typescript
+// payload/src/fields/config/types.ts
 // Array of repeated fields
 type ArrayField = {
   type: 'array'
   fields: Field[]
-  labels?: {
-    // Custom naming
-    singular: string
-    plural: string
-  }
+  labels?: { singular: string; plural: string }
   minRows?: number
   maxRows?: number
   admin?: {
     initCollapsed?: boolean
     isSortable?: boolean
-    components?: {
-      RowLabel?: Component // Custom row headers
-    }
+    components?: { RowLabel?: Component }
   }
 } & FieldBase
 
@@ -201,22 +186,17 @@ type BlocksField = {
   blockReferences?: (Block | BlockSlug)[]
   minRows?: number
   maxRows?: number
-  filterOptions?: BlocksFilterOptions // Dynamic block availability
-  admin?: {
-    initCollapsed?: boolean
-    isSortable?: boolean
-  }
+  filterOptions?: BlocksFilterOptions
+  admin?: { initCollapsed?: boolean; isSortable?: boolean }
 } & FieldBase
 
 type Block = {
   slug: string
   fields: Field[]
   labels?: Labels
-  interfaceName?: string // TypeScript type name
-  imageURL?: string // Block icon/preview
-  admin?: {
-    disableBlockName?: boolean
-  }
+  interfaceName?: string
+  imageURL?: string
+  admin?: { disableBlockName?: boolean }
 }
 
 // Named or unnamed grouping
@@ -242,11 +222,9 @@ type RowField = {
 
 type CollapsibleField = {
   type: 'collapsible' // Collapsible section
-  label: string // Required
+  label: string
   fields: Field[]
-  admin?: {
-    initCollapsed?: boolean
-  }
+  admin?: { initCollapsed?: boolean }
 } & Omit<FieldBase, 'name' | 'localized' | 'validate'>
 
 type TabsField = {
@@ -296,93 +274,89 @@ type UIField = {
 ### 2.1 FieldBase - Core Field Properties
 
 ```typescript
+// payload/src/fields/config/types.ts
 interface FieldBase {
   // Identity
   name: string // Required, must be alphanumeric without '.'
   label?: string | LabelFunction | false
 
   // Storage & Behavior
-  defaultValue?: DefaultValue // Static value or function
+  defaultValue?: DefaultValue
   required?: boolean
   unique?: boolean
   index?: boolean // Database index
   localized?: boolean // Per-locale storage
-  hidden?: boolean // Hide from API/UI
+  hidden?: boolean
   virtual?: boolean // No database storage
 
   // Access Control
   access?: {
-    create?: FieldAccess // (args) => boolean | Promise<boolean>
+    create?: FieldAccess
     read?: FieldAccess
     update?: FieldAccess
   }
 
   // Lifecycle Hooks
   hooks?: {
-    beforeValidate?: FieldHook[] // Sanitize, compute values
-    beforeChange?: FieldHook[] // Transform before save
-    afterChange?: FieldHook[] // Post-save operations
-    afterRead?: FieldHook[] // Transform on read
-    beforeDuplicate?: FieldHook[] // Handle duplication
+    beforeValidate?: FieldHook[]
+    beforeChange?: FieldHook[]
+    afterChange?: FieldHook[]
+    afterRead?: FieldHook[]
+    beforeDuplicate?: FieldHook[]
   }
 
   // Validation
-  validate?: Validate // Custom validation function
+  validate?: Validate
 
   // Admin UI
   admin?: FieldAdmin
 
   // Extension Points
-  custom?: Record<string, any> // Server-only custom data
-
-  // JWT
-  saveToJWT?: boolean | string // Include in JWT tokens
-
-  // TypeScript Generation
+  custom?: Record<string, any>
+  saveToJWT?: boolean | string
   typescriptSchema?: Array<(args) => JSONSchema4>
 
   // Internal
-  _sanitized?: boolean // Prevents re-sanitization
+  _sanitized?: boolean
 }
 ```
 
 ### 2.2 FieldAdmin - UI Configuration
 
 ```typescript
+// payload/src/fields/config/types.ts
 export type FieldAdmin = {
   // Layout
   className?: string
   style?: CSSProperties
   width?: CSSProperties['width']
-  position?: 'sidebar' // Sidebar placement
+  position?: 'sidebar'
 
   // Behavior
-  condition?: Condition // Conditional rendering
+  condition?: Condition
   disabled?: boolean
   readOnly?: boolean
   hidden?: boolean
 
   // List View
-  disableListColumn?: boolean // Hide from column selector
-  disableListFilter?: boolean // Hide from filters
-  disableGroupBy?: boolean // Hide from grouping
-  disableBulkEdit?: boolean // Disable bulk editing
+  disableListColumn?: boolean
+  disableListFilter?: boolean
+  disableGroupBy?: boolean
+  disableBulkEdit?: boolean
 
   // Components
   components?: {
-    Field?: PayloadComponent // Custom field component
-    Cell?: PayloadComponent // List view cell
+    Field?: PayloadComponent
+    Cell?: PayloadComponent
     Description?: PayloadComponent
-    Diff?: PayloadComponent // Version diff view
-    Filter?: PayloadComponent // List filter component
-    // Field-specific components (Label, Error, etc.)
+    Diff?: PayloadComponent
+    Filter?: PayloadComponent
+    /** ... field-specific components */
   }
 
   // Field-Specific
   description?: Description
-
-  // Extension
-  custom?: Record<string, any> // Client & server custom data
+  custom?: Record<string, any>
 }
 ```
 
@@ -472,9 +446,8 @@ export function fieldSupportsMany(field: Field): field is FieldWithMany {
 
 **Validation:**
 
-`payload-main/packages/payload/src/fields/validations/text.ts` (lines 10-45)
-
 ```typescript
+// payload/src/fields/validations/text.ts:10-45
 export const text: TextFieldValidation = (value, options) => {
   // ... destructure options
 
@@ -523,9 +496,8 @@ export const text: TextFieldValidation = (value, options) => {
 
 **Validation:**
 
-`payload-main/packages/payload/src/fields/validations/email.ts` (lines 8-18)
-
 ```typescript
+// payload/src/fields/validations/email.ts:8-18
 export const email: EmailFieldValidation = (value, options) => {
   // Robust email regex
   const emailRegex = /^(?!.*\..)[\w!#$%&'*+/=?^`{|}~-]...$/i
@@ -575,9 +547,8 @@ export const email: EmailFieldValidation = (value, options) => {
 
 **Validation:**
 
-`payload-main/packages/payload/src/fields/validations/number.ts` (lines 10-45)
-
 ```typescript
+// payload/src/fields/validations/number.ts:10-45
 export const number: NumberFieldValidation = (value, options) => {
   // ... destructure options
 
@@ -1117,7 +1088,7 @@ export const blocks: BlocksFieldValidation = async (value, options) => {
 
   // Validate block types against filterOptions
   if (filterOptions) {
-    const { invalidBlockSlugs } = await validateBlocksFilterOptions({/** ... */})
+    const { invalidBlockSlugs } = await validateBlocksFilterOptions({}) /** ... */
     if (invalidBlockSlugs?.length) {
       return t('validation:invalidBlocks', { blocks: invalidBlockSlugs.join(', ') })
     }

@@ -170,7 +170,7 @@ Views (List, Edit)
 **Two Themes: Light & Dark**
 
 ```typescript
-// providers/Theme/index.tsx
+// ui/src/providers/Theme/index.tsx:10-45
 export type Theme = 'dark' | 'light'
 
 const ThemeProvider: React.FC = ({ children }) => {
@@ -179,12 +179,9 @@ const ThemeProvider: React.FC = ({ children }) => {
 
   // Stores theme in cookie: `${cookiePrefix}-theme`
   // Auto mode uses system preference
+  // ...
 
-  return (
-    <Context value={{ autoMode, setTheme, theme }}>
-      {children}
-    </Context>
-  )
+  return <Context value={{ autoMode, setTheme, theme }}>{children}</Context>
 }
 ```
 
@@ -356,7 +353,7 @@ const shouldShowDocumentLockedModal =
 **Field Architecture:**
 
 ```tsx
-// fields/Text/index.tsx
+// ui/src/fields/Text/index.tsx:25-50
 const TextFieldComponent: TextFieldClientComponent = (props) => {
   const { field, path, readOnly, validate } = props
 
@@ -391,15 +388,12 @@ export const TextField = withCondition(TextFieldComponent)
 **Example: Relationship Field**
 
 ```tsx
-// fields/Relationship/index.tsx
+// ui/src/fields/Relationship/index.tsx:35-70
 const RelationshipFieldComponent = (props) => {
-  const { value, setValue } = useField<Value>({
-    validate: memoizedValidate,
-  })
+  const { value, setValue } = useField<Value>({ validate: memoizedValidate })
 
   const handleChange = useCallback(
     (newValue) => {
-      // Handle polymorphic or single relation
       const dataToSet = isPolymorphic ? newValue : newValue.value
       setValue(dataToSet)
     },
@@ -411,8 +405,7 @@ const RelationshipFieldComponent = (props) => {
       relationTo={relationTo}
       value={value}
       onChange={handleChange}
-      allowCreate={allowCreate}
-      allowEdit={allowEdit}
+      // ... allowCreate, allowEdit, etc.
     />
   )
 }
@@ -423,41 +416,32 @@ const RelationshipFieldComponent = (props) => {
 **Form Component:**
 
 ```tsx
-// forms/Form/index.tsx
+// ui/src/forms/Form/index.tsx:50-120
 export const Form: React.FC<FormProps> = (props) => {
-  const {
-    action, // Submit URL or function
-    initialState, // Initial form state
-    onChange, // Array of onChange handlers
-    onSuccess, // Success callback
-    onSubmit, // Submit handler
-  } = props
+  const { action, initialState, onChange, onSuccess, onSubmit } = props
 
   // Form reducer for state management
   const [formState, dispatchFields] = useReducer(fieldReducer, {}, () => initialState)
 
   // Submit handler with validation
-  const submit = useCallback(async (options, e) => {
-    // 1. Run client-side validation
-    const isValid = await validateForm()
+  const submit = useCallback(
+    async (options, e) => {
+      const isValid = await validateForm() // 1. Validate
+      const formData = await createFormData(overrides) // 2. Serialize
+      const res = await requests[method](action, { body: formData }) // 3. Submit
 
-    // 2. If valid, create FormData
-    const formData = await createFormData(overrides)
-
-    // 3. Submit via fetch or action function
-    const res = await requests[method](action, {
-      body: formData,
-    })
-
-    // 4. Handle response
-    if (res.status < 400) {
-      onSuccess(json)
-      if (redirect) router.push(redirect)
-    } else {
-      // Add server errors to form state
-      dispatchFields({ type: 'ADD_SERVER_ERRORS', errors })
-    }
-  }, [])
+      // 4. Handle response
+      if (res.status < 400) {
+        onSuccess(json)
+        if (redirect) router.push(redirect)
+      } else {
+        dispatchFields({ type: 'ADD_SERVER_ERRORS', errors })
+      }
+    },
+    [
+      /** ... */
+    ],
+  )
 
   return (
     <form onSubmit={submit}>
@@ -562,7 +546,7 @@ const Nav: React.FC = () => {
 **Core System: useReducer + Context**
 
 ```typescript
-// forms/Form/fieldReducer.ts
+// ui/src/forms/Form/fieldReducer.ts:15-80
 export function fieldReducer(state: FormState, action: FieldAction): FormState {
   switch (action.type) {
     case 'UPDATE':
@@ -576,23 +560,13 @@ export function fieldReducer(state: FormState, action: FieldAction): FormState {
         },
       }
 
-    case 'ADD_ROW':
-    // Add row to array/blocks field
-
-    case 'REMOVE_ROW':
-    // Remove row from array/blocks field
-
-    case 'MOVE_ROW':
-    // Reorder rows
-
-    case 'REPLACE_STATE':
-    // Replace entire form state (on load)
-
-    case 'MERGE_SERVER_STATE':
-    // Merge server state after onChange
-
-    case 'ADD_SERVER_ERRORS':
-    // Add validation errors from server
+    case 'ADD_ROW': // Add row to array/blocks field
+    case 'REMOVE_ROW': // Remove row from array/blocks field
+    case 'MOVE_ROW': // Reorder rows
+    case 'REPLACE_STATE': // Replace entire form state (on load)
+    case 'MERGE_SERVER_STATE': // Merge server state after onChange
+    case 'ADD_SERVER_ERRORS': // Add validation errors from server
+    // ... (implementation omitted)
   }
 }
 ```
@@ -647,41 +621,31 @@ const processing = useFormProcessing()
 **useField Hook:**
 
 ```typescript
-// forms/useField/index.tsx
+// ui/src/forms/useField/index.tsx:25-90
 export const useField = <TValue>(options?: Options): FieldType<TValue> => {
   const { path, validate } = options
 
   // Get field state from form
   const field = useFormFields(([fields]) => fields?.[path])
   const dispatchField = useFormFields(([_, dispatch]) => dispatch)
-
   const { setModified } = useForm()
 
   // Update field value
   const setValue = useCallback(
     (newValue) => {
-      dispatchField({
-        type: 'UPDATE',
-        path,
-        value: newValue,
-      })
+      dispatchField({ type: 'UPDATE', path, value: newValue })
       setModified(true)
     },
     [path, dispatchField, setModified],
   )
 
-  // Throttled validation
+  // Throttled validation (150ms)
   useThrottledEffect(
     () => {
       if (typeof validate === 'function') {
         const isValid = await validate(field.value, options)
-
         if (isValid !== field.valid) {
-          dispatchField({
-            type: 'UPDATE',
-            path,
-            valid: isValid,
-          })
+          dispatchField({ type: 'UPDATE', path, valid: isValid })
         }
       }
     },
@@ -704,38 +668,12 @@ export const useField = <TValue>(options?: Options): FieldType<TValue> => {
 **Request Utility:**
 
 ```typescript
-// utilities/api.ts
+// ui/src/utilities/api.ts:10-35
 export const requests = {
-  get: (url, options) => {
-    return fetch(url, {
-      credentials: 'include',
-      ...options,
-    })
-  },
-
-  post: (url, options) => {
-    return fetch(url, {
-      credentials: 'include',
-      method: 'post',
-      ...options,
-    })
-  },
-
-  patch: (url, options) => {
-    return fetch(url, {
-      credentials: 'include',
-      method: 'PATCH',
-      ...options,
-    })
-  },
-
-  delete: (url, options) => {
-    return fetch(url, {
-      credentials: 'include',
-      method: 'delete',
-      ...options,
-    })
-  },
+  get: (url, options) => fetch(url, { credentials: 'include', ...options }),
+  post: (url, options) => fetch(url, { credentials: 'include', method: 'post', ...options }),
+  patch: (url, options) => fetch(url, { credentials: 'include', method: 'PATCH', ...options }),
+  delete: (url, options) => fetch(url, { credentials: 'include', method: 'delete', ...options }),
 }
 ```
 
@@ -791,39 +729,31 @@ const onChange: FormProps['onChange'][0] = async ({ formState }) => {
 **Document Events System:**
 
 ```typescript
-// providers/DocumentEvents/index.tsx
+// ui/src/providers/DocumentEvents/index.tsx:20-35
 const DocumentEventsProvider: React.FC = ({ children }) => {
   const reportUpdate = useCallback((update) => {
     // Notify other components of document changes
     // Used for version control, locking, etc.
   }, [])
 
-  return (
-    <Context value={{ reportUpdate }}>
-      {children}
-    </Context>
-  )
+  return <Context value={{ reportUpdate }}>{children}</Context>
 }
 ```
 
 **Live Preview:**
 
 ```typescript
-// providers/LivePreview/index.tsx
+// ui/src/providers/LivePreview/index.tsx:30-55
 const LivePreviewProvider: React.FC = ({ children }) => {
   const [url, setURL] = useState<string>()
   const [isLivePreviewing, setIsLivePreviewing] = useState(false)
 
   // Opens iframe or popup window
   // Sends document data to preview window via postMessage
+  // ...
 
   return (
-    <Context value={{
-      isLivePreviewing,
-      url,
-      setURL,
-      previewWindowType: 'iframe' | 'popup',
-    }}>
+    <Context value={{ isLivePreviewing, url, setURL, previewWindowType: 'iframe' | 'popup' }}>
       {children}
     </Context>
   )
@@ -841,16 +771,14 @@ const LivePreviewProvider: React.FC = ({ children }) => {
 **Server Functions Pattern:**
 
 ```typescript
-// providers/ServerFunctions/index.tsx
+// ui/src/providers/ServerFunctions/index.tsx:15-40
 const ServerFunctionsProvider: React.FC = ({ children }) => {
   const value = {
-    // Server function to build/revalidate form state
     getFormState: async (args) => {
       'use server'
       return await buildFormStateHandler(args)
     },
-
-    // Other server functions...
+    // ... other server functions
   }
 
   return <Context value={value}>{children}</Context>
@@ -926,38 +854,27 @@ export const RenderFields: React.FC = ({ fields }) => {
 **Config Provider:**
 
 ```typescript
-// providers/Config/index.tsx
+// ui/src/providers/Config/index.tsx:25-65
 const ConfigProvider: React.FC = ({ children, config }) => {
   // Build lookup maps for O(1) access
   const { collectionsBySlug, globalsBySlug } = useMemo(() => {
     const collections = {}
     const globals = {}
-
     for (const collection of config.collections) {
       collections[collection.slug] = collection
     }
-
     for (const global of config.globals) {
       globals[global.slug] = global
     }
-
     return { collectionsBySlug: collections, globalsBySlug: globals }
   }, [config])
 
   const getEntityConfig = useCallback((args) => {
-    if ('collectionSlug' in args) {
-      return collectionsBySlug[args.collectionSlug]
-    }
-    if ('globalSlug' in args) {
-      return globalsBySlug[args.globalSlug]
-    }
+    if ('collectionSlug' in args) return collectionsBySlug[args.collectionSlug]
+    if ('globalSlug' in args) return globalsBySlug[args.globalSlug]
   }, [collectionsBySlug, globalsBySlug])
 
-  return (
-    <Context value={{ config, getEntityConfig }}>
-      {children}
-    </Context>
-  )
+  return <Context value={{ config, getEntityConfig }}>{children}</Context>
 }
 ```
 
@@ -1526,13 +1443,9 @@ scss/                239 style files
 dist/
 ├── exports/
 │   ├── client/         # 'use client' components
-│   │   └── index.js
 │   ├── client_optimized/  # React Compiler output
-│   │   └── index.js
 │   ├── shared/         # Shared utilities
-│   │   └── index.js
 │   └── rsc/            # React Server Components
-│       └── index.js
 ├── elements/
 ├── fields/
 ├── forms/

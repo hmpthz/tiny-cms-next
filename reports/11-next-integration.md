@@ -126,11 +126,10 @@ export default RootLayout(config)
 
 ### 2.2 REST API Route Handler
 
-File: `src/routes/rest/index.ts`
+File: `src/routes/rest/index.ts` (Lines 10-50)
 
 ```typescript
-import { handleEndpoints, type SanitizedConfig } from 'payload'
-
+// next/src/routes/rest/index.ts:10-50
 const handlerBuilder =
   (config: Promise<SanitizedConfig> | SanitizedConfig) =>
   async (request: Request, args: { params: Promise<{ slug?: string[] }> }): Promise<Response> => {
@@ -139,19 +138,13 @@ const handlerBuilder =
 
     // Special OG image endpoint injection
     if (!awaitedConfig.endpoints.some((e) => e.path === '/og')) {
-      awaitedConfig.endpoints.push({
-        handler: generateOGImage,
-        method: 'get',
-        path: '/og',
-      })
+      // ... push OG image handler
     }
 
     // Delegate to Payload's universal endpoint handler
     const response = await handleEndpoints({
       config,
-      path: awaitedParams
-        ? `${awaitedConfig.routes.api}/${awaitedParams.slug.join('/')}`
-        : undefined,
+      path: /* ... construct path from slug */,
       request,
     })
 
@@ -161,10 +154,7 @@ const handlerBuilder =
 // Export all HTTP methods
 export const OPTIONS = handlerBuilder
 export const GET = handlerBuilder
-export const POST = handlerBuilder
-export const DELETE = handlerBuilder
-export const PATCH = handlerBuilder
-export const PUT = handlerBuilder
+// ... export other methods
 ```
 
 **Usage in user app**:
@@ -185,12 +175,10 @@ export const PUT = REST_PUT(config)
 
 ### 2.3 GraphQL Route Handler
 
-File: `src/routes/graphql/handler.ts`
+File: `src/routes/graphql/handler.ts` (Lines 15-80)
 
 ```typescript
-import { createHandler } from 'graphql-http/lib/use/fetch'
-import { configToSchema } from '@payloadcms/graphql'
-
+// next/src/routes/graphql/handler.ts:15-40
 // Global cache for GraphQL schema (invalidated in dev mode)
 let cached = global._payload_graphql
 
@@ -202,14 +190,14 @@ export const getGraphql = async (config: SanitizedConfig) => {
   if (cached.graphql) return cached.graphql
 
   if (!cached.promise) {
-    const resolvedConfig = await config
-    cached.promise = configToSchema(resolvedConfig)
+    cached.promise = configToSchema(await config)
   }
 
   cached.graphql = await cached.promise
   return cached.graphql
 }
 
+// next/src/routes/graphql/handler.ts:50-80
 export const POST = (config: SanitizedConfig) => async (request: Request) => {
   const originalRequest = request.clone()
   const req = await createPayloadRequest({ config, request })
@@ -224,12 +212,7 @@ export const POST = (config: SanitizedConfig) => async (request: Request) => {
     onOperation: async (request, args, result) => {
       // Error handling and extensions hook
       if (response.errors) {
-        return {
-          ...response,
-          errors: await Promise.all(
-            result.errors.map((error) => handleError({ err: error, payload, req })),
-          ),
-        }
+        // ... map errors through handleError
       }
       return response
     },
@@ -237,10 +220,7 @@ export const POST = (config: SanitizedConfig) => async (request: Request) => {
     validationRules,
   })(originalRequest)
 
-  return new Response(apiResponse.body, {
-    headers: mergeHeaders(req.responseHeaders, resHeaders),
-    status: apiResponse.status,
-  })
+  return new Response(apiResponse.body /* ... headers and status */)
 }
 ```
 
@@ -382,31 +362,26 @@ export default async function PostPage({ params }) {
 
 ### 3.1 withPayload() - Next.js Config Wrapper
 
-File: `src/withPayload.js`
+File: `src/withPayload.js` (Lines 5-80)
 
 ```javascript
+// next/src/withPayload.js:5-80
 export const withPayload = (nextConfig = {}, options = {}) => {
   return {
     ...nextConfig,
 
-    // Disable powered by header (add custom one later)
     poweredByHeader: false,
 
     // Add Client Hints headers for theme detection
-    headers: async () => {
-      return [
-        ...(await nextConfig.headers()),
-        {
-          source: '/:path*',
-          headers: [
-            { key: 'Accept-CH', value: 'Sec-CH-Prefers-Color-Scheme' },
-            { key: 'Vary', value: 'Sec-CH-Prefers-Color-Scheme' },
-            { key: 'Critical-CH', value: 'Sec-CH-Prefers-Color-Scheme' },
-            { key: 'X-Powered-By', value: 'Next.js, Payload' },
-          ],
-        },
-      ]
-    },
+    headers: async () => [
+      ...(await nextConfig.headers()),
+      {
+        source: '/:path*',
+        headers: [
+          // ... Accept-CH, Vary, Critical-CH, X-Powered-By headers
+        ],
+      },
+    ],
 
     // Mark packages as external (don't bundle)
     serverExternalPackages: [
@@ -416,48 +391,31 @@ export const withPayload = (nextConfig = {}, options = {}) => {
       'libsql',
       'graphql',
       // In dev mode, don't bundle Payload for faster builds
-      ...(process.env.NODE_ENV === 'development' && options.devBundleServerPackages === false
-        ? ['payload', '@payloadcms/db-*', '@payloadcms/graphql' /* etc */]
-        : []),
+      // ... conditionally add payload packages
     ],
 
     // Webpack config adjustments
-    webpack: (webpackConfig, webpackOptions) => {
-      return {
-        ...incomingWebpackConfig,
-
-        // Externalize native modules
-        externals: [...(incomingWebpackConfig?.externals || []), 'drizzle-kit', 'sharp', 'libsql'],
-
-        // Ignore MongoDB warnings
-        ignoreWarnings: [{ module: /node_modules\/mongodb\/lib\/utils\.js/ }],
-
-        // Ignore pg-native and cloudflare:sockets
-        plugins: [
-          new webpackOptions.webpack.IgnorePlugin({
-            resourceRegExp: /^pg-native$|^cloudflare:sockets$/,
-          }),
-        ],
-
-        // Resolve fallbacks for browser polyfills
-        resolve: {
-          fallback: {
-            '@aws-sdk/credential-providers': false,
-            kerberos: false,
-            'mongodb-client-encryption': false,
-            snappy: false,
-          },
+    webpack: (webpackConfig, webpackOptions) => ({
+      ...incomingWebpackConfig,
+      externals: [
+        /* ... drizzle-kit, sharp, libsql */
+      ],
+      ignoreWarnings: [
+        /* ... mongodb warnings */
+      ],
+      plugins: [
+        // ... IgnorePlugin for pg-native, cloudflare:sockets
+      ],
+      resolve: {
+        fallback: {
+          // ... AWS SDK, kerberos, mongodb-client-encryption, snappy
         },
-      }
-    },
+      },
+    }),
 
     // File tracing for standalone builds
-    outputFileTracingExcludes: {
-      '**/*': ['drizzle-kit', 'drizzle-kit/api'],
-    },
-    outputFileTracingIncludes: {
-      '**/*': ['@libsql/client'],
-    },
+    outputFileTracingExcludes: { '**/*': ['drizzle-kit', 'drizzle-kit/api'] },
+    outputFileTracingIncludes: { '**/*': ['@libsql/client'] },
   }
 }
 ```
@@ -556,26 +514,12 @@ File: `src/utilities/initReq.ts`
 This is **the most critical function** for understanding request flow:
 
 ```typescript
-/**
- * Initializes a full request object including:
- * - User authentication
- * - i18n setup
- * - Locale detection
- * - Access control
- * - Preferences loading
- */
+// next/src/utilities/initReq.ts:20-85
 export const initReq = async ({
   configPromise,
   importMap,
   key, // Cache key (e.g., 'RootLayout', 'initPage')
-  overrides,
-  canSetHeaders,
-}: {
-  configPromise: Promise<SanitizedConfig> | SanitizedConfig
-  importMap: ImportMap
-  key: string
-  overrides?: { req?: Partial<PayloadRequest> }
-  canSetHeaders?: boolean
+  // ... overrides, canSetHeaders
 }): Promise<{
   cookies: Map<string, string>
   headers: Headers
@@ -589,25 +533,10 @@ export const initReq = async ({
 
   // Step 1: Partial request initialization (cached globally)
   const partialResult = await partialReqCache.get(async () => {
-    const config = await configPromise
-    const payload = await getPayload({ config, cron: true, importMap })
-
-    // Get language from cookies/headers
+    const payload = await getPayload({ config: await configPromise, cron: true, importMap })
     const languageCode = getRequestLanguage({ config, cookies, headers })
-
-    // Initialize i18n client
-    const i18n = await initI18n({
-      config: config.i18n,
-      context: 'client',
-      language: languageCode,
-    })
-
-    // Execute auth strategies (JWT, session, etc.)
-    const { responseHeaders, user } = await executeAuthStrategies({
-      canSetHeaders,
-      headers,
-      payload,
-    })
+    const i18n = await initI18n(/* ... */)
+    const { responseHeaders, user } = await executeAuthStrategies(/* ... */)
 
     return { i18n, languageCode, payload, responseHeaders, user }
   }, 'global')
@@ -616,26 +545,13 @@ export const initReq = async ({
   return reqCache.get(async () => {
     const { i18n, languageCode, payload, responseHeaders, user } = partialResult
 
-    // Create local request object
     const req = await createLocalReq(
-      {
-        req: {
-          headers,
-          host: headers.get('host'),
-          i18n,
-          responseHeaders,
-          user,
-          ...(overrides?.req || {}),
-        },
-      },
+      { req: { headers, host: headers.get('host'), i18n, responseHeaders, user, ...overrides } },
       payload,
     )
-
-    // Get user's locale preference
     const locale = await getRequestLocale({ req })
     req.locale = locale?.code
 
-    // Get user's permissions
     const permissions = await getAccessResults({ req })
 
     return { cookies, headers, languageCode, locale, permissions, req }
@@ -703,6 +619,7 @@ export function selectiveCache<TValue>(namespace: string) {
 File: `src/layouts/Root/index.tsx`
 
 ```typescript
+// next/src/layouts/Root/index.tsx:20-150
 export const RootLayout = async ({
   children,
   config: configPromise,
@@ -744,12 +661,7 @@ export const RootLayout = async ({
   // Server action for switching language
   async function switchLanguageServerAction(lang: string) {
     'use server'
-    const cookies = await nextCookies()
-    cookies.set({
-      name: `${config.cookiePrefix || 'payload'}-lng`,
-      value: lang,
-      path: '/',
-    })
+    // ... set language cookie
   }
 
   // Get navigation preferences (open/closed)
@@ -776,18 +688,7 @@ export const RootLayout = async ({
       <body>
         <RootProvider
           config={clientConfig}
-          dateFNSKey={req.i18n.dateFNSKey}
-          fallbackLang={config.i18n.fallbackLanguage}
-          isNavOpen={navPrefs?.open ?? true}
-          languageCode={languageCode}
-          languageOptions={languageOptions}
-          locale={req.locale}
-          permissions={req.user ? permissions : null}
-          serverFunction={serverFunction}
-          switchLanguageServerAction={switchLanguageServerAction}
-          theme={theme}
-          translations={req.i18n.translations}
-          user={req.user}
+          // ... many props: dateFNSKey, fallbackLang, isNavOpen, etc.
         >
           <ProgressBar />
           {/* Custom providers (if configured) */}
@@ -829,36 +730,32 @@ File: `src/views/Root/index.tsx`
 This component handles **all admin route resolution**:
 
 ```typescript
+// next/src/views/Root/index.tsx:20-150
 export const RootPage = async ({
   config: configPromise,
   importMap,
   params: paramsPromise,
-  searchParams: searchParamsPromise,
+  searchParams: searchParamsPromise
 }) => {
   const config = await configPromise
   const params = await paramsPromise
   const searchParams = await searchParamsPromise
-
   const segments = Array.isArray(params.segments) ? params.segments : []
 
   // Parse collection/global from segments
   const isCollectionRoute = segments[0] === 'collections'
   const isGlobalRoute = segments[0] === 'globals'
-
-  let collectionConfig = undefined
-  let globalConfig = undefined
+  let collectionConfig = undefined, globalConfig = undefined
 
   if (isCollectionRoute && segments[1]) {
     collectionConfig = config.collections.find(c => c.slug === segments[1])
   }
-
   if (isGlobalRoute && segments[1]) {
     globalConfig = config.globals.find(g => g.slug === segments[1])
   }
 
   // 404 if collection/global not found
-  if ((isCollectionRoute && !collectionConfig) ||
-      (isGlobalRoute && !globalConfig)) {
+  if ((isCollectionRoute && !collectionConfig) || (isGlobalRoute && !globalConfig)) {
     return notFound()
   }
 
@@ -866,23 +763,18 @@ export const RootPage = async ({
   const { req, permissions, locale } = await initReq({
     configPromise: config,
     importMap,
-    key: 'initPage',
+    key: 'initPage'
   })
 
   // Check authentication
-  if (!permissions.canAccessAdmin && !isPublicAdminRoute(...)) {
+  if (!permissions.canAccessAdmin && !isPublicAdminRoute(/* ... */)) {
     redirect(handleAuthRedirect({ config, route, user: req.user }))
   }
 
   // Load collection preferences (if applicable)
   let collectionPreferences = undefined
   if (collectionConfig && segments.length === 2) {
-    collectionPreferences = await getPreferences(
-      `collection-${collectionConfig.slug}`,
-      req.payload,
-      req.user.id,
-      config.admin.user,
-    )
+    collectionPreferences = await getPreferences(/* ... */)
   }
 
   // Get route data (which view to render, params, etc.)
@@ -892,34 +784,23 @@ export const RootPage = async ({
     documentSubViewType,
     routeParams,
     templateType,
-    templateClassName,
-    viewActions,
+    // ... other props
   } = getRouteData({
-    adminRoute: config.routes.admin,
+    adminRoute,
     collectionConfig,
-    collectionPreferences,
-    currentRoute,
-    globalConfig,
-    payload: req.payload,
     segments,
     searchParams,
+    // ... other args
   })
 
   // Check if first user exists
-  const dbHasUser = req.user || await req.payload.db.findOne({
-    collection: config.admin.user,
-    req,
-  })
-
-  // Redirect to create first user if no users exist
+  const dbHasUser = req.user || await req.payload.db.findOne(/* ... */)
   if (!dbHasUser && currentRoute !== createFirstUserRoute) {
     redirect(createFirstUserRoute)
   }
 
   // Build client config (sanitized for browser)
-  const clientConfig = getClientConfig({ config, i18n: req.i18n, importMap, user: req.user })
-
-  // Get visible entities (based on permissions)
+  const clientConfig = getClientConfig(/* ... */)
   const visibleEntities = getVisibleEntities({ req })
 
   // Render view with server component pattern
@@ -932,34 +813,19 @@ export const RootPage = async ({
       collectionConfig,
       globalConfig,
       docID: routeParams.id,
-      i18n: req.i18n,
-      initPageResult: { /* full context */ },
-      params,
-      payload: req.payload,
-      permissions,
-      searchParams,
-      viewActions,
+      // ... other server props
     },
   })
 
   // Wrap in template (Default or Minimal)
   return (
     <PageConfigProvider config={clientConfig}>
-      {templateType === 'minimal' && (
-        <MinimalTemplate className={templateClassName}>
+      {templateType === 'minimal' &&
+        <MinimalTemplate className={templateClassName}>{RenderedView}</MinimalTemplate>}
+      {templateType === 'default' &&
+        <DefaultTemplate collectionSlug={collectionConfig?.slug} /* ... */>
           {RenderedView}
-        </MinimalTemplate>
-      )}
-      {templateType === 'default' && (
-        <DefaultTemplate
-          collectionSlug={collectionConfig?.slug}
-          globalSlug={globalConfig?.slug}
-          viewType={viewType}
-          /* ... */
-        >
-          {RenderedView}
-        </DefaultTemplate>
-      )}
+        </DefaultTemplate>}
     </PageConfigProvider>
   )
 }
@@ -1008,13 +874,13 @@ segments = ['account']
 File: `src/views/Root/getRouteData.ts`
 
 ```typescript
+// next/src/views/Root/getRouteData.ts:15-90
 export const getRouteData = ({ segments, ... }): GetRouteDataResult => {
   let ViewToRender = null
   let templateType = undefined
   let viewType = undefined
   let documentSubViewType = undefined
   const routeParams = {}
-
   const [seg1, seg2, seg3, seg4, seg5, seg6] = segments
 
   switch (segments.length) {
@@ -1050,32 +916,18 @@ export const getRouteData = ({ segments, ... }): GetRouteDataResult => {
     default:
       if (collectionConfig) {
         if (seg3 === 'create') {
-          // /admin/collections/posts/create
-          ViewToRender = { Component: DocumentView }
-          routeParams.id = undefined
-          viewType = 'document'
+          // ... set DocumentView for create
         } else if (seg3 === 'trash') {
-          // /admin/collections/posts/trash
-          ViewToRender = { Component: TrashView }
-          viewType = 'trash'
+          // ... set TrashView
         } else {
-          // /admin/collections/posts/123
-          // /admin/collections/posts/123/versions
-          // /admin/collections/posts/123/api
+          // /admin/collections/posts/123, /admin/collections/posts/123/versions, etc.
           ViewToRender = { Component: DocumentView }
           routeParams.id = seg3
-          routeParams.versionID = seg5
-
-          const viewInfo = getDocumentViewInfo([seg4, seg5])
-          viewType = viewInfo.viewType
-          documentSubViewType = viewInfo.documentSubViewType
+          // ... get view info from segments
         }
       } else if (globalConfig) {
         // /admin/globals/site-settings/versions
-        ViewToRender = { Component: DocumentView }
-        const viewInfo = getDocumentViewInfo([seg3, seg4])
-        viewType = viewInfo.viewType
-        documentSubViewType = viewInfo.documentSubViewType
+        // ... handle global routes
       }
       break
   }
@@ -1091,8 +943,7 @@ export const getRouteData = ({ segments, ... }): GetRouteDataResult => {
     documentSubViewType,
     routeParams,
     templateType,
-    templateClassName,
-    viewActions,
+    // ... other props
   }
 }
 ```
@@ -1104,6 +955,7 @@ File: `src/views/Document/index.tsx`
 The document edit view is the **most complex view** in Payload:
 
 ```typescript
+// next/src/views/Document/index.tsx:15-180
 export const renderDocument = async ({
   initPageResult,
   params,
@@ -1112,15 +964,7 @@ export const renderDocument = async ({
   viewType,
   ...
 }) => {
-  const {
-    collectionConfig,
-    globalConfig,
-    docID,
-    permissions,
-    req,
-    locale,
-  } = initPageResult
-
+  const { collectionConfig, globalConfig, docID, permissions, req, locale } = initPageResult
   const collectionSlug = collectionConfig?.slug
   const globalSlug = globalConfig?.slug
 
@@ -1131,51 +975,41 @@ export const renderDocument = async ({
     globalSlug,
     locale,
     payload: req.payload,
-    req,
+    req
   })
-
-  // Redirect if document not found
   if (!doc && collectionSlug) {
     redirect(`/collections/${collectionSlug}?notFound=${docID}`)
   }
 
   const isTrashedDoc = typeof doc?.deletedAt === 'string'
 
-  // Parallel data fetching
+  // Parallel data fetching (batch 1)
   const [
     docPreferences,
     { docPermissions, hasPublishPermission, hasSavePermission },
     { currentEditor, isLocked, lastUpdateTime },
-    entityPreferences,
+    entityPreferences
   ] = await Promise.all([
-    getDocPreferences({ id: docID, collectionSlug, globalSlug, payload, user }),
-    getDocumentPermissions({ id: docID, collectionConfig, data: doc, req }),
-    getIsLocked({ id: docID, collectionConfig, globalConfig, req }),
-    getPreferences(`collection-${collectionSlug}`, payload, user.id),
+    getDocPreferences(/* ... */),
+    getDocumentPermissions(/* ... */),
+    getIsLocked(/* ... */),
+    getPreferences(/* ... */),
   ])
 
   const operation = docID || globalSlug ? 'update' : 'create'
 
-  // Parallel data fetching (continued)
+  // Parallel data fetching (batch 2)
   const [
     { hasPublishedDoc, mostRecentVersionIsAutosaved, versionCount },
-    { state: formState },
+    { state: formState }
   ] = await Promise.all([
-    getVersions({ id: docID, collectionConfig, doc, docPermissions, payload }),
+    getVersions(/* ... */),
     buildFormState({
       id: docID,
       collectionSlug,
       data: doc,
       docPermissions,
-      docPreferences,
-      globalSlug,
-      locale: locale?.code,
-      operation,
-      readOnly: isTrashedDoc || isLocked,
-      renderAllFields: true,
-      req,
-      schemaPath: collectionSlug || globalSlug,
-      skipValidation: true,
+      // ... many more args
     }),
   ])
 
@@ -1184,56 +1018,29 @@ export const renderDocument = async ({
     doc = await payload.create({
       collection: collectionSlug,
       data: initialData || {},
-      depth: 0,
-      draft: true,
-      locale: locale?.code,
-      req,
+      // ... create options
     })
-
-    if (doc?.id) {
-      redirect(`/collections/${collectionSlug}/${doc.id}`)
-    }
+    if (doc?.id) redirect(`/collections/${collectionSlug}/${doc.id}`)
   }
 
   // Render document slots (actions, description, etc.)
-  const documentSlots = renderDocumentSlots({
-    id: docID,
-    collectionConfig,
-    globalConfig,
-    hasSavePermission,
-    permissions: docPermissions,
-    req,
-  })
+  const documentSlots = renderDocumentSlots(/* ... */)
 
   // Handle live preview
-  const { isLivePreviewEnabled, livePreviewURL } = await handleLivePreview({
-    collectionSlug,
-    config,
-    data: doc,
-    globalSlug,
-    operation,
-    req,
-  })
+  const { isLivePreviewEnabled, livePreviewURL } = await handleLivePreview(/* ... */)
 
   // Determine which view to render
-  let View = null
-  let showHeader = true
-
   const RootViewOverride =
     collectionConfig?.admin?.components?.views?.edit?.root?.Component ||
     globalConfig?.admin?.components?.views?.edit?.root?.Component
+
+  let View = null, showHeader = true
 
   if (RootViewOverride) {
     View = RootViewOverride
     showHeader = false
   } else {
-    ({ View } = getDocumentView({
-      collectionConfig,
-      config,
-      docPermissions,
-      globalConfig,
-      routeSegments: segments,
-    }))
+    ({ View } = getDocumentView(/* ... */))
   }
 
   return {
@@ -1242,36 +1049,17 @@ export const renderDocument = async ({
       <DocumentInfoProvider
         apiURL={apiURL}
         collectionSlug={collectionSlug}
-        currentEditor={currentEditor}
-        docPermissions={docPermissions}
-        hasPublishedDoc={hasPublishedDoc}
-        hasSavePermission={hasSavePermission}
-        id={docID}
-        initialData={doc}
-        initialState={formState}
-        isEditing={!!docID}
-        isLocked={isLocked}
-        isTrashed={isTrashedDoc}
+        // ... many props
       >
-        <LivePreviewProvider
-          isLivePreviewEnabled={isLivePreviewEnabled}
-          url={livePreviewURL}
-        >
-          {showHeader && (
-            <DocumentHeader
-              collectionConfig={collectionConfig}
-              globalConfig={globalConfig}
-              permissions={permissions}
-              req={req}
-            />
-          )}
+        <LivePreviewProvider isLivePreviewEnabled={isLivePreviewEnabled} url={livePreviewURL}>
+          {showHeader && <DocumentHeader /* ... */ />}
           <HydrateAuthProvider permissions={permissions} />
           <EditDepthProvider>
             {RenderServerComponent({
               clientProps: { formState, documentSlots, viewType },
               Component: View,
               importMap,
-              serverProps: { doc, i18n, payload, permissions, req },
+              serverProps: { doc, i18n, payload, permissions, req }
             })}
           </EditDepthProvider>
         </LivePreviewProvider>
@@ -1341,6 +1129,7 @@ export const getDocumentView = ({ routeSegments, collectionConfig, ... }) => {
 File: `src/views/List/index.tsx`
 
 ```typescript
+// next/src/views/List/index.tsx:20-120
 export const renderListView = async (args: RenderListViewArgs) => {
   const {
     initPageResult,
@@ -1348,14 +1137,9 @@ export const renderListView = async (args: RenderListViewArgs) => {
     enableRowSelections,
     disableBulkDelete,
     disableBulkEdit,
-    trash,
+    trash
   } = args
-
-  const {
-    collectionConfig,
-    permissions,
-    req,
-  } = initPageResult
+  const { collectionConfig, permissions, req } = initPageResult
 
   // Check read permission
   if (!permissions?.collections?.[collectionSlug]?.read) {
@@ -1370,20 +1154,19 @@ export const renderListView = async (args: RenderListViewArgs) => {
       columns: transformColumnsToPreferences(query?.columns),
       groupBy: query?.groupBy,
       limit: Number(query.limit),
-      sort: query?.sort,
-    },
+      sort: query?.sort
+    }
   })
 
   // Build where clause
   let whereWithMergedSearch = mergeListSearchAndWhere({
     collectionConfig,
     search: query?.search,
-    where: combineWhereConstraints([query?.where, baseFilterConstraint]),
+    where: combineWhereConstraints([query?.where, baseFilterConstraint])
   })
-
   if (trash === true) {
     whereWithMergedSearch = {
-      and: [whereWithMergedSearch, { deletedAt: { exists: true } }],
+      and: [whereWithMergedSearch, { deletedAt: { exists: true } }]
     }
   }
 
@@ -1391,7 +1174,7 @@ export const renderListView = async (args: RenderListViewArgs) => {
   const columns = getColumns({
     collectionSlug,
     columns: collectionPreferences?.columns,
-    i18n: req.i18n,
+    i18n: req.i18n
   })
 
   // Build select (for performance)
@@ -1405,12 +1188,7 @@ export const renderListView = async (args: RenderListViewArgs) => {
     depth: 0,
     draft: true,
     limit: query?.limit,
-    locale: req.locale,
-    page: query?.page,
-    select,
-    sort: query?.sort,
-    trash,
-    where: whereWithMergedSearch,
+    // ... other find options
   })
 
   // Render table
@@ -1418,10 +1196,7 @@ export const renderListView = async (args: RenderListViewArgs) => {
     collectionConfig,
     columns,
     data,
-    enableRowSelections,
-    i18n: req.i18n,
-    query,
-    useAsTitle: collectionConfig.admin.useAsTitle,
+    // ... other render options
   })
 
   // Render filters
@@ -1432,31 +1207,18 @@ export const renderListView = async (args: RenderListViewArgs) => {
     List: (
       <Fragment>
         <HydrateAuthProvider permissions={permissions} />
-        <ListQueryProvider
-          collectionSlug={collectionSlug}
-          data={data}
-          query={query}
-        >
+        <ListQueryProvider collectionSlug={collectionSlug} data={data} query={query}>
           {RenderServerComponent({
             clientProps: {
               collectionSlug,
               columnState,
               disableBulkDelete,
-              disableBulkEdit,
-              enableRowSelections,
-              listPreferences: collectionPreferences,
-              renderedFilters,
-              Table,
+              // ... other client props
             },
             Component: collectionConfig?.admin?.components?.views?.list?.Component,
             Fallback: DefaultListView,
             importMap,
-            serverProps: {
-              collectionConfig,
-              data,
-              i18n,
-              permissions,
-            },
+            serverProps: { collectionConfig, data, i18n, permissions },
           })}
         </ListQueryProvider>
       </Fragment>
@@ -1702,6 +1464,7 @@ HTTP Response
 File: `payload/src/utilities/createPayloadRequest.ts` (in main Payload package)
 
 ```typescript
+// payload/src/utilities/createPayloadRequest.ts:10-65
 export async function createPayloadRequest({
   config,
   request,
@@ -1717,10 +1480,8 @@ export async function createPayloadRequest({
   // Get Payload instance
   const payload = await getPayload({ config })
 
-  // Parse cookies
+  // Parse cookies and initialize i18n
   const cookies = parseCookies(headers)
-
-  // Initialize i18n
   const languageCode = getRequestLanguage({ config, cookies, headers })
   const i18n = await initI18n({
     config: config.i18n,
@@ -1754,11 +1515,8 @@ export async function createPayloadRequest({
     headers,
     payload,
   })
-
   req.user = user
-  if (responseHeaders) {
-    req.responseHeaders = responseHeaders
-  }
+  if (responseHeaders) req.responseHeaders = responseHeaders
 
   return req
 }
@@ -1767,6 +1525,7 @@ export async function createPayloadRequest({
 **executeAuthStrategies()** implementation:
 
 ```typescript
+// payload/src/utilities/executeAuthStrategies.ts:10-50
 export async function executeAuthStrategies({
   headers,
   payload,
@@ -1775,19 +1534,13 @@ export async function executeAuthStrategies({
   headers: Headers
   payload: Payload
   canSetHeaders?: boolean
-}): Promise<{
-  responseHeaders: Headers | null
-  user: TypedUser | null
-}> {
+}): Promise<{ responseHeaders: Headers | null; user: TypedUser | null }> {
   const responseHeaders = canSetHeaders ? new Headers() : null
   let user = null
 
   // Try each auth strategy in order
   for (const strategy of payload.config.admin.authStrategies || []) {
-    const result = await strategy.authenticate({
-      headers,
-      payload,
-    })
+    const result = await strategy.authenticate({ headers, payload })
 
     if (result.user) {
       user = result.user
@@ -1798,14 +1551,9 @@ export async function executeAuthStrategies({
           collection: user.collection,
           token: result.token,
         })
-
-        // Set cookie
         const cookie = generatePayloadCookie({
-          collectionAuthConfig: payload.collections[user.collection].config.auth,
-          cookiePrefix: payload.config.cookiePrefix,
-          token: newToken,
+          // ... auth config and token
         })
-
         responseHeaders.set('Set-Cookie', cookie)
       }
 

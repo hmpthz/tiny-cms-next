@@ -59,7 +59,7 @@ Payload implements a comprehensive, multi-layered access control system with a p
 Payload defines access control through a flexible type system:
 
 ```typescript
-// From /packages/payload/src/config/types.ts
+// payload/src/config/types.ts
 
 // Result of access control evaluation
 export type AccessResult = boolean | Where
@@ -101,9 +101,10 @@ access: {
 
 #### 1.2 Access Control Layers
 
-**Collection-Level Access** (`/packages/payload/src/collections/config/types.ts`):
+**Collection-Level Access**:
 
 ```typescript
+// payload/src/collections/config/types.ts
 export type CollectionConfig = {
   access?: {
     admin?: ({ req }: { req: PayloadRequest }) => boolean | Promise<boolean>
@@ -127,9 +128,10 @@ Operations supported:
 - `unlock` - Unlock locked documents
 - `admin` - Access admin panel (separate from API)
 
-**Global-Level Access** (`/packages/payload/src/globals/config/types.ts`):
+**Global-Level Access**:
 
 ```typescript
+// payload/src/globals/config/types.ts
 export type GlobalConfig = {
   access?: {
     read?: Access
@@ -142,9 +144,10 @@ export type GlobalConfig = {
 
 Globals have fewer operations (no create/delete).
 
-**Field-Level Access** (`/packages/payload/src/fields/config/types.ts`):
+**Field-Level Access**:
 
 ```typescript
+// payload/src/fields/config/types.ts
 export type FieldBase = {
   access?: {
     create?: FieldAccess
@@ -174,8 +177,7 @@ export type FieldAccessArgs<TData = any, TSiblingData = any> = {
 Access control is executed through `executeAccess` function:
 
 ```typescript
-// From /packages/payload/src/auth/executeAccess.ts
-
+// payload/src/auth/executeAccess.ts
 export const executeAccess = async (
   { id, data, disableErrors, isReadingStaticFile = false, req }: OperationArgs,
   access: Access,
@@ -217,35 +219,27 @@ export const executeAccess = async (
 4. Database query executed with combined constraints
 5. **Field-level access** checked during `afterRead`
 
-Example from `/packages/payload/src/collections/operations/find.ts`:
+Example from find operation:
 
 ```typescript
+// payload/src/collections/operations/find.ts
 export const findOperation = async (incomingArgs: Arguments) => {
   let args = incomingArgs
 
   // 1. beforeOperation hooks
   if (args.collection.config.hooks?.beforeOperation?.length) {
     for (const hook of args.collection.config.hooks.beforeOperation) {
-      args = (await hook({
-        args,
-        collection: args.collection.config,
-        context: args.req!.context,
-        operation: 'read',
-        req: args.req!,
-      })) || args
+      args = (await hook({...})) || args
     }
   }
 
   // 2. Access control
   let accessResult: AccessResult
   if (!overrideAccess) {
-    accessResult = await executeAccess(
-      { disableErrors, req },
-      collectionConfig.access.read
-    )
+    accessResult = await executeAccess({ disableErrors, req }, collectionConfig.access.read)
 
     if (accessResult === false) {
-      return { docs: [], totalDocs: 0, ... } // Empty result
+      return { docs: [], totalDocs: 0 /** ... */ }
     }
   }
 
@@ -256,7 +250,7 @@ export const findOperation = async (incomingArgs: Arguments) => {
   result = await payload.db.find({
     collection: collectionConfig.slug,
     where: fullWhere,
-    ...
+    /** ... */
   })
 
   // 5. Field access in afterRead (see field hooks section)
@@ -268,8 +262,7 @@ export const findOperation = async (incomingArgs: Arguments) => {
 Admin access is separate from API access:
 
 ```typescript
-// From /packages/payload/src/auth/getAccessResults.ts
-
+// payload/src/auth/getAccessResults.ts
 export async function getAccessResults({ req }: GetAccessResultsArgs) {
   const results = { collections: {}, globals: {} } as Permissions
   const { payload, user } = req
@@ -311,8 +304,7 @@ export async function getAccessResults({ req }: GetAccessResultsArgs) {
 #### 1.5 Default Access Pattern
 
 ```typescript
-// From /packages/payload/src/auth/defaultAccess.ts
-
+// payload/src/auth/defaultAccess.ts
 export const defaultAccess = ({ req: { user } }: { req: PayloadRequest }): boolean => Boolean(user)
 ```
 
@@ -349,7 +341,7 @@ access: {
 The `Where` object becomes part of the database query:
 
 ```typescript
-// From /packages/payload/src/collections/operations/find.ts
+// payload/src/collections/operations/find.ts
 
 // User query
 const userWhere: Where = { status: { equals: 'published' } }
@@ -370,8 +362,7 @@ const fullWhere = combineQueries(userWhere, accessResult)
 #### 2.2 Query Combining Logic
 
 ```typescript
-// From /packages/payload/src/database/combineQueries.ts
-
+// payload/src/database/combineQueries.ts
 export function combineQueries(query1: Where, query2: Where): Where {
   if (!query1 && !query2) return {}
   if (!query1) return query2
@@ -387,9 +378,10 @@ Simple but effective combining using `and` operator.
 
 #### 2.3 Where Constraints in Practice
 
-From `/packages/payload/src/query-presets/access.ts` - the query presets system:
+From query presets system:
 
 ```typescript
+// payload/src/query-presets/access.ts (lines 20-90)
 export const getAccess = (config: Config): Record<Operation, Access> =>
   operations.reduce(
     (acc, operation) => {
@@ -437,28 +429,7 @@ export const getAccess = (config: Config): Record<Operation, Access> =>
                   [`access.${operation}.constraint`]: { equals: 'everyone' },
                 },
                 // Custom constraints
-                ...(await Promise.all(
-                  (config?.queryPresets?.constraints?.[operation] || []).map(async (constraint) => {
-                    const constraintAccess = constraint.access
-                      ? await constraint.access(args)
-                      : undefined
-
-                    return {
-                      and: [
-                        ...(typeof constraintAccess === 'object'
-                          ? [constraintAccess]
-                          : constraintAccess === false
-                            ? [{ id: { equals: null } }] // No matches
-                            : []),
-                        {
-                          [`access.${operation}.constraint`]: {
-                            equals: constraint.value,
-                          },
-                        },
-                      ],
-                    }
-                  }),
-                )),
+                /** ... await Promise.all for constraint mapping */
               ],
             },
             ...(typeof collectionAccess === 'object' ? [collectionAccess] : []),
@@ -485,9 +456,10 @@ Field access is evaluated during `afterRead` and `beforeChange`.
 
 #### 3.1 Read Access
 
-From `/packages/payload/src/fields/hooks/afterRead/promise.ts`:
+From field read access implementation:
 
 ```typescript
+// payload/src/fields/hooks/afterRead/promise.ts (lines 80-120)
 export const promise = async ({
   field,
   siblingDoc,
@@ -495,9 +467,9 @@ export const promise = async ({
   req,
   overrideAccess,
   triggerAccessControl = true,
-  ...args
+  /** ... */
 }: Args): Promise<void> => {
-  // ... field processing ...
+  /** ... field processing ... */
 
   // Execute access control
   let allowDefaultValue = true
@@ -526,13 +498,7 @@ export const promise = async ({
     typeof siblingDoc[field.name!] === 'undefined' &&
     typeof field.defaultValue !== 'undefined'
   ) {
-    siblingDoc[field.name!] = await getDefaultValue({
-      defaultValue: field.defaultValue,
-      locale: locale!,
-      req,
-      user: req.user,
-      value: siblingDoc[field.name!],
-    })
+    siblingDoc[field.name!] = await getDefaultValue({...})
   }
 }
 ```
@@ -548,6 +514,7 @@ Field update access would be checked during `beforeChange`, though the code does
 Field access traverses nested structures (groups, arrays, blocks):
 
 ```typescript
+// payload/src/fields/hooks/afterRead/promise.ts (lines 150-180)
 // Arrays
 case 'array': {
   const rows = siblingDoc[field.name] as JsonObject
@@ -558,7 +525,7 @@ case 'array': {
         fields: field.fields,
         siblingDoc: row || {},
         triggerAccessControl,  // Propagates to children
-        ...
+        /** ... */
       })
     })
   }
@@ -578,7 +545,7 @@ case 'blocks': {
           fields: block.fields,
           siblingDoc: row || {},
           triggerAccessControl,  // Propagates to children
-          ...
+          /** ... */
         })
       }
     })
@@ -595,9 +562,10 @@ Permissions are calculated once per request and cached.
 
 #### 4.1 Entity Policies
 
-From `/packages/payload/src/utilities/getEntityPolicies.ts`:
+From entity policies implementation:
 
 ```typescript
+// payload/src/utilities/getEntityPolicies.ts (lines 40-75)
 export async function getEntityPolicies(args: Args) {
   const { id, type, blockPolicies, entity, operations, req } = args
   const { data, locale, payload, user } = req
@@ -639,12 +607,13 @@ export async function getEntityPolicies(args: Args) {
 #### 4.2 Field Policies
 
 ```typescript
+// payload/src/utilities/getEntityPolicies.ts (lines 90-140)
 const executeFieldPolicies = async ({
   fields,
   operation,
   createAccessPromise,
   policiesObj,
-  ...args
+  /** ... */
 }) => {
   const mutablePolicies = policiesObj.fields as Record<string, any>
 
@@ -678,12 +647,7 @@ const executeFieldPolicies = async ({
 
         // Recurse into nested fields
         if ('fields' in field && field.fields) {
-          await executeFieldPolicies({
-            fields: field.fields,
-            operation,
-            policiesObj: mutablePolicies[field.name],
-            ...args,
-          })
+          await executeFieldPolicies({}) /** ... recurse */
         }
 
         // Handle blocks specially (they can be reused)
@@ -742,9 +706,10 @@ Payload provides hooks at three levels:
 
 #### 1.1 Collection Hook Types
 
-From `/packages/payload/src/collections/config/types.ts`:
+From collection config:
 
 ```typescript
+// payload/src/collections/config/types.ts (lines 200-230)
 export type CollectionConfig = {
   hooks?: {
     // Operation lifecycle
@@ -767,11 +732,7 @@ export type CollectionConfig = {
     // Auth-specific hooks
     beforeLogin?: BeforeLoginHook[]
     afterLogin?: AfterLoginHook[]
-    afterLogout?: AfterLogoutHook[]
-    afterMe?: AfterMeHook[]
-    afterRefresh?: AfterRefreshHook[]
-    afterForgotPassword?: AfterForgotPasswordHook[]
-    afterError?: AfterErrorHook[]
+    /** ... other auth hooks */
 
     // Custom operation hooks
     me?: MeHook[]
@@ -782,9 +743,10 @@ export type CollectionConfig = {
 
 #### 1.2 Global Hook Types
 
-From `/packages/payload/src/globals/config/types.ts`:
+From global config:
 
 ```typescript
+// payload/src/globals/config/types.ts
 export type GlobalConfig = {
   hooks?: {
     beforeOperation?: BeforeOperationHook[]
@@ -801,9 +763,10 @@ Globals have fewer hooks (no delete, create operations).
 
 #### 1.3 Field Hook Types
 
-From `/packages/payload/src/fields/config/types.ts`:
+From field config:
 
 ```typescript
+// payload/src/fields/config/types.ts (lines 100-160)
 export type FieldBase = {
   hooks?: {
     afterChange?: FieldHook[]
@@ -837,8 +800,7 @@ export type FieldHookArgs<TData = any, TValue = any, TSiblingData = any> = {
   field: FieldAffectingData
   path: (number | string)[]
   schemaPath: string[]
-  indexPath: number[]
-  siblingFields: (Field | TabAsField)[]
+  /** ... other metadata fields */
 
   // Entity context
   collection: null | SanitizedCollectionConfig
@@ -849,15 +811,7 @@ export type FieldHookArgs<TData = any, TValue = any, TSiblingData = any> = {
   req: PayloadRequest
   context: RequestContext
 
-  // Read-specific
-  depth?: number
-  currentDepth?: number
-  draft?: boolean
-  findMany?: boolean
-  showHiddenFields?: boolean
-
-  // Access control
-  overrideAccess?: boolean
+  /** ... read-specific and access control fields */
 }
 ```
 
@@ -867,11 +821,10 @@ export type FieldHookArgs<TData = any, TValue = any, TSiblingData = any> = {
 
 #### 2.1 Create Operation Flow
 
-From `/packages/payload/src/collections/operations/create.ts`:
-
-`payload-main/packages/payload/src/collections/operations/create.ts` (lines 40-200)
+From create operation:
 
 ```typescript
+// payload/src/collections/operations/create.ts (lines 40-200)
 export const createOperation = async (incomingArgs: Arguments) => {
   let args = incomingArgs
 
@@ -906,7 +859,7 @@ export const createOperation = async (incomingArgs: Arguments) => {
     /** ... upload files to storage */
 
     // 10. Database insert
-    doc = await payload.db.create({/** ... */})
+    doc = await payload.db.create({}) /** ... */
 
     let result = sanitizeInternalFields(doc)
 
@@ -953,11 +906,10 @@ export const createOperation = async (incomingArgs: Arguments) => {
 
 #### 2.2 Find Operation Flow
 
-From `/packages/payload/src/collections/operations/find.ts`:
-
-`payload-main/packages/payload/src/collections/operations/find.ts` (lines 50-180)
+From find operation:
 
 ```typescript
+// payload/src/collections/operations/find.ts (lines 50-180)
 export const findOperation = async (incomingArgs: Arguments) => {
   let args = incomingArgs
 
@@ -971,7 +923,7 @@ export const findOperation = async (incomingArgs: Arguments) => {
       accessResult = await executeAccess(/** ... */)
 
       if (accessResult === false) {
-        return { docs: [], totalDocs: 0, ... }
+        return { docs: [], totalDocs: 0 /** ... */ }
       }
     }
 
@@ -980,7 +932,7 @@ export const findOperation = async (incomingArgs: Arguments) => {
     /** ... sanitize query */
 
     // 4. Database query
-    result = await payload.db.find({/** ... */})
+    result = await payload.db.find({...})
 
     // 5. beforeRead - Collection (per document)
     /** ... run collection beforeRead hooks for each doc */
@@ -988,8 +940,8 @@ export const findOperation = async (incomingArgs: Arguments) => {
     // 6. afterRead - Fields (per document)
     result.docs = await Promise.all(
       result.docs.map(async (doc) =>
-        afterRead({/** ... */})
-      )
+        afterRead({...}),
+      ),
     )
 
     // 7. afterRead - Collection (per document)
@@ -1447,9 +1399,10 @@ Executed in `/packages/payload/src/fields/hooks/beforeValidate/promise.ts`.
 
 #### 4.2 beforeChange Field Hook
 
-Executed in `/packages/payload/src/fields/hooks/beforeChange/promise.ts`:
+Executed in beforeChange:
 
 ```typescript
+// payload/src/fields/hooks/beforeChange/promise.ts (lines 40-65)
 if ('hooks' in field && field.hooks?.beforeChange) {
   for (const hook of field.hooks.beforeChange) {
     const hookedValue = await hook({
@@ -1459,18 +1412,13 @@ if ('hooks' in field && field.hooks?.beforeChange) {
       data,
       field,
       global,
-      indexPath: indexPathSegments,
       operation,
       originalDoc: doc,
-      path: pathSegments,
-      previousSiblingDoc: siblingDoc,
       previousValue: siblingDoc[field.name],
       req,
-      schemaPath: schemaPathSegments,
       siblingData,
-      siblingDocWithLocales,
-      siblingFields: siblingFields!,
       value: siblingData[field.name],
+      /** ... other args */
     })
 
     if (hookedValue !== undefined) {
@@ -1504,33 +1452,26 @@ if ('hooks' in field && field.hooks?.beforeChange) {
 
 #### 4.3 afterRead Field Hook
 
-Executed in `/packages/payload/src/fields/hooks/afterRead/promise.ts`:
+Executed in afterRead:
 
 ```typescript
+// payload/src/fields/hooks/afterRead/promise.ts (lines 120-150)
 if (triggerHooks && 'hooks' in field && field.hooks?.afterRead) {
   for (const hook of field.hooks.afterRead) {
     const hookedValue = await hook({
       blockData,
       collection,
       context,
-      currentDepth,
       data: doc,
-      depth,
-      draft,
       field,
-      findMany,
       global,
-      indexPath: indexPathSegments,
       operation: 'read',
       originalDoc: doc,
       overrideAccess,
-      path: pathSegments,
       req,
-      schemaPath: schemaPathSegments,
-      showHiddenFields,
       siblingData: siblingDoc,
-      siblingFields: siblingFields!,
       value: siblingDoc[field.name],
+      /** ... other args */
     })
 
     if (hookedValue !== undefined) {
@@ -1567,7 +1508,7 @@ if (triggerHooks && 'hooks' in field && field.hooks?.afterRead) {
 
 #### 4.4 afterChange Field Hook
 
-Executed in `/packages/payload/src/fields/hooks/afterChange/promise.ts`.
+Executed in `payload/src/fields/hooks/afterChange/promise.ts`.
 
 **Purpose**: Side effects after field value saved.
 
@@ -2208,7 +2149,7 @@ export const Posts: CollectionConfig = {
     // Owner or admin can update
     update: async ({ req, id }) => {
       /** ... check if admin or owner */
-      return { and: [/** ... tenant + author match */] }
+      return { and: [] /** ... tenant + author match */ }
     },
   },
 
@@ -2227,8 +2168,7 @@ export const Posts: CollectionConfig = {
     // Validate tenant hasn't changed
     beforeChange: [
       async ({ data, operation, originalDoc, req }) => {
-        /** ... prevent tenant changes */
-        /** ... track modifications */
+        /** ... prevent tenant changes, track modifications */
         return data
       },
     ],
@@ -2241,7 +2181,7 @@ export const Posts: CollectionConfig = {
         // Create audit log entry
         await req.payload.create({
           collection: 'audit-logs',
-          data: {/** ... audit details */},
+          data: {}, /** ... audit details */
           overrideAccess: true,
           context: { skipAudit: true }, // Prevent infinite loop
         })
@@ -2253,12 +2193,12 @@ export const Posts: CollectionConfig = {
     // Soft delete logging
     beforeDelete: [
       async ({ id, req }) => {
-        const doc = await req.payload.findByID({/** ... */})
+        const doc = await req.payload.findByID({...})
 
         // Archive document
         await req.payload.create({
           collection: 'deleted-posts',
-          data: {/** ... archived doc */},
+          data: {} /** ... archived doc */,
           overrideAccess: true,
         })
       },
@@ -2736,25 +2676,25 @@ field: {
 ```typescript
 describe('Access Control', () => {
   test('boolean access - granted', async () => {
-    const result = await payload.find({/** ... with authenticated user */})
+    const result = await payload.find({}) /** ... with authenticated user */
     expect(result.docs.length).toBeGreaterThan(0)
   })
 
   test('boolean access - denied', async () => {
     await expect(
-      payload.find({/** ... with null user */})
+      payload.find({}) /** ... with null user */,
     ).rejects.toThrow(Forbidden)
   })
 
   test('query-based access - filters results', async () => {
-    const result = await payload.find({/** ... with tenant user */})
+    const result = await payload.find({}) /** ... with tenant user */
 
     // All results should be from user's tenant
     expect(result.docs.every((doc) => doc.tenant === tenantUser.tenant)).toBe(true)
   })
 
   test('field access - removes unauthorized fields', async () => {
-    const doc = await payload.findByID({/** ... */})
+    const doc = await payload.findByID({...})
     expect(doc.internalNotes).toBeUndefined()
   })
 })
@@ -2765,33 +2705,31 @@ describe('Access Control', () => {
 ```typescript
 describe('Hooks', () => {
   test('beforeChange - transforms data', async () => {
-    const result = await payload.create({/** ... */})
+    const result = await payload.create({...})
     // Hook should have set slug
     expect(result.slug).toBe('test')
   })
 
   test('afterChange - side effects', async () => {
-    await payload.create({/** ... */})
+    await payload.create({...})
 
     // Hook should have created audit log
-    const logs = await payload.find({/** ... audit logs */})
+    const logs = await payload.find({}) /** ... audit logs */
     expect(logs.totalDocs).toBeGreaterThan(0)
   })
 
   test('hooks run in order', async () => {
     const order = []
-    await payload.create({/** ... with context to capture order */})
+    await payload.create({}) /** ... with context to capture order */
 
     expect(order).toEqual(['beforeValidate', 'beforeChange', 'afterRead', 'afterChange'])
   })
 
   test('hook error rolls back transaction', async () => {
-    await expect(
-      payload.create({/** ... trigger error */})
-    ).rejects.toThrow()
+    await expect(payload.create({}) /** ... trigger error */).rejects.toThrow()
 
     // Document should not exist
-    const result = await payload.find({/** ... */})
+    const result = await payload.find({...})
     expect(result.totalDocs).toBe(0)
   })
 })
