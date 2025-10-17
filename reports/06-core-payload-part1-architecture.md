@@ -115,7 +115,7 @@ packages/payload/
 **Entry Point:** `src/index.ts` (lines 734-921)
 
 ```typescript
-// Main class definition (line 349)
+// payload/src/index.ts:349-395
 export class BasePayload {
   config!: SanitizedConfig
   collections: Record<CollectionSlug, Collection> = {}
@@ -128,19 +128,7 @@ export class BasePayload {
   logger!: Logger
 
   async init(options: InitOptions): Promise<Payload> {
-    // 1. Check dependencies
-    // 2. Load import map
-    // 3. Validate config
-    // 4. Hash secret
-    // 5. Initialize collections
-    // 6. Initialize blocks
-    // 7. Generate types
-    // 8. Initialize database adapter
-    // 9. Connect to database
-    // 10. Initialize email adapter
-    // 11. Initialize auth strategies
-    // 12. Run onInit hook
-    // 13. Initialize cron jobs
+    // ... 13 initialization steps
   }
 }
 ```
@@ -148,142 +136,57 @@ export class BasePayload {
 **Initialization Steps (Detailed):**
 
 ```typescript
-// Line 734-921
+// payload/src/index.ts:734-921
 async init(options: InitOptions): Promise<Payload> {
-  // Step 1: Dependency checking (line 735-742)
-  if (process.env.NODE_ENV !== 'production' &&
-      process.env.PAYLOAD_DISABLE_DEPENDENCY_CHECKER !== 'true') {
+  // Step 1: Dependency checking
+  if (process.env.NODE_ENV !== 'production') {
     void checkPayloadDependencies()
   }
 
-  // Step 2: Import map (line 744)
+  // Step 2: Import map & Config validation
   this.importMap = options.importMap!
-
-  // Step 3: Config validation (line 746-750)
-  if (!options?.config) {
-    throw new Error('Error: the payload config is required to initialize payload.')
-  }
   this.config = await options.config
   this.logger = getLogger('payload', this.config.logger)
 
-  // Step 4: Secret hashing (line 752-757)
-  if (!this.config.secret) {
-    throw new Error('Error: missing secret key. A secret key is needed to secure Payload.')
-  }
+  // Step 3: Secret hashing
   this.secret = crypto.createHash('sha256')
     .update(this.config.secret)
     .digest('hex')
     .slice(0, 32)
 
-  // Step 5: Initialize globals structure (line 759-761)
-  this.globals = {
-    config: this.config.globals,
-  }
+  // Step 4: Initialize globals structure
+  this.globals = { config: this.config.globals }
 
-  // Step 6: Initialize collections (line 763-794)
+  // Step 5: Initialize collections
   for (const collection of this.config.collections) {
-    let customIDType: string | undefined = undefined
-    const findCustomID: TraverseFieldsCallback = ({ field }) => {
-      // Find custom ID field type
-      if (field.name === 'id') {
-        customIDType = field.type
-        return true
-      }
-    }
-
-    traverseFields({
-      callback: findCustomID,
-      config: this.config,
-      fields: collection.fields,
-      parentIsLocalized: false,
-    })
-
-    this.collections[collection.slug] = {
-      config: collection,
-      customIDType,
-    }
+    let customIDType = /** ... find custom ID type */
+    this.collections[collection.slug] = { config: collection, customIDType }
   }
 
-  // Step 7: Initialize blocks (line 796-802)
-  this.blocks = this.config.blocks!.reduce(
-    (blocks, block) => {
-      blocks[block.slug] = block
-      return blocks
-    },
-    {} as Record<string, FlattenedBlock>,
-  )
+  // Step 6: Initialize blocks
+  this.blocks = this.config.blocks!.reduce(/** ... build blocks map */)
 
-  // Step 8: Generate TypeScript types (line 804-812)
-  if (process.env.NODE_ENV !== 'production' &&
-      this.config.typescript.autoGenerate !== false) {
-    void this.bin({
-      args: ['generate:types'],
-      log: false,
-    })
+  // Step 7: Generate TypeScript types
+  if (process.env.NODE_ENV !== 'production') {
+    void this.bin({ args: ['generate:types'], log: false })
   }
 
-  // Step 9: Initialize database (line 814-823)
+  // Step 8: Initialize database
   this.db = this.config.db.init({ payload: this })
-  this.db.payload = this
-  if (this.db?.init) {
-    await this.db.init()
-  }
-  if (!options.disableDBConnect && this.db.connect) {
-    await this.db.connect()
-  }
+  /** ... init and connect */
 
-  // Step 10: Initialize email adapter (line 825-839)
-  if (this.config.email instanceof Promise) {
-    const awaitedAdapter = await this.config.email
-    this.email = awaitedAdapter({ payload: this })
-  } else if (this.config.email) {
-    this.email = this.config.email({ payload: this })
-  } else {
-    this.email = consoleEmailAdapter({ payload: this })
-  }
+  // Step 9: Initialize email adapter
+  /** ... init email adapter or use console */
   this.sendEmail = this.email['sendEmail']
 
-  // Step 11: Initialize auth strategies (line 869-900)
-  let jwtStrategyEnabled = false
-  this.authStrategies = this.config.collections.reduce((authStrategies, collection) => {
-    if (collection?.auth) {
-      if (collection.auth.strategies.length > 0) {
-        authStrategies.push(...collection.auth.strategies)
-      }
-      if (collection.auth?.useAPIKey) {
-        authStrategies.push({
-          name: `${collection.slug}-api-key`,
-          authenticate: APIKeyAuthentication(collection),
-        })
-      }
-      if (!collection.auth.disableLocalStrategy && !jwtStrategyEnabled) {
-        jwtStrategyEnabled = true
-      }
-    }
-    return authStrategies
-  }, [] as AuthStrategy[])
+  // Step 10: Initialize auth strategies
+  /** ... build auth strategies array */
 
-  if (jwtStrategyEnabled) {
-    this.authStrategies.push({
-      name: 'local-jwt',
-      authenticate: JWTAuthentication,
-    })
-  }
+  // Step 11: Run onInit hooks
+  /** ... run onInit if enabled */
 
-  // Step 12: Run onInit hooks (line 902-914)
-  if (!options.disableOnInit) {
-    if (typeof options.onInit === 'function') {
-      await options.onInit(this)
-    }
-    if (typeof this.config.onInit === 'function') {
-      await this.config.onInit(this)
-    }
-  }
-
-  // Step 13: Initialize cron jobs (line 916-918)
-  if (options.cron) {
-    await this._initializeCrons()
-  }
+  // Step 12: Initialize cron jobs
+  if (options.cron) await this._initializeCrons()
 
   return this
 }
@@ -292,8 +195,7 @@ async init(options: InitOptions): Promise<Payload> {
 **Singleton Pattern with Caching:**
 
 ```typescript
-// Line 1018-1164: getPayload function
-// Provides smart caching and HMR support
+// payload/src/index.ts:1018-1164
 let _cached: Map<
   string,
   {
@@ -306,10 +208,7 @@ let _cached: Map<
 > = (global as any)._payload
 
 export const getPayload = async (options: InitOptions): Promise<Payload> => {
-  // Smart caching logic
-  // HMR support via WebSocket
-  // Prevents multiple initializations
-  // Handles config reloading
+  /** ... cache management and initialization logic */
 }
 ```
 
@@ -318,14 +217,11 @@ export const getPayload = async (options: InitOptions): Promise<Payload> => {
 **Build & Sanitization Flow:**
 
 ```typescript
-// src/config/build.ts (lines 1-20)
+// payload/src/config/build.ts:1-20
 export async function buildConfig(config: Config): Promise<SanitizedConfig> {
   // 1. Apply plugins
   if (Array.isArray(config.plugins)) {
-    let configAfterPlugins = config
-    for (const plugin of config.plugins) {
-      configAfterPlugins = await plugin(configAfterPlugins)
-    }
+    /** ... apply plugins sequentially */
     return await sanitizeConfig(configAfterPlugins)
   }
 
@@ -337,58 +233,33 @@ export async function buildConfig(config: Config): Promise<SanitizedConfig> {
 **Config Sanitization (src/config/sanitize.ts):**
 
 ```typescript
-// Lines 39-100+
+// payload/src/config/sanitize.ts:39-100+
 const sanitizeAdminConfig = (configToSanitize: Config): Partial<SanitizedConfig> => {
   // 1. Set compatibility flags
-  if (configToSanitize?.compatibility?.allowLocalizedWithinLocalized) {
-    process.env.NEXT_PUBLIC_PAYLOAD_COMPATIBILITY_allowLocalizedWithinLocalized = 'true'
-  }
+  /** ... set environment variables */
 
   // 2. Set default logging levels
   sanitizedConfig.loggingLevels = {
-    Forbidden: 'info',
-    Locked: 'info',
-    MissingFile: 'info',
-    NotFound: 'info',
-    ValidationError: 'info',
-    ...(sanitizedConfig.loggingLevels || {}),
+    /** ... error types and levels */
   }
 
   // 3. Add default user collection if none provided
   if (!sanitizedConfig?.admin?.user) {
-    const firstCollectionWithAuth = sanitizedConfig.collections!.find(({ auth }) => Boolean(auth))
-    if (firstCollectionWithAuth) {
-      sanitizedConfig.admin!.user = firstCollectionWithAuth.slug
-    } else {
-      sanitizedConfig.admin!.user = defaultUserCollection.slug
-      sanitizedConfig.collections!.push(defaultUserCollection)
-    }
+    /** ... find or create default user collection */
   }
 
   // 4. Validate admin user collection has auth
-  const userCollection = sanitizedConfig.collections!.find(
-    ({ slug }) => slug === sanitizedConfig.admin!.user,
-  )
-  if (!userCollection || !userCollection.auth) {
-    throw new InvalidConfiguration(
-      `${sanitizedConfig.admin!.user} is not a valid admin user collection`,
-    )
-  }
+  /** ... validation logic */
 
-  // 5. Sanitize timezones
-  if (!sanitizedConfig?.admin?.timezones?.supportedTimezones) {
-    sanitizedConfig.admin!.timezones = {
-      supportedTimezones: defaultTimezones,
-    }
-  }
-
-  // More sanitization...
+  // 5. Sanitize timezones, CORS, routes, etc.
+  /** ... more sanitization steps */
 }
 ```
 
 **Key Config Types (src/config/types.ts):**
 
 ```typescript
+// payload/src/config/types.ts
 export type Config = {
   admin?: AdminOptions
   collections: CollectionConfig[]
@@ -399,11 +270,11 @@ export type Config = {
   serverURL: string
   plugins?: Plugin[]
   localization?: LocalizationConfig
-  // 50+ more optional properties...
+  // ... 50+ more optional properties
 }
 
 export type SanitizedConfig = DeepRequired<Config> & {
-  // Fully resolved and validated config
+  // ... fully resolved and validated config
 }
 ```
 
@@ -425,19 +296,17 @@ The config system applies extensive defaults including:
 **Plugin Type Definition:**
 
 ```typescript
-// src/config/types.ts (line 139)
+// payload/src/config/types.ts:139
 export type Plugin = (config: Config) => Config | Promise<Config>
 ```
 
 **Plugin Application (src/config/build.ts):**
 
 ```typescript
+// payload/src/config/build.ts
 // Plugins are applied sequentially, each transforming the config
 if (Array.isArray(config.plugins)) {
-  let configAfterPlugins = config
-  for (const plugin of config.plugins) {
-    configAfterPlugins = await plugin(configAfterPlugins)
-  }
+  /** ... apply each plugin to config */
   return await sanitizeConfig(configAfterPlugins)
 }
 ```
@@ -476,6 +345,7 @@ if (Array.isArray(config.plugins)) {
 **Local API Methods (BasePayload class):**
 
 ```typescript
+// payload/src/index.ts
 export class BasePayload {
   // Collections CRUD
   create = async <TSlug, TSelect>(options) => createLocal(this, options)
@@ -487,27 +357,21 @@ export class BasePayload {
   // Additional operations
   count = async <TSlug>(options) => countLocal(this, options)
   duplicate = async <TSlug, TSelect>(options) => duplicateLocal(this, options)
-  findDistinct = async <TSlug, TField>(options) => findDistinctLocal(this, options)
+  /** ... more collection operations */
 
   // Versions
   findVersions = async <TSlug>(options) => findVersionsLocal(this, options)
-  findVersionByID = async <TSlug>(options) => findVersionByIDLocal(this, options)
-  restoreVersion = async <TSlug>(options) => restoreVersionLocal(this, options)
-  countVersions = async <TSlug>(options) => countVersionsLocal(this, options)
+  /** ... more version operations */
 
   // Globals
   findGlobal = async <TSlug, TSelect>(options) => findOneGlobalLocal(this, options)
   updateGlobal = async <TSlug, TSelect>(options) => updateGlobalLocal(this, options)
-  findGlobalVersions = async <TSlug>(options) => findGlobalVersionsLocal(this, options)
-  // ...more global operations
+  /** ... more global operations */
 
   // Auth
   auth = async (options) => authLocal(this, options)
   login = async <TSlug>(options) => loginLocal(this, options)
-  forgotPassword = async <TSlug>(options) => forgotPasswordLocal(this, options)
-  resetPassword = async <TSlug>(options) => resetPasswordLocal(this, options)
-  unlock = async <TSlug>(options) => unlockLocal(this, options)
-  verifyEmail = async <TSlug>(options) => verifyEmailLocal(this, options)
+  /** ... more auth operations */
 }
 ```
 
@@ -516,6 +380,7 @@ export class BasePayload {
 **PayloadRequest Type:**
 
 ```typescript
+// payload/src/types.ts
 export interface PayloadRequest {
   // Core
   payload: Payload
@@ -549,7 +414,7 @@ export interface RequestContext {
 **Local Request Creation:**
 
 ```typescript
-// src/utilities/createLocalReq.ts
+// payload/src/utilities/createLocalReq.ts
 export const createLocalReq = async (
   options: CreateLocalReqOptions,
   payload: Payload,
@@ -557,12 +422,12 @@ export const createLocalReq = async (
   const req: PayloadRequest = {
     payload,
     context: options.context || options.req?.context || {},
-    locale: options.locale || options.req?.locale || payload.config.localization.defaultLocale,
-    fallbackLocale: options.fallbackLocale || payload.config.localization.fallbackLocale,
+    locale: options.locale || /** ... default locale */,
+    fallbackLocale: options.fallbackLocale || /** ... fallback */,
     user: options.user || options.req?.user,
     transactionID: options.req?.transactionID,
     t: getLocalI18n({ payload, locale }),
-    i18n: // ...i18n setup
+    i18n: /** ... i18n setup */
   }
   return req
 }
@@ -598,13 +463,11 @@ const beforeChange: BeforeChangeHook = ({ context }) => {
 **Collection Config Type (src/collections/config/types.ts):**
 
 ```typescript
+// payload/src/collections/config/types.ts
 export type CollectionConfig = {
   // Identity
   slug: string
-  labels?: {
-    singular?: string
-    plural?: string
-  }
+  labels?: { singular?: string; plural?: string }
 
   // Fields (the schema!)
   fields: Field[]
@@ -624,39 +487,18 @@ export type CollectionConfig = {
     beforeValidate?: BeforeValidateHook[]
     beforeChange?: BeforeChangeHook[]
     afterChange?: AfterChangeHook[]
-    beforeRead?: BeforeReadHook[]
-    afterRead?: AfterReadHook[]
-    beforeDelete?: BeforeDeleteHook[]
-    afterDelete?: AfterDeleteHook[]
-    afterOperation?: AfterOperationHook[]
-    afterError?: AfterErrorHook[]
+    /** ... 6 more hook types */
   }
 
-  // Timestamps
   timestamps?: boolean
-
-  // Uploads
   upload?: UploadConfig
-
-  // Versions & Drafts
   versions?: IncomingCollectionVersions
-
-  // Authentication
   auth?: AuthConfig
-
-  // Admin UI
   admin?: CollectionAdminOptions
-
-  // Custom Endpoints
   endpoints?: Endpoint[]
-
-  // Localization
   localized?: boolean
-
-  // Default Population Depth
   defaultPopulate?: Record<string, number>
-
-  // And 30+ more options...
+  // ... 30+ more options
 }
 ```
 
@@ -666,41 +508,21 @@ export type CollectionConfig = {
 const Posts: CollectionConfig = {
   slug: 'posts',
   fields: [
-    {
-      name: 'title',
-      type: 'text',
-      required: true,
-    },
-    {
-      name: 'content',
-      type: 'richText',
-    },
-    {
-      name: 'author',
-      type: 'relationship',
-      relationTo: 'users',
-    },
-    {
-      name: 'status',
-      type: 'select',
-      options: ['draft', 'published'],
-      defaultValue: 'draft',
-    },
+    { name: 'title', type: 'text', required: true },
+    { name: 'content', type: 'richText' },
+    { name: 'author', type: 'relationship', relationTo: 'users' },
+    { name: 'status', type: 'select', options: ['draft', 'published'], defaultValue: 'draft' },
   ],
   hooks: {
     beforeChange: [
       async ({ data, operation }) => {
-        if (operation === 'create') {
-          data.createdAt = new Date()
-        }
+        if (operation === 'create') data.createdAt = new Date()
         return data
       },
     ],
     afterChange: [
       async ({ doc, operation }) => {
-        if (operation === 'create') {
-          // Send notification
-        }
+        /** ... send notification on create */
       },
     ],
   },
@@ -727,7 +549,7 @@ All CRUD operations follow this pattern:
 **CREATE Operation (src/collections/operations/create.ts):**
 
 ```typescript
-// Lines 56-end
+// payload/src/collections/operations/create.ts:56-end
 export const createOperation = async <TSlug, TSelect>(
   incomingArgs: Arguments<TSlug>,
 ): Promise<TransformCollectionWithSelect<TSlug, TSelect>> => {
@@ -735,83 +557,34 @@ export const createOperation = async <TSlug, TSelect>(
 
   try {
     // 1. Start transaction
-    const shouldCommit = !args.disableTransaction &&
-                         (await initTransaction(args.req))
+    const shouldCommit =
+      /** ... init transaction if needed */
 
-    // 2. Ensure username or email (for auth collections)
-    ensureUsernameOrEmail<TSlug>({
-      authOptions: args.collection.config.auth,
-      collectionSlug: args.collection.config.slug,
-      data: args.data,
-      operation: 'create',
-      req: args.req,
-    })
+      // 2. Ensure username or email (for auth collections)
+      ensureUsernameOrEmail<TSlug>({}) /** ... */
 
     // 3. beforeOperation hook (Collection level)
-    if (args.collection.config.hooks.beforeOperation?.length) {
-      for (const hook of args.collection.config.hooks.beforeOperation) {
-        args = (await hook({
-          args,
-          collection: args.collection.config,
-          context: args.req.context,
-          operation: 'create',
-          req: args.req,
-        })) || args
-      }
-    }
+    /** ... run beforeOperation hooks */
 
     // 4. Access control check
     if (!args.overrideAccess) {
-      await executeAccess({ data: args.data, req: args.req },
-                          args.collection.config.access.create)
+      await executeAccess(/** ... */)
     }
 
     // 5. Handle file uploads (if collection has uploads)
-    if (args.collection.config.upload) {
-      const fileData = await generateFileData({ ...args })
-      args.data = { ...args.data, ...fileData }
-    }
+    /** ... generate file data if needed */
 
-    // 6. Handle duplicate document (if duplicateFromID provided)
-    if (args.duplicateFromID) {
-      const duplicateResult = await getDuplicateDocumentData({ ... })
-      // Merge duplicate data
-    }
+    // 6. Handle duplicate document
+    /** ... merge duplicate data if duplicateFromID provided */
 
-    // 7. beforeValidate hook (Collection level)
-    if (args.collection.config.hooks.beforeValidate?.length) {
-      for (const hook of args.collection.config.hooks.beforeValidate) {
-        args.data = await hook({ ... }) || args.data
-      }
-    }
+    // 7-8. beforeValidate hooks (Collection & Field level)
+    /** ... run validation hooks */
 
-    // 8. beforeValidate hooks (Field level)
-    args.data = await beforeValidate({
-      collection: args.collection.config,
-      context: args.req.context,
-      data: args.data,
-      // ...
-    })
-
-    // 9. beforeChange hook (Collection level)
-    if (args.collection.config.hooks.beforeChange?.length) {
-      for (const hook of args.collection.config.hooks.beforeChange) {
-        args.data = await hook({ ... }) || args.data
-      }
-    }
-
-    // 10. beforeChange hooks (Field level)
-    args.data = await beforeChange({
-      collection: args.collection.config,
-      context: args.req.context,
-      data: args.data,
-      // ...
-    })
+    // 9-10. beforeChange hooks (Collection & Field level)
+    /** ... run beforeChange hooks */
 
     // 11. Upload files to storage
-    if (req.file && args.collection.config.upload) {
-      await uploadFiles({ ... })
-    }
+    /** ... upload files if needed */
 
     // 12. DATABASE CREATE
     const doc = await args.req.payload.db.create({
@@ -821,74 +594,30 @@ export const createOperation = async <TSlug, TSelect>(
       select,
     })
 
-    // 13. afterRead hooks (Field level)
-    let result = await afterRead({
-      collection: args.collection.config,
-      context: args.req.context,
-      depth: args.depth,
-      doc,
-      // ...
-    })
+    // 13. afterRead hooks - transform result
+    let result = await afterRead(/** ... */)
 
-    // 14. afterChange hook (Collection level)
-    if (args.collection.config.hooks.afterChange?.length) {
-      for (const hook of args.collection.config.hooks.afterChange) {
-        await hook({
-          collection: args.collection.config,
-          context: args.req.context,
-          doc: result,
-          operation: 'create',
-          previousDoc: {},
-          req: args.req,
-        })
-      }
-    }
-
-    // 15. afterChange hooks (Field level)
-    await afterChange({
-      collection: args.collection.config,
-      context: args.req.context,
-      data: args.data,
-      doc: result,
-      // ...
-    })
+    // 14-15. afterChange hooks
+    /** ... run afterChange hooks */
 
     // 16. Save version (if versions enabled)
-    if (args.collection.config.versions) {
-      await saveVersion({ ... })
-    }
+    /** ... save version if enabled */
 
-    // 17. Send verification email (if auth collection with verification)
-    if (args.collection.config.auth?.verify) {
-      await sendVerificationEmail({ ... })
-    }
+    // 17. Send verification email
+    /** ... send email if auth verification enabled */
 
     // 18. Commit transaction
-    if (shouldCommit) {
-      await commitTransaction(args.req)
-    }
+    if (shouldCommit) await commitTransaction(args.req)
 
     // 19. afterOperation hook
-    if (args.collection.config.hooks.afterOperation?.length) {
-      result = await buildAfterOperation({
-        args,
-        operation: 'create',
-        result,
-      })
-    }
+    /** ... run afterOperation hooks */
 
-    // 20. Return result
     return result
-
-  } catch (error: unknown) {
-    // Error handling with afterError hooks
+  } catch (error) {
     await killTransaction(args.req)
     throw error
   } finally {
-    // Cleanup temp files
-    if (req.file) {
-      unlinkTempFiles({ req })
-    }
+    if (req.file) unlinkTempFiles({ req })
   }
 }
 ```
@@ -896,7 +625,7 @@ export const createOperation = async <TSlug, TSelect>(
 **FIND Operation (src/collections/operations/find.ts):**
 
 ```typescript
-// Lines 58-end
+// payload/src/collections/operations/find.ts:58-end
 export const findOperation = async <TSlug, TSelect>(
   incomingArgs: Arguments,
 ): Promise<PaginatedDocs<TransformCollectionWithSelect<TSlug, TSelect>>> => {
@@ -904,103 +633,54 @@ export const findOperation = async <TSlug, TSelect>(
 
   try {
     // 1. beforeOperation hook
-    if (args.collection.config.hooks?.beforeOperation?.length) {
-      for (const hook of args.collection.config.hooks.beforeOperation) {
-        args = (await hook({ ... })) || args
-      }
-    }
+    /** ... run beforeOperation hooks */
 
-    // 2. Access control
+    // 2. Access control - get constraints
     let accessResult: AccessResult
     if (!args.overrideAccess) {
-      accessResult = await executeAccess({ req: args.req },
-                                         args.collection.config.access.read)
+      accessResult = await executeAccess(/** ... */)
     }
 
     // 3. Combine access query with user query
-    const fullWhere = combineQueries(
-      args.where,
-      accessResult  // Adds constraints based on access control
-    )
+    const fullWhere = combineQueries(args.where, accessResult)
 
     // 4. Handle drafts (if querying versions)
     if (args.draft && args.collection.config.versions?.drafts) {
-      // Query from versions table/collection
-      result = await args.req.payload.db.queryDrafts({
-        collection: args.collection.config.slug,
-        // ...
-      })
+      result = await args.req.payload.db.queryDrafts(/** ... */)
     } else {
       // 5. DATABASE FIND
       result = await args.req.payload.db.find({
         collection: args.collection.config.slug,
-        joins: sanitizedJoins,
-        limit: args.limit,
-        locale: args.req.locale,
-        page: args.page,
-        pagination: args.pagination,
-        req: args.req,
-        select,
-        sort: sanitizedSort,
         where: fullWhere,
+        limit: args.limit,
+        page: args.page,
+        /** ... other params */
       })
     }
 
     // 6. beforeRead hook (for each doc)
-    if (args.collection.config.hooks?.beforeRead?.length) {
-      for (const doc of result.docs) {
-        for (const hook of args.collection.config.hooks.beforeRead) {
-          await hook({ ... })
-        }
-      }
-    }
+    /** ... run beforeRead hooks */
 
     // 7. afterRead hooks (Field level, for each doc)
     const afterReadDocs = await Promise.all(
-      result.docs.map(async (doc) => {
-        return await afterRead({
-          collection: args.collection.config,
-          context: args.req.context,
-          depth: args.depth,
-          doc,
-          // ...
-        })
-      })
+      result.docs.map(async (doc) => await afterRead(/** ... */)),
     )
 
-    // 8. afterRead hook (Collection level, for each doc)
-    if (args.collection.config.hooks?.afterRead?.length) {
-      for (const doc of afterReadDocs) {
-        for (const hook of args.collection.config.hooks.afterRead) {
-          await hook({ ... })
-        }
-      }
-    }
+    // 8. afterRead hook (Collection level)
+    /** ... run collection afterRead hooks */
 
-    // 9. afterOperation hook
+    // 9. Build paginated result
     let result = {
       docs: afterReadDocs,
       hasNextPage: result.hasNextPage,
       hasPrevPage: result.hasPrevPage,
-      limit: result.limit,
-      nextPage: result.nextPage,
-      page: result.page,
-      pagingCounter: result.pagingCounter,
-      prevPage: result.prevPage,
-      totalDocs: result.totalDocs,
-      totalPages: result.totalPages,
+      /** ... other pagination fields */
     }
 
-    if (args.collection.config.hooks?.afterOperation?.length) {
-      result = await buildAfterOperation({
-        args,
-        operation: 'read',
-        result,
-      })
-    }
+    // 10. afterOperation hook
+    /** ... run afterOperation hooks */
 
     return result
-
   } catch (error) {
     await killTransaction(args.req)
     throw error
@@ -1011,18 +691,16 @@ export const findOperation = async <TSlug, TSelect>(
 **Local API Wrappers:**
 
 ```typescript
-// src/collections/operations/local/create.ts
+// payload/src/collections/operations/local/create.ts
 export async function createLocal<TSlug, TSelect>(
   payload: Payload,
   options: Options<TSlug, TSelect>,
 ): Promise<TransformCollectionWithSelect<TSlug, TSelect>> {
-  const { collection: collectionSlug, data, ... } = options
+  const { collection: collectionSlug, data /** ... */ } = options
 
   // 1. Get collection config
   const collection = payload.collections[collectionSlug]
-  if (!collection) {
-    throw new APIError(`Collection ${collectionSlug} not found`)
-  }
+  if (!collection) throw new APIError(`Collection ${collectionSlug} not found`)
 
   // 2. Create local request
   const req = await createLocalReq(options, payload)
@@ -1034,10 +712,8 @@ export async function createLocal<TSlug, TSelect>(
   return createOperation<TSlug, TSelect>({
     collection,
     data: deepCopyObjectSimple(data),
-    depth,
     req,
-    select,
-    // ...all options
+    /** ... all options */
   })
 }
 ```
@@ -1319,6 +995,7 @@ await payload.restoreVersion({
 **Version Creation (src/versions/saveVersion.ts):**
 
 ```typescript
+// payload/src/versions/saveVersion.ts
 export const saveVersion = async ({
   collection,
   req,
@@ -1334,25 +1011,14 @@ export const saveVersion = async ({
   const versionData = {
     parent: docWithLocales.id,
     version: docWithLocales,
-    publishedLocale,
-    snapshot: !draft && !autosave,
-    updatedAt: new Date().toISOString(),
-    createdAt: new Date().toISOString(),
+    /** ... other fields */
   }
 
   // 3. Create version in database
-  await req.payload.db.createVersion({
-    collection: collection.config.slug,
-    req,
-    versionData,
-  })
+  await req.payload.db.createVersion({ collection, req, versionData })
 
   // 4. Enforce max versions
-  await enforceMaxVersions({
-    collection: collection.config,
-    req,
-    id: docWithLocales.id,
-  })
+  await enforceMaxVersions(/** ... */)
 }
 ```
 
@@ -1487,28 +1153,14 @@ Globals are singleton configuration entities. Unlike collections (which have man
 const SiteSettings: GlobalConfig = {
   slug: 'site-settings',
   fields: [
-    {
-      name: 'siteName',
-      type: 'text',
-      required: true,
-    },
-    {
-      name: 'logo',
-      type: 'upload',
-      relationTo: 'media',
-    },
+    { name: 'siteName', type: 'text', required: true },
+    { name: 'logo', type: 'upload', relationTo: 'media' },
     {
       name: 'mainNav',
       type: 'array',
       fields: [
-        {
-          name: 'label',
-          type: 'text',
-        },
-        {
-          name: 'url',
-          type: 'text',
-        },
+        { name: 'label', type: 'text' },
+        { name: 'url', type: 'text' },
       ],
     },
   ],
@@ -1530,6 +1182,7 @@ const SiteSettings: GlobalConfig = {
 **Global Config Type (src/globals/config/types.ts):**
 
 ```typescript
+// payload/src/globals/config/types.ts
 export type GlobalConfig = {
   // Identity
   slug: string
@@ -1549,21 +1202,12 @@ export type GlobalConfig = {
     beforeValidate?: BeforeValidateHook[]
     beforeChange?: BeforeChangeHook[]
     afterChange?: AfterChangeHook[]
-    beforeRead?: BeforeReadHook[]
-    afterRead?: AfterReadHook[]
-    beforeOperation?: BeforeOperationHook[]
+    /** ... 3 more hook types */
   }
 
-  // Versions
   versions?: IncomingGlobalVersions
-
-  // Admin UI
   admin?: GlobalAdminOptions
-
-  // Endpoints
   endpoints?: Endpoint[]
-
-  // Custom
   custom?: Record<string, any>
 }
 ```
@@ -1628,6 +1272,7 @@ await payload.findGlobalVersions({
 **Base Adapter Interface (src/database/types.ts):**
 
 ```typescript
+// payload/src/database/types.ts
 export interface BaseDatabaseAdapter {
   // Metadata
   name: string
@@ -1651,21 +1296,15 @@ export interface BaseDatabaseAdapter {
   create: Create
   find: Find
   findOne: FindOne
-  findDistinct: FindDistinct
   count: Count
   updateOne: UpdateOne
-  updateMany: UpdateMany
   deleteOne: DeleteOne
-  deleteMany: DeleteMany
-  upsert: Upsert
+  /** ... more CRUD operations */
 
   // Collections - Versions
   createVersion: CreateVersion
   findVersions: FindVersions
-  updateVersion: UpdateVersion
-  deleteVersions: DeleteVersions
-  countVersions: CountVersions
-  queryDrafts: QueryDrafts
+  /** ... more version operations */
 
   // Globals
   createGlobal: CreateGlobal
@@ -1674,21 +1313,14 @@ export interface BaseDatabaseAdapter {
 
   // Globals - Versions
   createGlobalVersion: CreateGlobalVersion
-  findGlobalVersions: FindGlobalVersions
-  updateGlobalVersion: UpdateGlobalVersion
-  countGlobalVersions: CountGlobalVersions
+  /** ... more global version operations */
 
   // Jobs
   updateJobs: UpdateJobs
 
   // Migrations
   migrate: (args?) => Promise<void>
-  migrateDown: () => Promise<void>
-  migrateFresh: (args) => Promise<void>
-  migrateRefresh: () => Promise<void>
-  migrateReset: () => Promise<void>
-  migrateStatus: () => Promise<void>
-  createMigration: CreateMigration
+  /** ... more migration operations */
   migrationDir: string
 
   // Schema Generation
@@ -1865,17 +1497,14 @@ type FieldBase = {
   relationTo: ['users', 'editors'],  // Polymorphic
   hasMany: true,  // Multiple relationships
   filterOptions: ({ relationTo, data }) => {
-    // Dynamic filter based on context
+    /** ... dynamic filter based on context */
     if (relationTo === 'users') {
       return { role: { equals: 'author' } }
     }
   },
   hooks: {
     afterRead: [
-      async ({ value, req }) => {
-        // Populate additional data
-        return value
-      }
+      /** ... populate additional data */
     ]
   },
   admin: {
@@ -1937,25 +1566,19 @@ const Posts: CollectionConfig = {
     ],
     beforeChange: [
       async ({ data, req, operation, originalDoc }) => {
-        // Auto-set author on create
-        if (operation === 'create') {
-          data.author = req.user.id
-        }
+        /** ... auto-set author on create */
+        if (operation === 'create') data.author = req.user.id
         return data
       },
     ],
     afterChange: [
       async ({ doc, req, operation, previousDoc }) => {
-        // Send notifications
-        if (operation === 'update' && doc.status !== previousDoc.status) {
-          await sendNotification({ doc, req })
-        }
+        /** ... send notifications on status change */
       },
     ],
     afterOperation: [
       async ({ operation, result }) => {
-        // Clear cache
-        await clearCache(`posts-${result.id}`)
+        /** ... clear cache */
         return result
       },
     ],
@@ -2132,17 +1755,13 @@ export const myPlugin = (pluginOptions): Plugin => {
     // 1. Modify collections
     incomingConfig.collections = incomingConfig.collections.map((collection) => {
       // Add fields
-      collection.fields.push({
-        name: 'pluginField',
-        type: 'text',
-      })
+      collection.fields.push({ name: 'pluginField', type: 'text' })
 
       // Add hooks
       collection.hooks = {
         ...collection.hooks,
         beforeChange: [...(collection.hooks?.beforeChange || []), myPluginHook],
       }
-
       return collection
     })
 
@@ -2152,11 +1771,7 @@ export const myPlugin = (pluginOptions): Plugin => {
     // 3. Add endpoints
     incomingConfig.endpoints = [
       ...(incomingConfig.endpoints || []),
-      {
-        path: '/my-plugin',
-        method: 'get',
-        handler: myPluginHandler,
-      },
+      { path: '/my-plugin', method: 'get', handler: myPluginHandler },
     ]
 
     return incomingConfig
@@ -2165,13 +1780,8 @@ export const myPlugin = (pluginOptions): Plugin => {
 
 // Usage
 export default buildConfig({
-  plugins: [
-    myPlugin({
-      /* options */
-    }),
-  ],
+  plugins: [myPlugin({ /** ... options */ })],
   // ...
-})
 ```
 
 **Official Plugins:**
@@ -2190,6 +1800,7 @@ export default buildConfig({
 **Email Adapter Interface:**
 
 ```typescript
+// payload/src/email/types.ts
 export type EmailAdapter = (args: { payload: Payload }) => InitializedEmailAdapter
 
 export type InitializedEmailAdapter = {
@@ -2203,7 +1814,7 @@ type SendEmailOptions = {
   html?: string
   text?: string
   from?: string
-  // ...more options
+  /** ... more options */
 }
 ```
 

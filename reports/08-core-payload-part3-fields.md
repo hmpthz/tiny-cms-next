@@ -25,6 +25,7 @@ Payload CMS implements a sophisticated field system with **23+ field types** cov
 ### 1.1 Primitive Data Fields (8 types)
 
 ```typescript
+// payload/src/fields/config/types.ts
 // Text-based
 type TextField = {
   type: 'text'
@@ -39,10 +40,7 @@ type TextareaField = {
   type: 'textarea'
   minLength?: number
   maxLength?: number
-  admin?: {
-    rows?: number // Visual height
-    rtl?: boolean
-  }
+  admin?: { rows?: number; rtl?: boolean }
 } & FieldBase
 
 type EmailField = {
@@ -56,9 +54,7 @@ type NumberField = {
   hasMany?: boolean // Array of numbers
   min?: number
   max?: number
-  admin?: {
-    step?: number // Increment step
-  }
+  admin?: { step?: number }
 } & FieldBase
 
 // Boolean
@@ -74,7 +70,7 @@ type DateField = {
   admin?: {
     date?: {
       displayFormat?: string
-      pickerAppearance?: 'default' | 'dayAndTime' | 'timeOnly' | 'dayOnly' | 'monthOnly'
+      pickerAppearance?: 'default' | 'dayAndTime' | /** ... more options */
     }
   }
 } & FieldBase
@@ -83,24 +79,21 @@ type DateField = {
 type CodeField = {
   type: 'code'
   admin?: {
-    language?: string // Syntax highlighting
+    language?: string
     editorOptions?: EditorProps['options']
   }
 } & FieldBase
 
 type JSONField = {
   type: 'json'
-  jsonSchema?: {
-    // Optional JSON Schema validation
-    uri: string
-    schema: JSONSchema4
-  }
+  jsonSchema?: { uri: string; schema: JSONSchema4 }
 } & FieldBase
 ```
 
 ### 1.2 Choice/Selection Fields (3 types)
 
 ```typescript
+// payload/src/fields/config/types.ts
 type SelectField = {
   type: 'select'
   options: Option[] // Array of {label, value} or strings
@@ -115,22 +108,19 @@ type SelectField = {
 type RadioField = {
   type: 'radio'
   options: Option[]
-  admin?: {
-    layout?: 'horizontal' | 'vertical'
-  }
+  admin?: { layout?: 'horizontal' | 'vertical' }
 } & FieldBase
 
 type PointField = {
   type: 'point' // Geographic coordinates [lng, lat]
-  admin?: {
-    step?: number
-  }
+  admin?: { step?: number }
 } & FieldBase
 ```
 
 ### 1.3 Relationship/Reference Fields (2 types)
 
 ```typescript
+// payload/src/fields/config/types.ts
 // Relationship to other collections
 type RelationshipField = {
   type: 'relationship'
@@ -174,23 +164,18 @@ type RichTextField<TValue, TAdapterProps, TExtraProperties> = {
 ### 1.5 Compositional/Layout Fields (6 types)
 
 ```typescript
+// payload/src/fields/config/types.ts
 // Array of repeated fields
 type ArrayField = {
   type: 'array'
   fields: Field[]
-  labels?: {
-    // Custom naming
-    singular: string
-    plural: string
-  }
+  labels?: { singular: string; plural: string }
   minRows?: number
   maxRows?: number
   admin?: {
     initCollapsed?: boolean
     isSortable?: boolean
-    components?: {
-      RowLabel?: Component // Custom row headers
-    }
+    components?: { RowLabel?: Component }
   }
 } & FieldBase
 
@@ -201,22 +186,17 @@ type BlocksField = {
   blockReferences?: (Block | BlockSlug)[]
   minRows?: number
   maxRows?: number
-  filterOptions?: BlocksFilterOptions // Dynamic block availability
-  admin?: {
-    initCollapsed?: boolean
-    isSortable?: boolean
-  }
+  filterOptions?: BlocksFilterOptions
+  admin?: { initCollapsed?: boolean; isSortable?: boolean }
 } & FieldBase
 
 type Block = {
   slug: string
   fields: Field[]
   labels?: Labels
-  interfaceName?: string // TypeScript type name
-  imageURL?: string // Block icon/preview
-  admin?: {
-    disableBlockName?: boolean
-  }
+  interfaceName?: string
+  imageURL?: string
+  admin?: { disableBlockName?: boolean }
 }
 
 // Named or unnamed grouping
@@ -242,11 +222,9 @@ type RowField = {
 
 type CollapsibleField = {
   type: 'collapsible' // Collapsible section
-  label: string // Required
+  label: string
   fields: Field[]
-  admin?: {
-    initCollapsed?: boolean
-  }
+  admin?: { initCollapsed?: boolean }
 } & Omit<FieldBase, 'name' | 'localized' | 'validate'>
 
 type TabsField = {
@@ -296,93 +274,89 @@ type UIField = {
 ### 2.1 FieldBase - Core Field Properties
 
 ```typescript
+// payload/src/fields/config/types.ts
 interface FieldBase {
   // Identity
   name: string // Required, must be alphanumeric without '.'
   label?: string | LabelFunction | false
 
   // Storage & Behavior
-  defaultValue?: DefaultValue // Static value or function
+  defaultValue?: DefaultValue
   required?: boolean
   unique?: boolean
   index?: boolean // Database index
   localized?: boolean // Per-locale storage
-  hidden?: boolean // Hide from API/UI
+  hidden?: boolean
   virtual?: boolean // No database storage
 
   // Access Control
   access?: {
-    create?: FieldAccess // (args) => boolean | Promise<boolean>
+    create?: FieldAccess
     read?: FieldAccess
     update?: FieldAccess
   }
 
   // Lifecycle Hooks
   hooks?: {
-    beforeValidate?: FieldHook[] // Sanitize, compute values
-    beforeChange?: FieldHook[] // Transform before save
-    afterChange?: FieldHook[] // Post-save operations
-    afterRead?: FieldHook[] // Transform on read
-    beforeDuplicate?: FieldHook[] // Handle duplication
+    beforeValidate?: FieldHook[]
+    beforeChange?: FieldHook[]
+    afterChange?: FieldHook[]
+    afterRead?: FieldHook[]
+    beforeDuplicate?: FieldHook[]
   }
 
   // Validation
-  validate?: Validate // Custom validation function
+  validate?: Validate
 
   // Admin UI
   admin?: FieldAdmin
 
   // Extension Points
-  custom?: Record<string, any> // Server-only custom data
-
-  // JWT
-  saveToJWT?: boolean | string // Include in JWT tokens
-
-  // TypeScript Generation
+  custom?: Record<string, any>
+  saveToJWT?: boolean | string
   typescriptSchema?: Array<(args) => JSONSchema4>
 
   // Internal
-  _sanitized?: boolean // Prevents re-sanitization
+  _sanitized?: boolean
 }
 ```
 
 ### 2.2 FieldAdmin - UI Configuration
 
 ```typescript
+// payload/src/fields/config/types.ts
 export type FieldAdmin = {
   // Layout
   className?: string
   style?: CSSProperties
   width?: CSSProperties['width']
-  position?: 'sidebar' // Sidebar placement
+  position?: 'sidebar'
 
   // Behavior
-  condition?: Condition // Conditional rendering
+  condition?: Condition
   disabled?: boolean
   readOnly?: boolean
   hidden?: boolean
 
   // List View
-  disableListColumn?: boolean // Hide from column selector
-  disableListFilter?: boolean // Hide from filters
-  disableGroupBy?: boolean // Hide from grouping
-  disableBulkEdit?: boolean // Disable bulk editing
+  disableListColumn?: boolean
+  disableListFilter?: boolean
+  disableGroupBy?: boolean
+  disableBulkEdit?: boolean
 
   // Components
   components?: {
-    Field?: PayloadComponent // Custom field component
-    Cell?: PayloadComponent // List view cell
+    Field?: PayloadComponent
+    Cell?: PayloadComponent
     Description?: PayloadComponent
-    Diff?: PayloadComponent // Version diff view
-    Filter?: PayloadComponent // List filter component
-    // Field-specific components (Label, Error, etc.)
+    Diff?: PayloadComponent
+    Filter?: PayloadComponent
+    /** ... field-specific components */
   }
 
   // Field-Specific
   description?: Description
-
-  // Extension
-  custom?: Record<string, any> // Client & server custom data
+  custom?: Record<string, any>
 }
 ```
 
@@ -473,33 +447,19 @@ export function fieldSupportsMany(field: Field): field is FieldWithMany {
 **Validation:**
 
 ```typescript
+// payload/src/fields/validations/text.ts:10-45
 export const text: TextFieldValidation = (value, options) => {
-  const {
-    hasMany,
-    maxLength,
-    minLength,
-    maxRows,
-    minRows,
-    required,
-    req: { t },
-  } = options
+  // ... destructure options
 
   // Handle array validation
   if (hasMany === true) {
-    const lengthValidationResult = validateArrayLength(value, { maxRows, minRows, required, t })
-    if (typeof lengthValidationResult === 'string') return lengthValidationResult
+    /** ... validate array length (minRows, maxRows) */
   }
 
   // String length validation
   const stringsToValidate = Array.isArray(value) ? value : [value]
   for (const stringValue of stringsToValidate) {
-    const length = stringValue?.length || 0
-    if (maxLength && length > maxLength) {
-      return t('validation:shorterThanMax', { label: t('general:value'), maxLength, stringValue })
-    }
-    if (minLength && length < minLength) {
-      return t('validation:longerThanMin', { label: t('general:value'), minLength, stringValue })
-    }
+    /** ... check maxLength, minLength */
   }
 
   // Required validation
@@ -537,10 +497,10 @@ export const text: TextFieldValidation = (value, options) => {
 **Validation:**
 
 ```typescript
+// payload/src/fields/validations/email.ts:8-18
 export const email: EmailFieldValidation = (value, options) => {
   // Robust email regex
-  const emailRegex =
-    /^(?!.*\.\.)[\w!#$%&'*+/=?^`{|}~-](?:[\w!#$%&'*+/=?^`{|}~.-]*[\w!#$%&'*+/=?^`{|}~-])?@[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*\.[a-z]{2,}$/i
+  const emailRegex = /^(?!.*\..)[\w!#$%&'*+/=?^`{|}~-]...$/i
 
   if ((value && !emailRegex.test(value)) || (!value && required)) {
     return t('validation:emailAddress')
@@ -588,20 +548,12 @@ export const email: EmailFieldValidation = (value, options) => {
 **Validation:**
 
 ```typescript
+// payload/src/fields/validations/number.ts:10-45
 export const number: NumberFieldValidation = (value, options) => {
-  const {
-    hasMany,
-    max,
-    min,
-    maxRows,
-    minRows,
-    required,
-    req: { t },
-  } = options
+  // ... destructure options
 
   if (hasMany) {
-    const lengthValidationResult = validateArrayLength(value, { maxRows, minRows, required, t })
-    if (typeof lengthValidationResult === 'string') return lengthValidationResult
+    /** ... validate array length (minRows, maxRows) */
   }
 
   if (!value && !isNumber(value)) {
@@ -610,15 +562,7 @@ export const number: NumberFieldValidation = (value, options) => {
 
   const numbersToValidate = Array.isArray(value) ? value : [value]
   for (const number of numbersToValidate) {
-    if (!isNumber(number)) return t('validation:enterNumber')
-
-    const numberValue = parseFloat(number as unknown as string)
-    if (typeof max === 'number' && numberValue > max) {
-      return t('validation:greaterThanMax', { max, value })
-    }
-    if (typeof min === 'number' && numberValue < min) {
-      return t('validation:lessThanMin', { min, value })
-    }
+    /** ... validate isNumber, check max/min bounds */
   }
 
   return true
@@ -653,15 +597,11 @@ export const number: NumberFieldValidation = (value, options) => {
 
 **Validation:**
 
+`payload-main/packages/payload/src/fields/validations/date.ts` (lines 8-30)
+
 ```typescript
 export const date: DateFieldValidation = (value, options) => {
-  const {
-    name,
-    timezone,
-    required,
-    siblingData,
-    req: { t },
-  } = options
+  // ... destructure options
 
   const validDate = value && !isNaN(Date.parse(value.toString()))
 
@@ -670,11 +610,7 @@ export const date: DateFieldValidation = (value, options) => {
   const selectedTimezone = siblingData?.[`${name}_tz`]
   const validTimezone = hasRequiredTimezone ? Boolean(selectedTimezone) : true
 
-  if (validDate && validTimezone) return true
-  if (validDate && !validTimezone) return t('validation:timezoneRequired')
-  if (value) return t('validation:notValidDate', { value })
-  if (required) return t('validation:required')
-
+  /** ... return appropriate error message or true */
   return true
 }
 ```
@@ -727,55 +663,29 @@ export const date: DateFieldValidation = (value, options) => {
 
 **Validation:**
 
+`payload-main/packages/payload/src/fields/validations/select.ts` (lines 10-60)
+
 ```typescript
 export const select: SelectFieldValidation = (value, options) => {
-  const {
-    data,
-    filterOptions,
-    hasMany,
-    options: allOptions,
-    required,
-    siblingData,
-    req,
-    req: { t },
-  } = options
+  // ... destructure options
 
   // Apply filter options if provided
-  const filteredOptions =
-    typeof filterOptions === 'function'
-      ? filterOptions({ data, options: allOptions, req, siblingData })
-      : allOptions
+  const filteredOptions = typeof filterOptions === 'function'
+    ? filterOptions({ data, options: allOptions, req, siblingData })
+    : allOptions
 
   // Validate array values
-  if (
-    Array.isArray(value) &&
-    value.some(
-      (input) =>
-        !filteredOptions.some(
-          (option) => option === input || (typeof option !== 'string' && option?.value === input),
-        ),
-    )
-  ) {
+  if (Array.isArray(value) && value.some(/** ... check if invalid */)) {
     return t('validation:invalidSelection')
   }
 
   // Validate single value
-  if (
-    typeof value === 'string' &&
-    !filteredOptions.some(
-      (option) => option === value || (typeof option !== 'string' && option.value === value),
-    )
-  ) {
+  if (typeof value === 'string' && !filteredOptions.some(/** ... */)) {
     return t('validation:invalidSelection')
   }
 
   // Required validation
-  if (
-    required &&
-    (value === undefined ||
-      value === null ||
-      (hasMany && Array.isArray(value) && value.length === 0))
-  ) {
+  if (required && /** ... check if empty */) {
     return t('validation:required')
   }
 
@@ -905,69 +815,33 @@ items: [
 
 **Validation:**
 
+`payload-main/packages/payload/src/fields/validations/relationship.ts` (lines 12-75)
+
 ```typescript
 export const relationship: RelationshipFieldValidation = async (value, options) => {
-  const {
-    event,
-    maxRows,
-    minRows,
-    relationTo,
-    required,
-    req: { payload, t },
-  } = options
+  // ... destructure options
 
   // Required validation
-  if (
-    ((!value && typeof value !== 'number') || (Array.isArray(value) && value.length === 0)) &&
-    required
-  ) {
+  if (((!value && typeof value !== 'number') || /** ... */) && required) {
     return t('validation:required')
   }
 
   // Array length validation
   if (Array.isArray(value) && value.length > 0) {
-    if (minRows && value.length < minRows) {
-      return t('validation:lessThanMin', {
-        label: t('general:rows'),
-        min: minRows,
-        value: value.length,
-      })
-    }
-    if (maxRows && value.length > maxRows) {
-      return t('validation:greaterThanMax', {
-        label: t('general:rows'),
-        max: maxRows,
-        value: value.length,
-      })
-    }
+    /** ... check minRows, maxRows */
   }
 
   // Validate ID types
   if (typeof value !== 'undefined' && value !== null) {
     const values = Array.isArray(value) ? value : [value]
     const invalidRelationships = values.filter((val) => {
-      let collectionSlug: string
-      let requestedID: number | string | undefined
-
-      if (typeof relationTo === 'string') {
-        collectionSlug = relationTo
-        requestedID = typeof val === 'object' && 'id' in val ? val.id : val
-      }
-
-      if (Array.isArray(relationTo) && typeof val === 'object' && val?.relationTo) {
-        collectionSlug = val.relationTo
-        requestedID = val.value
-      }
-
-      if (requestedID === null) return false
-
-      const idType =
-        payload.collections[collectionSlug]?.customIDType || payload?.db?.defaultIDType || 'text'
+      /** ... extract collectionSlug and requestedID */
+      /** ... validate ID type matches collection's ID type */
       return !isValidID(requestedID, idType)
     })
 
     if (invalidRelationships.length > 0) {
-      return `Invalid relationships: ${invalidRelationships.map(JSON.stringify).join(', ')}`
+      return `Invalid relationships: ${/** ... */}`
     }
   }
 
@@ -1070,25 +944,18 @@ features: [
 
 **Validation:**
 
+`payload-main/packages/payload/src/fields/validations/array.ts` (lines 8-30)
+
 ```typescript
 export const array: ArrayFieldValidation = (value, { maxRows, minRows, required, req: { t } }) => {
   return validateArrayLength(value, { maxRows, minRows, required, t })
 }
 
 const validateArrayLength = (value, options) => {
-  const { maxRows, minRows, required, t } = options
   const arrayLength = Array.isArray(value) ? value.length : (value as number) || 0
 
   if (!required && arrayLength === 0) return true
-  if (minRows && arrayLength < minRows) {
-    return t('validation:requiresAtLeast', { count: minRows, label: t('general:rows') })
-  }
-  if (maxRows && arrayLength > maxRows) {
-    return t('validation:requiresNoMoreThan', { count: maxRows, label: t('general:rows') })
-  }
-  if (required && !arrayLength) {
-    return t('validation:requiresAtLeast', { count: 1, label: t('general:row') })
-  }
+  /** ... check minRows, maxRows, required */
   return true
 }
 ```
@@ -1209,19 +1076,11 @@ content: [
 
 **Validation:**
 
+`payload-main/packages/payload/src/fields/validations/blocks.ts` (lines 12-45)
+
 ```typescript
 export const blocks: BlocksFieldValidation = async (value, options) => {
-  const {
-    id,
-    data,
-    filterOptions,
-    maxRows,
-    minRows,
-    required,
-    siblingData,
-    req,
-    req: { t },
-  } = options
+  // ... destructure options
 
   // Validate array length
   const lengthValidationResult = validateArrayLength(value, { maxRows, minRows, required, t })
@@ -1229,14 +1088,7 @@ export const blocks: BlocksFieldValidation = async (value, options) => {
 
   // Validate block types against filterOptions
   if (filterOptions) {
-    const { invalidBlockSlugs } = await validateBlocksFilterOptions({
-      id,
-      data,
-      filterOptions,
-      req,
-      siblingData,
-      value,
-    })
+    const { invalidBlockSlugs } = await validateBlocksFilterOptions({}) /** ... */
     if (invalidBlockSlugs?.length) {
       return t('validation:invalidBlocks', { blocks: invalidBlockSlugs.join(', ') })
     }
@@ -1605,52 +1457,20 @@ if (minRows && array.length < minRows) {
 
 ### 5.1 Hook Execution Order
 
-```
-Operation Flow:
-┌─────────────────────┐
-│  Request Arrives    │
-└─────────┬───────────┘
-          │
-          ▼
-┌─────────────────────┐
-│  beforeValidate     │  ← Sanitize input, compute values
-└─────────┬───────────┘
-          │
-          ▼
-┌─────────────────────┐
-│  Field Validation   │  ← Built-in + custom validators
-└─────────┬───────────┘
-          │
-          ▼
-┌─────────────────────┐
-│  beforeChange       │  ← Transform data before save
-└─────────┬───────────┘
-          │
-          ▼
-┌─────────────────────┐
-│  Write to Database  │
-└─────────┬───────────┘
-          │
-          ▼
-┌─────────────────────┐
-│  afterChange        │  ← Post-save side effects
-└─────────┬───────────┘
-          │
-          ▼
-┌─────────────────────┐
-│  afterRead          │  ← Transform on retrieval
-└─────────┬───────────┘
-          │
-          ▼
-┌─────────────────────┐
-│  Return to Client   │
-└─────────────────────┘
+**Operation Flow:**
 
-Special:
-┌─────────────────────┐
-│  beforeDuplicate    │  ← Before document duplication
-└─────────────────────┘
-```
+1. Request Arrives
+2. **beforeValidate** - Sanitize input, compute values
+3. **Field Validation** - Built-in + custom validators
+4. **beforeChange** - Transform data before save
+5. Write to Database
+6. **afterChange** - Post-save side effects
+7. **afterRead** - Transform on retrieval
+8. Return to Client
+
+**Special Hooks:**
+
+- **beforeDuplicate** - Before document duplication
 
 ### 5.2 Hook Types and Arguments
 
@@ -1758,58 +1578,37 @@ export type FieldHookArgs<TData, TValue, TSiblingData> = {
 
 **Built-in Sanitization:**
 
+`payload-main/packages/payload/src/fields/hooks/beforeValidate/promise.ts` (lines 80-140)
+
 ```typescript
-// From beforeValidate/promise.ts
 switch (field.type) {
   case 'checkbox':
     // String to boolean conversion
-    if (siblingData[field.name] === 'true') siblingData[field.name] = true
-    if (siblingData[field.name] === 'false') siblingData[field.name] = false
-    if (siblingData[field.name] === '') siblingData[field.name] = false
+    /** ... convert 'true'/'false'/'' to boolean */
     break
 
   case 'number':
     // String to number conversion
-    if (typeof siblingData[field.name] === 'string') {
-      const value = siblingData[field.name].trim()
-      siblingData[field.name] = value.length === 0 ? null : parseFloat(value)
-    }
+    /** ... parse string to number, handle empty string */
     break
 
   case 'relationship':
   case 'upload':
     // Normalize empty values
-    if (
-      siblingData[field.name] === '' ||
-      siblingData[field.name] === 'none' ||
-      siblingData[field.name] === 'null'
-    ) {
-      siblingData[field.name] = field.hasMany ? [] : null
-    }
-
+    /** ... convert '', 'none', 'null' to null or [] */
     // Extract ID from populated docs
-    if (typeof value === 'object' && 'id' in value) {
-      siblingData[field.name] = value.id
-    }
+    /** ... if populated object, extract just the ID */
     break
 
   case 'richText':
     // Parse JSON string
-    if (typeof siblingData[field.name] === 'string') {
-      try {
-        siblingData[field.name] = JSON.parse(siblingData[field.name])
-      } catch {
-        // Invalid JSON, will be caught by validation
-      }
-    }
+    /** ... try JSON.parse if string */
     break
 
   case 'array':
   case 'blocks':
     // Normalize zero values
-    if (siblingData[field.name] === '0' || siblingData[field.name] === 0) {
-      siblingData[field.name] = []
-    }
+    /** ... convert '0'/0 to [] */
     break
 }
 ```

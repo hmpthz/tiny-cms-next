@@ -149,7 +149,9 @@ auth/
 
 **Library**: `jose` (modern, secure JWT library)
 
-**Signing** (`jwt.ts`):
+**Signing**:
+
+`payload-main/packages/payload/src/auth/jwt.ts` (lines 15-20)
 
 ```typescript
 const token = await new SignJWT(fieldsToSign)
@@ -159,7 +161,9 @@ const token = await new SignJWT(fieldsToSign)
   .sign(secretKey)
 ```
 
-**JWT Payload** (`getFieldsToSign.ts`):
+**JWT Payload**:
+
+`payload-main/packages/payload/src/auth/getFieldsToSign.ts` (lines 20-50)
 
 - `id`: User ID
 - `email`: User email
@@ -176,7 +180,9 @@ const token = await new SignJWT(fieldsToSign)
 
 ### 3.2 Session Implementation
 
-**Session Storage** (`sessions.ts`):
+**Session Storage**:
+
+`payload-main/packages/payload/src/auth/sessions.ts` (lines 5-10)
 
 ```typescript
 type UserSession = {
@@ -209,6 +215,8 @@ type UserSession = {
 
 ### 3.3 Configuration
 
+`payload-main/packages/payload/src/auth/types.ts` (lines 80-85)
+
 ```typescript
 interface IncomingAuthType {
   useSessions?: boolean // Default: true
@@ -239,7 +247,9 @@ interface IncomingAuthType {
 
 **Method**: PBKDF2-HMAC-SHA256
 
-**Implementation** (`strategies/local/generatePasswordSaltHash.ts`):
+**Implementation**:
+
+`payload-main/packages/payload/src/auth/strategies/local/generatePasswordSaltHash.ts` (lines 10-18)
 
 ```typescript
 // Salt generation
@@ -261,7 +271,9 @@ const hash = hashRaw.toString('hex') // 1024 char hex string
 
 ### 4.2 Verification
 
-**Implementation** (`strategies/local/authenticate.ts`):
+**Implementation**:
+
+`payload-main/packages/payload/src/auth/strategies/local/authenticate.ts` (lines 25-32)
 
 ```typescript
 crypto.pbkdf2(password, salt, 25000, 512, 'sha256', (e, hashBuffer) => {
@@ -278,6 +290,8 @@ crypto.pbkdf2(password, salt, 25000, 512, 'sha256', (e, hashBuffer) => {
 ### 4.3 Database Fields
 
 **Required Fields**:
+
+`payload-main/packages/payload/src/auth/baseFields/password.ts` (lines 15-30)
 
 ```typescript
 {
@@ -309,7 +323,9 @@ crypto.pbkdf2(password, salt, 25000, 512, 'sha256', (e, hashBuffer) => {
 
 ### 5.1 Strategy System
 
-**Interface** (`types.ts`):
+**Interface**:
+
+`payload-main/packages/payload/src/auth/types.ts` (lines 120-140)
 
 ```typescript
 type AuthStrategy = {
@@ -331,7 +347,9 @@ type AuthStrategyResult = {
 }
 ```
 
-**Execution** (`executeAuthStrategies.ts`):
+**Execution**:
+
+`payload-main/packages/payload/src/auth/executeAuthStrategies.ts` (lines 10-35)
 
 - Loops through all strategies in order
 - Returns first successful authentication
@@ -350,7 +368,9 @@ type AuthStrategyResult = {
 6. Fetch user from database
 7. Return user object
 
-**JWT Extraction** (`extractJWT.ts`):
+**JWT Extraction**:
+
+`payload-main/packages/payload/src/auth/extractJWT.ts` (lines 5-25)
 
 - **Cookie**: `${cookiePrefix}-token`
 - **Header**: `Authorization: JWT <token>` or `Bearer <token>`
@@ -372,6 +392,8 @@ type AuthStrategyResult = {
 5. Return user with `_strategy: 'api-key'`
 
 **API Key Fields**:
+
+`payload-main/packages/payload/src/auth/baseFields/apiKey.ts` (lines 20-40)
 
 ```typescript
 {
@@ -401,6 +423,8 @@ type AuthStrategyResult = {
 
 **Disabled via**:
 
+`payload-main/packages/payload/src/collections/config/types.ts` (lines 250-260)
+
 ```typescript
 auth: {
   disableLocalStrategy: true | {
@@ -413,6 +437,8 @@ auth: {
 ### 5.5 Custom Strategies
 
 **Configuration**:
+
+`payload-main/packages/payload/src/collections/config/types.ts` (lines 270-285)
 
 ```typescript
 auth: {
@@ -442,6 +468,8 @@ auth: {
 ### 6.1 Auth Configuration
 
 **Collection Config**:
+
+`payload-main/packages/payload/src/collections/config/types.ts` (lines 180-220)
 
 ```typescript
 {
@@ -481,7 +509,9 @@ auth: {
 
 ### 6.2 Field Injection
 
-**Auto-injected Fields** (`getAuthFields.ts`):
+**Auto-injected Fields**:
+
+`payload-main/packages/payload/src/auth/getAuthFields.ts` (lines 15-120)
 
 **Always Added** (if not disabled):
 
@@ -527,6 +557,8 @@ GET    /api/{collection}/me
 
 **Auth-specific Hooks**:
 
+`payload-main/packages/payload/src/collections/config/types.ts` (lines 150-170)
+
 ```typescript
 {
   hooks: {
@@ -552,7 +584,9 @@ GET    /api/{collection}/me
 
 ### 7.1 Request Authentication
 
-**Entry Point** (`createPayloadRequest.ts`):
+**Entry Point**:
+
+`payload-main/packages/payload/src/utilities/createPayloadRequest.ts` (lines 50-62)
 
 ```typescript
 // Called on every request
@@ -579,6 +613,8 @@ req.responseHeaders = responseHeaders
 
 **Access Function Signature**:
 
+`payload-main/packages/payload/src/auth/types.ts` (lines 200-210)
+
 ```typescript
 type Access = (args: {
   req: PayloadRequest // Has user attached
@@ -595,6 +631,8 @@ type Access = (args: {
 
 **Access Levels** (Collections):
 
+`payload-main/packages/payload/src/collections/config/types.ts` (lines 90-105)
+
 ```typescript
 {
   access: {
@@ -610,6 +648,8 @@ type Access = (args: {
 
 **Access Levels** (Globals):
 
+`payload-main/packages/payload/src/globals/config/types.ts` (lines 45-55)
+
 ```typescript
 {
   access: {
@@ -621,6 +661,8 @@ type Access = (args: {
 ```
 
 **Field-level Access**:
+
+`payload-main/packages/payload/src/fields/config/types.ts` (lines 60-75)
 
 ```typescript
 {
@@ -640,7 +682,9 @@ type Access = (args: {
 
 ### 7.3 Access Execution
 
-**executeAccess** (`executeAccess.ts`):
+**executeAccess**:
+
+`payload-main/packages/payload/src/auth/executeAccess.ts` (lines 10-28)
 
 ```typescript
 const executeAccess = async (
@@ -660,7 +704,9 @@ const executeAccess = async (
 }
 ```
 
-**Default Access** (`defaultAccess.ts`):
+**Default Access**:
+
+`payload-main/packages/payload/src/auth/defaultAccess.ts` (lines 5-8)
 
 ```typescript
 // If no access function provided
@@ -677,13 +723,17 @@ const defaultAccess = ({ req }) => Boolean(req.user)
 
 ### 7.4 Permission Resolution
 
-**getAccessResults** (`getAccessResults.ts`):
+**getAccessResults**:
+
+`payload-main/packages/payload/src/auth/getAccessResults.ts` (lines 15-80)
 
 - Runs all access functions for all collections/globals
 - Returns permissions object for frontend
 - Used in `/me` endpoint to show UI capabilities
 
 **Permission Object**:
+
+`payload-main/packages/payload/src/auth/types.ts` (lines 280-310)
 
 ```typescript
 {

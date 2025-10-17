@@ -77,15 +77,15 @@ db-postgres/
 The adapter factory function that creates a PostgreSQL database adapter. Key logic:
 
 ```typescript
-// Lines 68-89: Configuration setup
+// db-postgres/src/index.ts:68-89
 export function postgresAdapter(args: Args) {
   const postgresIDType = args.idType || 'serial'
   const payloadIDType = postgresIDType === 'serial' ? 'number' : 'text'
-  const allowIDOnCreate = args.allowIDOnCreate ?? false
+  // ...
 
   function adapter({ payload }: { payload: Payload }) {
     const migrationDir = findMigrationDir(args.migrationDir)
-    let resolveInitializing, rejectInitializing
+    // ...
 
     // Schema setup - supports custom schema names
     if (args.schemaName) {
@@ -93,6 +93,7 @@ export function postgresAdapter(args: Args) {
     } else {
       adapterSchema = { enum: pgEnum, table: pgTable }
     }
+    // ...
 ```
 
 **Imports all operations from `@payloadcms/drizzle`** (Lines 3-42):
@@ -125,35 +126,29 @@ export function postgresAdapter(args: Args) {
 **Key Types**:
 
 ```typescript
-// Lines 23-79: Configuration arguments
+// db-postgres/src/types.ts:23-79
 export type Args = {
-  afterSchemaInit?: PostgresSchemaHook[] // Schema customization
-  allowIDOnCreate?: boolean // Custom ID support
-  beforeSchemaInit?: PostgresSchemaHook[] // Pre-schema hooks
-  blocksAsJSON?: boolean // Store blocks as JSON
-  disableCreateDatabase?: boolean
-  extensions?: string[] // PostgreSQL extensions
-  idType?: 'serial' | 'uuid' // ID strategy
-  localesSuffix?: string // i18n support
-  migrationDir?: string
-  pool: PoolConfig // Connection pool config
-  prodMigrations?: Migration[] // Production migrations
-  readReplicas?: string[] // Read replica support
-  schemaName?: string // Custom schema name
-  transactionOptions?: false | PgTransactionConfig
-  versionsSuffix?: string // Versions table suffix
-  relationshipsSuffix?: string // Relationships table suffix
+  afterSchemaInit?: PostgresSchemaHook[]
+  allowIDOnCreate?: boolean
+  beforeSchemaInit?: PostgresSchemaHook[]
+  blocksAsJSON?: boolean
+  // ... many more config options
+  pool: PoolConfig
+  readReplicas?: string[]
+  schemaName?: string
+  // ...
 }
 ```
 
-**Adapter Type** (Lines 93-98):
+**Adapter Type**:
 
 ```typescript
+// db-postgres/src/types.ts:93-98
 export type PostgresAdapter = {
-  drizzle: Drizzle // Drizzle ORM instance
-  pg: PgDependency // node-postgres dependency
-  pool: Pool // Connection pool
-  poolOptions: PoolConfig
+  drizzle: Drizzle
+  pg: PgDependency
+  pool: Pool
+  // ...
 } & BasePostgresAdapter
 ```
 
@@ -166,21 +161,15 @@ Extends Payload's DatabaseAdapter interface with PostgreSQL-specific properties.
 
 **Connection Features**:
 
-1. **Connection with Auto-Reconnect** (Lines 10-45):
+1. **Connection with Auto-Reconnect**:
 
 ```typescript
+// db-postgres/src/connect.ts:10-45
 const connectWithReconnect = async function ({ adapter, pool, reconnect = false }) {
   if (!reconnect) {
     result = await pool.connect()
   } else {
-    try {
-      result = await pool.connect()
-    } catch (ignore) {
-      setTimeout(() => {
-        adapter.payload.logger.info('Reconnecting to postgres')
-        void connectWithReconnect({ adapter, pool, reconnect: true })
-      }, 1000)
-    }
+    /** ... try/catch with setTimeout retry */
   }
   // Listen for ECONNRESET errors and reconnect
   result.prependListener('error', (err) => {
@@ -191,9 +180,10 @@ const connectWithReconnect = async function ({ adapter, pool, reconnect = false 
 }
 ```
 
-2. **Drizzle Initialization** (Lines 56-79):
+2. **Drizzle Initialization**:
 
 ```typescript
+// db-postgres/src/connect.ts:56-79
 if (!this.pool) {
   this.pool = new this.pg.Pool(this.poolOptions)
   await connectWithReconnect({ adapter: this, pool: this.pool })
@@ -203,33 +193,25 @@ this.drizzle = drizzle({ client: this.pool, logger, schema: this.schema })
 
 // Read replicas support
 if (this.readReplicaOptions) {
-  const readReplicas = this.readReplicaOptions.map((connectionString) => {
-    const pool = new this.pg.Pool({ ...this.poolOptions, connectionString })
-    return drizzle({ client: pool, logger, schema: this.schema })
-  })
-  this.drizzle = withReplicas(this.drizzle, readReplicas)
+  /** ... map read replicas and call withReplicas */
 }
 ```
 
-3. **Auto Database Creation** (Lines 88-106):
+3. **Auto Database Creation**:
 
 ```typescript
+// db-postgres/src/connect.ts:88-106
 catch (error) {
   if (err.message?.match(/database .* does not exist/i) && !this.disableCreateDatabase) {
-    this.payload.logger.info(`${err.message}, creating...`)
-    const isCreated = await this.createDatabase()
-    if (isCreated && this.connect) {
-      await this.connect(options)  // Retry connection
-      return
-    }
+    /** ... create database and retry connection */
   }
 }
 ```
 
-4. **Development Schema Push** (Lines 116-123):
+4. **Development Schema Push**:
 
 ```typescript
-// Only push schema if not in production
+// db-postgres/src/connect.ts:116-123
 if (
   process.env.NODE_ENV !== 'production' &&
   process.env.PAYLOAD_MIGRATING !== 'true' &&
@@ -239,9 +221,10 @@ if (
 }
 ```
 
-5. **Production Migrations** (Lines 129-131):
+5. **Production Migrations**:
 
 ```typescript
+// db-postgres/src/connect.ts:129-131
 if (process.env.NODE_ENV === 'production' && this.prodMigrations) {
   await this.migrate({ migrations: this.prodMigrations })
 }
@@ -349,9 +332,10 @@ export const buildRawSchema = ({
 
 **Process**:
 
-1. **Create table names** (Lines 25-39):
+1. **Create table names**:
 
 ```typescript
+// drizzle/src/schema/buildRawSchema.ts:25-39
 adapter.payload.config.collections.forEach((collection) => {
   createTableName({ adapter, config: collection })
 
@@ -366,9 +350,10 @@ adapter.payload.config.collections.forEach((collection) => {
 })
 ```
 
-2. **Build collection tables** (Lines 41-90):
+2. **Build collection tables**:
 
 ```typescript
+// drizzle/src/schema/buildRawSchema.ts:41-90
 adapter.payload.config.collections.forEach((collection) => {
   const tableName = adapter.tableNameMap.get(toSnakeCase(collection.slug))
 
@@ -376,21 +361,12 @@ adapter.payload.config.collections.forEach((collection) => {
     adapter,
     fields: collection.flattenedFields,
     tableName,
-    timestamps: collection.timestamps,
-    versions: false,
+    // ... more args
   })
 
   // Build versions table if enabled
   if (collection.versions) {
-    const versionsTableName = adapter.tableNameMap.get(
-      `_${toSnakeCase(collection.slug)}${adapter.versionsSuffix}`,
-    )
-    buildTable({
-      adapter,
-      fields: buildVersionCollectionFields(config, collection, true),
-      tableName: versionsTableName,
-      versions: true,
-    })
+    /** ... build version table with version fields */
   }
 })
 ```
@@ -405,53 +381,45 @@ adapter.payload.config.collections.forEach((collection) => {
 
 **Key Steps**:
 
-1. **Initialize table structure** (Lines 92-114):
+1. **Initialize table structure**:
 
 ```typescript
+// drizzle/src/schema/build.ts:92-114
 const columns: Record<string, RawColumn> = baseColumns
 const indexes: Record<string, RawIndex> = baseIndexes
 const localesColumns: Record<string, RawColumn> = {} // For i18n
 const relationships: Set<string> = rootRelationships || new Set()
-const relationsToBuild: RelationMap = new Map()
+// ...
 
 const idColType: IDType = setColumnID({ adapter, columns, fields })
 ```
 
-2. **Traverse fields to build columns** (Lines 116-146):
+2. **Traverse fields to build columns**:
 
 ```typescript
+// drizzle/src/schema/build.ts:116-146
 const {
   hasLocalizedField,
-  hasLocalizedManyNumberField,
-  hasLocalizedManyTextField,
-  hasLocalizedRelationshipField,
   hasManyNumberField,
   hasManyTextField,
+  // ... many more returns
 } = traverseFields({
   adapter,
   columns,
   fields,
-  indexes,
-  localesColumns,
-  localesIndexes,
-  relationships,
-  relationsToBuild,
   // ... many more args
 })
 ```
 
-3. **Add timestamps** (Lines 157-177):
+3. **Add timestamps**:
 
 ```typescript
+// drizzle/src/schema/build.ts:157-177
 if (timestamps) {
   columns.createdAt = {
     name: 'created_at',
     type: 'timestamp',
-    defaultNow: true,
-    mode: 'string',
-    notNull: true,
-    precision: 3,
-    withTimezone: true,
+    // ... timestamp config
   }
   // updatedAt similar
 }
@@ -472,14 +440,15 @@ if (timestamps) {
 **Example relationships table structure**:
 
 ```typescript
+// drizzle/src/schema/build.ts:522-698
 const relationshipColumns: Record<string, RawColumn> = {
   id: { type: 'serial', primaryKey: true },
   order: { type: 'integer' },
   parent: { type: idColType, notNull: true },
   path: { type: 'varchar', notNull: true },
   // For each relation target:
-  usersID: { type: 'integer' },
-  postsID: { type: 'uuid' },
+  usersID: /** ... */,
+  postsID: /** ... */,
   // etc.
 }
 ```
@@ -489,7 +458,7 @@ const relationshipColumns: Record<string, RawColumn> = {
 **Purpose**: Builds SQL queries from Payload's query format.
 
 ```typescript
-// Lines 41-95: Main query builder
+// drizzle/src/queries/buildQuery.ts:41-95
 export const buildQuery = function buildQuery({
   adapter,
   fields,
@@ -508,22 +477,13 @@ export const buildQuery = function buildQuery({
   // Parse where conditions
   if (incomingWhere && Object.keys(incomingWhere).length > 0) {
     where = parseParams({
-      adapter,
-      fields,
-      joins,
-      locale,
-      tableName,
-      where: incomingWhere,
+      /** ... args */
     })
   }
 
   // Build ORDER BY
   const orderBy = buildOrderBy({
-    adapter,
-    fields,
-    joins,
-    sort,
-    tableName,
+    /** ... args */
   })
 
   return { joins, orderBy, selectFields, where }
@@ -555,21 +515,17 @@ export const operatorMap: Operators = {
 **Find Operation** (`src/find.ts`):
 
 ```typescript
-// Lines 9-46
+// drizzle/src/find.ts:9-46
 export const find: Find = async function find(
   this: DrizzleAdapter,
   {
     collection,
-    draftsEnabled,
-    joins,
     limit,
     locale,
     page = 1,
-    pagination,
-    req,
-    select,
     sort: sortArg,
     where,
+    // ... more args
   },
 ) {
   const collectionConfig = this.payload.collections[collection].config
@@ -581,11 +537,7 @@ export const find: Find = async function find(
     collectionSlug: collectionConfig.slug,
     fields: collectionConfig.flattenedFields,
     tableName,
-    where,
-    sort,
-    limit,
-    page,
-    // ... etc
+    // ... more args
   })
 }
 ```
@@ -593,10 +545,10 @@ export const find: Find = async function find(
 **Create Operation** (`src/create.ts`):
 
 ```typescript
-// Lines 10-36
+// drizzle/src/create.ts:10-36
 export const create: Create = async function create(
   this: DrizzleAdapter,
-  { collection: collectionSlug, data, req, returning, select },
+  { collection: collectionSlug, data, req /** ... */ },
 ) {
   const db = await getTransaction(this, req)
   const collection = this.payload.collections[collectionSlug].config
@@ -608,8 +560,7 @@ export const create: Create = async function create(
     db,
     fields: collection.flattenedFields,
     operation: 'create',
-    req,
-    tableName,
+    // ... more args
   })
 
   return result
@@ -621,7 +572,7 @@ export const create: Create = async function create(
 **Clever implementation using Promise lifting**:
 
 ```typescript
-// Lines 7-66
+// drizzle/src/transactions/beginTransaction.ts:7-66
 export const beginTransaction: BeginTransaction = async function beginTransaction(
   this: DrizzleAdapter,
   options: DrizzleAdapter['transactionOptions'],
@@ -633,22 +584,13 @@ export const beginTransaction: BeginTransaction = async function beginTransactio
   let transaction: DrizzleTransaction
   let transactionReady: () => void
 
-  await this.initializing
-
   // Drizzle only exposes a transactions API that requires passing `tx` around.
   // We "lift" up the resolve/reject methods to avoid passing tx everywhere
   const done = this.drizzle
     .transaction(async (tx) => {
       transaction = tx
       await new Promise<void>((res, rej) => {
-        resolve = () => {
-          res()
-          return done
-        }
-        reject = () => {
-          rej()
-          return done
-        }
+        /** ... setup resolve/reject */
         transactionReady()
       })
     }, options || this.transactionOptions)
@@ -660,11 +602,7 @@ export const beginTransaction: BeginTransaction = async function beginTransactio
   await new Promise<void>((resolve) => (transactionReady = resolve))
 
   // Store transaction in sessions map
-  this.sessions[id] = {
-    db: transaction,
-    reject,
-    resolve,
-  }
+  this.sessions[id] = { db: transaction, reject, resolve }
 
   return id
 }
@@ -683,26 +621,20 @@ export const beginTransaction: BeginTransaction = async function beginTransactio
 **Initialization process**:
 
 ```typescript
-// Lines 11-45
+// drizzle/src/postgres/init.ts:11-45
 export const init: Init = async function init(this: BasePostgresAdapter) {
   this.rawRelations = {}
   this.rawTables = {}
 
   // Build abstract schema
-  buildRawSchema({
-    adapter: this,
-    setColumnID,
-  })
+  buildRawSchema({ adapter: this, setColumnID })
 
   // Execute beforeSchemaInit hooks
   await executeSchemaHooks({ type: 'beforeSchemaInit', adapter: this })
 
   // Create locales enum if localization enabled
   if (this.payload.config.localization) {
-    this.enums.enum__locales = this.pgSchema.enum(
-      '_locales',
-      this.payload.config.localization.locales.map(({ code }) => code),
-    )
+    /** ... create enum for locales */
   }
 
   // Build Drizzle tables from raw tables
@@ -718,10 +650,7 @@ export const init: Init = async function init(this: BasePostgresAdapter) {
 
   // Combine into final schema
   this.schema = {
-    pgSchema: this.pgSchema,
-    ...this.tables,
-    ...this.relations,
-    ...this.enums,
+    /** ... combine tables, relations, enums */
   }
 }
 ```
@@ -731,7 +660,7 @@ export const init: Init = async function init(this: BasePostgresAdapter) {
 **Converts abstract RawTable to concrete Drizzle table**:
 
 ```typescript
-// Lines 39-204
+// drizzle/src/postgres/schema/buildDrizzleTable.ts:39-204
 export const buildDrizzleTable = ({
   adapter,
   rawTable,
@@ -745,46 +674,25 @@ export const buildDrizzleTable = ({
   for (const [key, column] of Object.entries(rawTable.columns)) {
     switch (column.type) {
       case 'enum':
-        if ('locale' in column) {
-          columns[key] = adapter.enums.enum__locales(column.name)
-        } else {
-          adapter.enums[column.enumName] = adapter.pgSchema.enum(column.enumName, column.options)
-          columns[key] = adapter.enums[column.enumName](column.name)
-        }
+        /** ... create enum column */
         break
 
       case 'timestamp':
-        let builder = timestamp(column.name, {
-          mode: column.mode,
-          precision: column.precision,
-          withTimezone: column.withTimezone,
-        })
-        if (column.defaultNow) {
-          builder = builder.defaultNow()
-        }
-        columns[key] = builder
+        /** ... create timestamp column with config */
         break
 
       case 'uuid':
-        let builder = uuid(column.name)
-        if (column.defaultRandom) {
-          builder = builder.defaultRandom()
-        }
-        columns[key] = builder
+        /** ... create uuid column */
         break
 
-      // ... other types
+      // ... other types (varchar, integer, jsonb, etc.)
     }
 
     // Add constraints
-    if (column.reference) {
-      columns[key].references(() => adapter.tables[column.reference.table][column.reference.name], {
-        onDelete: column.reference.onDelete,
-      })
-    }
-    if (column.primaryKey) columns[key].primaryKey()
+    if (column.reference)
+      if (column.primaryKey) /** ... add foreign key reference */ columns[key].primaryKey()
     if (column.notNull) columns[key].notNull()
-    if (column.default) columns[key].default(column.default)
+    // ... more constraints
   }
 
   // Build indexes and foreign keys
@@ -792,22 +700,11 @@ export const buildDrizzleTable = ({
     const config: Record<string, ForeignKeyBuilder | IndexBuilder> = {}
 
     if (rawTable.indexes) {
-      for (const [key, rawIndex] of Object.entries(rawTable.indexes)) {
-        const fn = rawIndex.unique ? uniqueIndex : index
-        config[key] = fn(rawIndex.name).on(...rawIndex.on.map((col) => cols[col]))
-      }
+      /** ... build indexes (unique or regular) */
     }
 
     if (rawTable.foreignKeys) {
-      for (const [key, rawForeignKey] of Object.entries(rawTable.foreignKeys)) {
-        config[key] = foreignKey({
-          name: rawForeignKey.name,
-          columns: rawForeignKey.columns.map((col) => cols[col]),
-          foreignColumns: rawForeignKey.foreignColumns.map(
-            (col) => adapter.tables[col.table][col.name],
-          ),
-        }).onDelete(rawForeignKey.onDelete)
-      }
+      /** ... build foreign key constraints */
     }
 
     return config
@@ -1011,6 +908,7 @@ We're using PostgreSQL, not Cloudflare D1. Not relevant for our CMS.
 1. **Payload Core** (`payload` package):
 
    ```typescript
+   // packages/payload/src/database/types.ts
    interface DatabaseAdapter {
      name: string
      init: (payload: Payload) => Promise<DatabaseAdapter>
@@ -1024,12 +922,12 @@ We're using PostgreSQL, not Cloudflare D1. Not relevant for our CMS.
 2. **Adapter Registration**:
 
    ```typescript
-   // In payload.config.ts
+   // User's payload.config.ts
    export default buildConfig({
      db: postgresAdapter({
        pool: { connectionString: process.env.DATABASE_URI },
      }),
-     // ... rest of config
+     // ...
    })
    ```
 
@@ -1062,7 +960,7 @@ We're using PostgreSQL, not Cloudflare D1. Not relevant for our CMS.
 **Purpose**: Allow customization of generated schema
 
 ```typescript
-// In config
+// User's payload.config.ts
 db: postgresAdapter({
   afterSchemaInit: [
     ({ adapter, extendTable, schema }) => {
@@ -1071,7 +969,9 @@ db: postgresAdapter({
         table: schema.tables.posts,
         columns: (cols) => ({
           ...cols,
-          search_vector: vector('search_vector', { dimensions: 1536 }),
+          search_vector: vector('search_vector', {
+            /** ... */
+          }),
         }),
         extraConfig: (cols) => ({
           searchIndex: index('search_idx').on(cols.search_vector),
@@ -1273,9 +1173,21 @@ Total: ~1,000 lines vs current ~10,000 lines
 - Lines 88-106: Auto database creation
 - Lines 116-131: Dev schema push and production migrations
 
+**db-postgres/src/types.ts**:
+
+- Lines 23-79: Args type definition
+- Lines 93-98: PostgresAdapter type
+
+**drizzle/src/schema/buildRawSchema.ts**:
+
+- Lines 25-39: Create table names
+- Lines 41-90: Build collection tables
+
 **drizzle/src/schema/build.ts**:
 
-- Lines 69-91: Table initialization
+- Lines 92-114: Table initialization
+- Lines 116-146: Traverse fields to build columns
+- Lines 157-177: Add timestamps
 - Lines 188-275: Locales table creation
 - Lines 333-428: Texts table for array fields
 - Lines 430-520: Numbers table for numeric arrays
@@ -1284,6 +1196,10 @@ Total: ~1,000 lines vs current ~10,000 lines
 **drizzle/src/queries/buildQuery.ts**:
 
 - Lines 41-95: Main query builder
+
+**drizzle/src/find.ts**:
+
+- Lines 9-46: Find operation
 
 **drizzle/src/create.ts**:
 
