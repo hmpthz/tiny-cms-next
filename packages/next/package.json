@@ -1,0 +1,35 @@
+{
+  "name": "@tiny-cms/next",
+  "version": "0.1.0",
+  "description": "Next.js integration for tiny-cms",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint src",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "cms",
+    "next.js",
+    "tiny-cms"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@tiny-cms/core": "workspace:*",
+    "next": "^15.1.3"
+  },
+  "devDependencies": {},
+  "peerDependencies": {
+    "next": "^14.0.0 || ^15.0.0"
+  }
+}

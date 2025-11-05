@@ -35,12 +35,10 @@ export default defineConfig([
   },
   {
     ignores: [
-      'payload-main/**',
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/build/**',
-      '**/.next/**',
-      'reports/**',
+      '**/node_modules/',
+      '**/dist/',
+      '**/build/',
+      '**/.next/',
       '*.config.js',
       '*.config.mjs',
     ],
