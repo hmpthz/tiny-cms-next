@@ -25,3 +25,10 @@ Step 2:
 2. Fix and finish next integration package, which should depend on ui package. Please refer to its report and source code.
 3. Implement sdk package. It should be based on the current implementation of core and database.
 4. Make example blog a complete nextjs project, using all the implemented packages so far.
+
+Step 3:
+
+1. Complete storage package, it should have a generic s3-compatible adapter. And an implementation using `@supabase/storage-js`.
+2. Complete search plugin package.
+3. Further extend the example blog project, add upload (signed url from api) and search features.
+4. Fix all eslint and type errors. All packages should have a "lint:fix" script.

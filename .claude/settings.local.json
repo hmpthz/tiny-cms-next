@@ -14,6 +14,7 @@
       "Bash(pnpm format:*)",
       "Bash(pnpm add:*)",
       "Bash(pnpm lint:*)",
+      "Bash(pnpm lint:fix:*)",
       "Bash(pnpm install:*)",
       "Bash(pnpm ls:*)",
       "Bash(pnpm build:*)",

@@ -1,7 +1,7 @@
 {
-  "name": "@tiny-cms/core",
+  "name": "@tiny-cms/storage",
   "version": "0.1.0",
-  "description": "Core CMS logic for tiny-cms",
+  "description": "Storage adapter for tiny-cms with Supabase support",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -20,14 +20,14 @@
   },
   "keywords": [
     "cms",
-    "headless",
+    "storage",
+    "supabase",
     "tiny-cms"
   ],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "better-auth": "^1.1.5",
-    "zod": "^3.24.1"
+    "@supabase/storage-js": "^2.80.0"
   },
   "devDependencies": {}
 }

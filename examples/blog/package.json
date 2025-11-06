@@ -7,13 +7,16 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "db:push": "tsx scripts/push-schema.ts"
+    "db:push": "tsx scripts/push-schema.ts",
+    "search:setup": "tsx scripts/setup-search.ts"
   },
   "dependencies": {
     "@tiny-cms/core": "workspace:*",
     "@tiny-cms/db": "workspace:*",
     "@tiny-cms/next": "workspace:*",
     "@tiny-cms/sdk": "workspace:*",
+    "@tiny-cms/storage": "workspace:*",
+    "@tiny-cms/search": "workspace:*",
     "@tiny-cms/ui": "workspace:*",
     "better-auth": "^1.1.5",
     "kysely": "^0.27.4",

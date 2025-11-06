@@ -16,6 +16,7 @@
     "build": "tsc && tailwindcss -i ./src/styles.css -o ./dist/styles.css --minify",
     "dev": "tsc --watch",
     "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
     "type-check": "tsc --noEmit"
   },
   "keywords": [

@@ -51,6 +51,28 @@ export const cmsConfig = defineConfig({
 
   // Collections
   collections: [
+    // Media collection for file uploads
+    {
+      name: 'media',
+      timestamps: true,
+      fields: [
+        { name: 'filename', type: 'text', required: true },
+        { name: 'mimeType', type: 'text', required: true },
+        { name: 'size', type: 'number', required: true },
+        { name: 'url', type: 'text', required: true },
+        { name: 'alt', type: 'text' },
+        { name: 'caption', type: 'text' },
+        { name: 'width', type: 'number' },
+        { name: 'height', type: 'number' },
+      ],
+      access: {
+        read: () => true, // Public read access
+        create: ({ user }) => ['admin', 'author'].includes(user?.role || ''),
+        update: ({ user }) => ['admin', 'author'].includes(user?.role || ''),
+        delete: ({ user }) => user?.role === 'admin',
+      },
+    },
+
     // Users collection
     {
       name: 'users',
@@ -111,6 +133,7 @@ export const cmsConfig = defineConfig({
         { name: 'slug', type: 'text', required: true, unique: true },
         { name: 'excerpt', type: 'text' },
         { name: 'content', type: 'richtext', required: true },
+        { name: 'featuredImage', type: 'relation', to: 'media' },
         { name: 'author', type: 'relation', to: 'users', required: true },
         { name: 'category', type: 'relation', to: 'categories' },
         { name: 'tags', type: 'select', options: [], multiple: true },

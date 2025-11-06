@@ -8,5 +8,4 @@
 **/dist/**
 **/node_modules
 **/temp
-tsconfig.json
 tsconfig.tsbuildinfo

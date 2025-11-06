@@ -1,7 +1,7 @@
 {
-  "name": "@tiny-cms/core",
+  "name": "@tiny-cms/search",
   "version": "0.1.0",
-  "description": "Core CMS logic for tiny-cms",
+  "description": "PostgreSQL full-text search for tiny-cms",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -20,14 +20,18 @@
   },
   "keywords": [
     "cms",
-    "headless",
+    "search",
+    "postgresql",
+    "full-text-search",
     "tiny-cms"
   ],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "better-auth": "^1.1.5",
-    "zod": "^3.24.1"
+    "kysely": "^0.27.4"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "peerDependencies": {
+    "pg": "^8.0.0"
+  }
 }

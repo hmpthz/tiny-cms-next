@@ -15,6 +15,7 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
     "type-check": "tsc --noEmit"
   },
   "keywords": [

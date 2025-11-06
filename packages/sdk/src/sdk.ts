@@ -195,7 +195,7 @@ export class TinyCMSSDK {
     }
 
     // Prepare headers and body
-    let headers = { ...this.defaultHeaders }
+    const headers = { ...this.defaultHeaders }
     let requestBody: FormData | string | undefined
 
     if (file) {
