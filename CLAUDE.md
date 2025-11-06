@@ -18,6 +18,7 @@ Requirements:
 - **Important**: Rewrite auth system using `better-auth`. Be extra careful since it'll be interacted with many other modules.
 - No email packages (better-auth already has it)
 - No multiple tempaltes, only write a blog template, styles and layouts are minimal.
+- Minimal UI using Tailwind CSS and `shadcn/ui` components.
 - There are lots of config files for various tools at root directory and package directories. Keep most of them, but anything about path should be changed since we'll remove, rename or simplify them.
 
 # Project Overview

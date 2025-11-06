@@ -8,8 +8,4 @@
 **/dist/**
 **/node_modules
 **/temp
-tsconfig.json
-packages/payload/*.js
-packages/payload/*.d.ts
-payload-types.ts
 tsconfig.tsbuildinfo

@@ -1,0 +1,33 @@
+{
+  "name": "@tiny-cms/storage",
+  "version": "0.1.0",
+  "description": "Storage adapter for tiny-cms with Supabase support",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "cms",
+    "storage",
+    "supabase",
+    "tiny-cms"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/storage-js": "^2.80.0"
+  },
+  "devDependencies": {}
+}

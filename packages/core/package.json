@@ -1,0 +1,33 @@
+{
+  "name": "@tiny-cms/core",
+  "version": "0.1.0",
+  "description": "Core CMS logic for tiny-cms",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "cms",
+    "headless",
+    "tiny-cms"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "better-auth": "^1.1.5",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {}
+}
