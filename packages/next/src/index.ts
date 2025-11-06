@@ -19,3 +19,28 @@ export type { AuthMiddlewareOptions } from './middleware/auth'
 
 // Server action utilities
 export { getCurrentUser, requireUser, requireRole, requireAnyRole } from './utils/server-actions'
+
+// Admin UI components
+export {
+  RootPage,
+  RootLayout,
+  Dashboard,
+  ListView,
+  EditView,
+  CreateView,
+  initReq,
+  getOptionalContext,
+  parseRoute,
+  buildPath,
+} from './admin'
+export type {
+  RootPageProps,
+  RootLayoutProps,
+  DashboardProps,
+  ListViewProps,
+  EditViewProps,
+  CreateViewProps,
+  RequestContext,
+  ViewType,
+  RouteInfo,
+} from './admin'

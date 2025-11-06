@@ -3,7 +3,7 @@
  * Demonstrates: Collections, Fields, Access Control, Hooks, Auth Integration
  */
 
-import { createCMS, defineConfig, createAuthWrapper } from '@tiny-cms/core'
+import { TinyCMS, defineConfig, createAuthWrapper } from '@tiny-cms/core'
 import { postgresAdapter } from '@tiny-cms/db'
 import { betterAuth } from 'better-auth'
 import { Pool } from 'pg'
@@ -165,11 +165,4 @@ export const cmsConfig = defineConfig({
 })
 
 // Create and export CMS instance
-let cmsInstance: Awaited<ReturnType<typeof createCMS>> | null = null
-
-export async function getCMS() {
-  if (!cmsInstance) {
-    cmsInstance = await createCMS(cmsConfig)
-  }
-  return cmsInstance
-}
+export const cms = new TinyCMS(cmsConfig)

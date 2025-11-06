@@ -1,7 +1,7 @@
 {
-  "name": "@tiny-cms/next",
+  "name": "@tiny-cms/sdk",
   "version": "0.1.0",
-  "description": "Next.js integration for tiny-cms",
+  "description": "Type-safe client SDK for tiny-cms",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -19,18 +19,14 @@
   },
   "keywords": [
     "cms",
-    "next.js",
+    "sdk",
+    "client",
     "tiny-cms"
   ],
   "author": "",
   "license": "MIT",
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "@tiny-cms/core": "workspace:*"
-  },
-  "devDependencies": {},
-  "peerDependencies": {
-    "next": "^15.2.3",
-    "react": "^19.0.0",
-    "@types/react": "^19.0.0"
   }
 }

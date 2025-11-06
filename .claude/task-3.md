@@ -18,3 +18,10 @@ Step 1:
 3. Use exa-code to help you write code correctly, especially for the usage of `better-auth`, `kysely` or other libraries, and for writing typescript related things.
 4. For generic typings, if you MUST use `any` type, you can write `type ANY = any` and eslint comment to suppress the error.
 5. Also create an example project under examples/ folder, demonstrating the usage of the implemented packages so far.
+
+Step 2:
+
+1. Implement ui package, primarily focus on the minimal admin ui (just black and white, no fancy colors), and markdown editor & renderer. You must use exa-code to find the best solution and library for markdown features.
+2. Fix and finish next integration package, which should depend on ui package. Please refer to its report and source code.
+3. Implement sdk package. It should be based on the current implementation of core and database.
+4. Make example blog a complete nextjs project, using all the implemented packages so far.

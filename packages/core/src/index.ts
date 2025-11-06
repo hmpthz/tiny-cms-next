@@ -8,6 +8,7 @@ export { TinyCMS, createCMS } from './cms'
 
 // Types
 export type * from './types'
+export { defineConfig } from './types'
 
 // Auth types and utilities
 export type * from './auth'

@@ -29,6 +29,20 @@ export class TinyCMS {
   }
 
   /**
+   * Get CMS config
+   */
+  getConfig(): Config {
+    return this.config
+  }
+
+  /**
+   * Get database adapter
+   */
+  getDb() {
+    return this.config.db
+  }
+
+  /**
    * Get auth operations if auth is configured
    */
   get auth() {
