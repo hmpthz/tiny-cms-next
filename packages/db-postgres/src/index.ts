@@ -1,6 +1,6 @@
 /**
- * @tiny-cms/db
- * Database adapter for tiny-cms with Kysely and PostgreSQL
+ * @tiny-cms/db-postgres
+ * PostgreSQL database adapter for tiny-cms using Kysely
  */
 
 // Adapter

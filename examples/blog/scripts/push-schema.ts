@@ -5,7 +5,7 @@
 
 import { Kysely, PostgresDialect } from 'kysely'
 import { Pool } from 'pg'
-import { SchemaBuilder } from '@tiny-cms/db'
+import { SchemaBuilder } from '@tiny-cms/db-postgres'
 import { cmsConfig } from '../lib/cms'
 
 async function main() {

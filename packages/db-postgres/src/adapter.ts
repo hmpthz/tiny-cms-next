@@ -20,6 +20,7 @@ export interface KyselyAdapterOptions {
 }
 
 export class KyselyPostgresAdapter implements DatabaseAdapter {
+  name = 'postgres'
   private db: Kysely<Record<string, AnyTable>>
   private pool: Pool
   private tablePrefix: string
@@ -33,6 +34,22 @@ export class KyselyPostgresAdapter implements DatabaseAdapter {
         pool: this.pool,
       }),
     })
+  }
+
+  /**
+   * Get the underlying Kysely instance
+   * Useful for better-auth integration or advanced queries
+   */
+  getKysely(): Kysely<Record<string, AnyTable>> {
+    return this.db
+  }
+
+  /**
+   * Get the underlying pg Pool
+   * Useful for better-auth integration
+   */
+  getPool(): Pool {
+    return this.pool
   }
 
   /**
@@ -323,6 +340,43 @@ export class KyselyPostgresAdapter implements DatabaseAdapter {
     }
 
     return result
+  }
+
+  /**
+   * Execute raw SQL query
+   * Useful for advanced operations like full-text search
+   */
+  async query<T = Record<string, unknown>>(sqlQuery: string, _params?: unknown[]): Promise<T[]> {
+    // Use Kysely's sql template tag for raw queries
+    // For now, we only support non-parameterized queries
+    // In production, you'd use sql.val() or proper parameter binding
+    const query = sql.raw(sqlQuery)
+
+    const result = await query.execute(this.db)
+    return result.rows as T[]
+  }
+
+  /**
+   * Create an index on collection fields
+   * Supports different index types for PostgreSQL
+   */
+  async createIndex(
+    collection: string,
+    fields: string[],
+    type: 'btree' | 'gin' | 'gist' = 'btree',
+  ): Promise<void> {
+    const tableName = this.getTableName(collection)
+    const snakeFields = fields.map((f) => this.toSnakeCase(f))
+    const indexName = `${tableName}_${snakeFields.join('_')}_idx`
+
+    // Build index creation SQL
+    const fieldList = snakeFields.join(', ')
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS ${sql.raw(indexName)}
+      ON ${sql.raw(tableName)}
+      USING ${sql.raw(type)} (${sql.raw(fieldList)})
+    `.execute(this.db)
   }
 }
 

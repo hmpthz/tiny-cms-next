@@ -18,3 +18,6 @@ export type {
 // Export Supabase adapter
 export { createSupabaseAdapter } from './adapters/supabase'
 export type { SupabaseAdapterConfig } from './adapters/supabase'
+
+// Export plugin
+export { storagePlugin, type StoragePluginOptions } from './plugin'

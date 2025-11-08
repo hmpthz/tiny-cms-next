@@ -1,46 +1,43 @@
 /**
  * Tiny-CMS configuration for blog example
- * Demonstrates: Collections, Fields, Access Control, Hooks, Auth Integration
+ * Demonstrates: Collections, Fields, Access Control, Hooks, Auth Integration, Plugins
  */
 
-import { TinyCMS, defineConfig, createAuthWrapper } from '@tiny-cms/core'
-import { postgresAdapter } from '@tiny-cms/db'
-import { betterAuth } from 'better-auth'
-import { Pool } from 'pg'
+import { createCMS, createAuth, defineConfig } from '@tiny-cms/core'
+import { postgresAdapter } from '@tiny-cms/db-postgres'
+import { storagePlugin, createSupabaseAdapter } from '@tiny-cms/storage'
+import { searchPlugin } from '@tiny-cms/search'
 
-// Create PostgreSQL connection pool
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL!,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
+// Create database adapter (shared between CMS and auth)
+const dbAdapter = postgresAdapter({
+  pool: {
+    connectionString: process.env.DATABASE_URL!,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
+  },
 })
 
-// Create better-auth instance
-export const auth = betterAuth({
-  database: pool,
-  emailAndPassword: {
-    enabled: true,
-    requireEmailVerification: false, // Set to true in production
-  },
-  session: {
-    expiresIn: 60 * 60 * 24 * 7, // 7 days
-  },
+// Create auth operations using better-auth (now encapsulated in core)
+const authOperations = createAuth({
+  database: dbAdapter.getPool(), // Share database connection
   secret: process.env.AUTH_SECRET!,
   trustedOrigins: [process.env.NEXTAUTH_URL || 'http://localhost:3000'],
+  baseURL: process.env.NEXTAUTH_URL || 'http://localhost:3000',
+  config: {
+    enabled: true,
+    requireEmailVerification: false,
+    roles: ['admin', 'author', 'user'],
+    defaultRole: 'user',
+  },
 })
 
-// Define CMS configuration
+// Define CMS configuration with plugins
 export const cmsConfig = defineConfig({
   // Database adapter
-  db: postgresAdapter({
-    pool: {
-      connectionString: process.env.DATABASE_URL!,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
-    },
-  }),
+  db: dbAdapter,
 
   // Authentication
   auth: {
-    operations: createAuthWrapper(auth),
+    operations: authOperations,
     config: {
       enabled: true,
       requireEmailVerification: false,
@@ -48,6 +45,35 @@ export const cmsConfig = defineConfig({
       defaultRole: 'user',
     },
   },
+
+  // Plugins
+  plugins: [
+    // Storage plugin for file uploads
+    storagePlugin({
+      adapter: createSupabaseAdapter({
+        url: process.env.SUPABASE_URL!,
+        key: process.env.SUPABASE_SERVICE_KEY!,
+        bucket: process.env.SUPABASE_BUCKET || 'tiny-cms',
+        isPublic: true,
+      }),
+    }),
+
+    // Search plugin for full-text search
+    searchPlugin({
+      collections: [
+        {
+          name: 'posts',
+          searchFields: ['title', 'excerpt', 'content'],
+          language: 'english',
+        },
+        {
+          name: 'categories',
+          searchFields: ['name', 'description'],
+          language: 'english',
+        },
+      ],
+    }),
+  ],
 
   // Collections
   collections: [
@@ -187,5 +213,6 @@ export const cmsConfig = defineConfig({
   ],
 })
 
-// Create and export CMS instance
-export const cms = new TinyCMS(cmsConfig)
+// Initialize CMS instance (exported as promise)
+// Use getCMS() to get the singleton instance after initialization
+export const cms = createCMS(cmsConfig)

@@ -1,7 +1,7 @@
 {
-  "name": "@tiny-cms/db",
+  "name": "@tiny-cms/db-postgres",
   "version": "0.1.0",
-  "description": "Database adapter for tiny-cms with Kysely and PostgreSQL",
+  "description": "PostgreSQL database adapter for tiny-cms with Kysely",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

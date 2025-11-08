@@ -10,7 +10,8 @@ import type { Collection, Field } from '@tiny-cms/core'
  * Build database schema from collections
  */
 export class SchemaBuilder {
-  constructor(private db: Kysely<never>) {}
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor(private db: Kysely<any>) {}
 
   /**
    * Create tables for all collections

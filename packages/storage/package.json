@@ -27,6 +27,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@tiny-cms/core": "workspace:*",
     "@supabase/storage-js": "^2.80.0"
   },
   "devDependencies": {}

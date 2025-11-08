@@ -1,8 +1,9 @@
 import Link from 'next/link'
 import { cms } from '../lib/cms'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, MarkdownRenderer } from '@tiny-cms/ui'
+import type { Document } from '@tiny-cms/core'
 
-interface Post {
+interface Post extends Omit<Document, 'id'> {
   id: string
   title: string
   slug: string
