@@ -16,7 +16,9 @@ export async function ListView({ context, collection, limit = 10, offset = 0 }: 
   const { cms } = context
 
   // Find the collection config
-  const collectionConfig = cms.getConfig().collections.find((c: { name: string }) => c.name === collection)
+  const collectionConfig = cms
+    .getConfig()
+    .collections.find((c: { name: string }) => c.name === collection)
 
   if (!collectionConfig) {
     return (
@@ -28,10 +30,10 @@ export async function ListView({ context, collection, limit = 10, offset = 0 }: 
   }
 
   // Fetch documents
-  const result = await cms.getDb().find(collection, {
+  const result = (await cms.getDb().find(collection, {
     limit,
     offset,
-  }) as {
+  })) as {
     docs: Array<{ id: string; createdAt?: Date | string; [key: string]: unknown }>
     totalDocs: number
     limit: number
@@ -80,8 +82,12 @@ export async function ListView({ context, collection, limit = 10, offset = 0 }: 
           Showing {result.offset + 1} to {Math.min(result.offset + result.limit, result.totalDocs)}{' '}
           of {result.totalDocs}
         </p>
-        {result.hasPrevPage && <a href={`/admin/${collection}?offset=${result.offset - result.limit}`}>Previous</a>}
-        {result.hasNextPage && <a href={`/admin/${collection}?offset=${result.offset + result.limit}`}>Next</a>}
+        {result.hasPrevPage && (
+          <a href={`/admin/${collection}?offset=${result.offset - result.limit}`}>Previous</a>
+        )}
+        {result.hasNextPage && (
+          <a href={`/admin/${collection}?offset=${result.offset + result.limit}`}>Next</a>
+        )}
       </div>
     </div>
   )

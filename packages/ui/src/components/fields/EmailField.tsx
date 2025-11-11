@@ -36,7 +36,13 @@ export function EmailField({
   }
 
   return (
-    <FieldWrapper label={label} name={name} required={required} error={error} description={description}>
+    <FieldWrapper
+      label={label}
+      name={name}
+      required={required}
+      error={error}
+      description={description}
+    >
       <Input
         id={name}
         name={name}

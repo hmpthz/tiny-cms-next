@@ -1,5 +1,5 @@
 /**
- * @tiny-cms/storage
+ * @tiny-cms/plugin-storage
  * Storage adapter system for tiny-cms with Supabase support
  */
 

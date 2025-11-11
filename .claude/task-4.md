@@ -7,7 +7,7 @@ Rules:
 
 - DO NOT simply read all reports into your memory as there're too many words, make a plan, understand them one by one just like how you read source code.
 - Use exa-code to help you with 3rd party libraries.
-- **Ultrathink** while you're understanding, planning and writing.
+- **Think harder** while you're understanding, planning and writing.
 
 Step 1: Inspect example blog project, you'll see it has dependencies like better-auth, zod, kysely, pg. Remember they should be integrated inside packages, external projects should not depend on them.
 

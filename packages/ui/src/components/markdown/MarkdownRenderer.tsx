@@ -28,7 +28,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
         'prose-table:border prose-table:border-border',
         'prose-th:border prose-th:border-border prose-th:bg-muted',
         'prose-td:border prose-td:border-border',
-        className
+        className,
       )}
     >
       <ReactMarkdown

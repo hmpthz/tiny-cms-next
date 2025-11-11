@@ -14,7 +14,9 @@ export async function CreateView({ context, collection }: CreateViewProps) {
   const { cms } = context
 
   // Find the collection config
-  const collectionConfig = cms.getConfig().collections.find((c: { name: string }) => c.name === collection)
+  const collectionConfig = cms
+    .getConfig()
+    .collections.find((c: { name: string }) => c.name === collection)
 
   if (!collectionConfig) {
     return (
@@ -37,12 +39,13 @@ export async function CreateView({ context, collection }: CreateViewProps) {
         <h2>Fields</h2>
         <p>Form will be rendered here when UI package is ready.</p>
         <ul>
-          {collectionConfig.fields.map((field: { name: string; type: string; required?: boolean }) => (
-            <li key={field.name}>
-              {field.name} ({field.type})
-              {field.required && <span> *</span>}
-            </li>
-          ))}
+          {collectionConfig.fields.map(
+            (field: { name: string; type: string; required?: boolean }) => (
+              <li key={field.name}>
+                {field.name} ({field.type}){field.required && <span> *</span>}
+              </li>
+            ),
+          )}
         </ul>
       </div>
     </div>

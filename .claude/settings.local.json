@@ -19,7 +19,8 @@
       "Bash(pnpm ls:*)",
       "Bash(pnpm build:*)",
       "mcp__exa-code__get_code_context_exa",
-      "mcp__exa-code__web_search_exa"
+      "mcp__exa-code__web_search_exa",
+      "Bash(pnpm run build:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

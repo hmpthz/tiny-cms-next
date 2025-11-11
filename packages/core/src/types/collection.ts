@@ -7,10 +7,21 @@ import type { Field } from './field'
 import type { AccessControl } from './access'
 import type { CollectionHooks } from './hooks'
 
+// Index definition
+export interface CollectionIndex {
+  /** Fields to index */
+  fields: string[]
+  /** Index type (optional) */
+  type?: 'btree' | 'gin' | 'gist'
+}
+
 // Collection configuration
 export interface Collection {
   /** Collection name (used as table name) */
   name: string
+
+  /** Optional slug (used as table name if provided, otherwise name is used) */
+  slug?: string
 
   /** Field definitions */
   fields: Field[]
@@ -32,6 +43,9 @@ export interface Collection {
     singular?: string
     plural?: string
   }
+
+  /** Database indexes */
+  indexes?: CollectionIndex[]
 }
 
 // Document type with metadata

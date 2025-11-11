@@ -1,36 +1,75 @@
 /**
  * Database schema setup script
- * Creates all tables for the blog example
+ * Creates all tables for the blog example using the database adapter
  */
 
-import { Kysely, PostgresDialect } from 'kysely'
-import { Pool } from 'pg'
-import { SchemaBuilder } from '@tiny-cms/db-postgres'
-import { cmsConfig } from '../lib/cms'
+import { getCMS } from '../lib/cms'
 
 async function main() {
   console.log('🔄 Setting up database schema...\n')
 
-  // Create database connection
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
-  })
-
-  const db = new Kysely({
-    dialect: new PostgresDialect({ pool }),
-  })
-
-  // Create schema builder
-  const builder = new SchemaBuilder(db)
-
   try {
-    // Create all collection tables
-    await builder.buildSchema(cmsConfig.collections)
+    // Get the CMS instance
+    const cms = getCMS()
+
+    // Initialize the database connection
+    await cms.init()
+
+    // Get the database adapter and config
+    const db = cms.getDb()
+    const config = cms.getConfig()
+
+    // Use the adapter's schema operations to create tables
+    if (db.schema.setupCollectionTables) {
+      await db.schema.setupCollectionTables(config.collections)
+    } else {
+      // Fallback: create tables manually
+      for (const collection of config.collections) {
+        const tableName = collection.slug || collection.name
+
+        // Check if table exists
+        const exists = await db.schema.tableExists(tableName)
+        if (exists) {
+          console.log(`  ⏭️  Table '${tableName}' already exists, skipping...`)
+          continue
+        }
+
+        // Create basic columns
+        const columns = [
+          {
+            name: 'id',
+            type: 'uuid' as const,
+            primaryKey: true,
+            defaultValue: 'gen_random_uuid()',
+          },
+          { name: 'createdAt', type: 'timestamp' as const, notNull: true, defaultValue: 'now' },
+          { name: 'updatedAt', type: 'timestamp' as const, notNull: true, defaultValue: 'now' },
+        ]
+
+        // Add fields from collection definition
+        for (const field of collection.fields) {
+          const column: any = {
+            name: field.name,
+            type: mapFieldTypeToColumnType(field.type),
+            notNull: field.required || false,
+          }
+
+          if (field.unique) {
+            column.unique = true
+          }
+
+          columns.push(column)
+        }
+
+        // Create the table
+        await db.schema.createTable(tableName, columns)
+        console.log(`  ✅ Created table: ${tableName}`)
+      }
+    }
 
     console.log('\n✅ Database schema created successfully!')
     console.log('\nCreated tables:')
-    cmsConfig.collections.forEach((collection) => {
+    config.collections.forEach((collection) => {
       console.log(`  - ${collection.name}`)
     })
 
@@ -39,12 +78,42 @@ async function main() {
     console.log('  - session')
     console.log('  - verification')
     console.log('  - account')
+
+    // Shutdown the CMS to close database connections
+    await cms.shutdown()
   } catch (error) {
     console.error('\n❌ Error creating schema:', error)
     process.exit(1)
-  } finally {
-    await db.destroy()
-    await pool.end()
+  }
+}
+
+/**
+ * Map field types to database column types
+ */
+function mapFieldTypeToColumnType(
+  fieldType: string,
+): 'text' | 'integer' | 'boolean' | 'json' | 'timestamp' | 'uuid' | 'decimal' {
+  switch (fieldType) {
+    case 'text':
+    case 'richText':
+    case 'email':
+    case 'select':
+    case 'radio':
+      return 'text'
+    case 'number':
+      return 'decimal'
+    case 'checkbox':
+      return 'boolean'
+    case 'json':
+    case 'array':
+    case 'blocks':
+      return 'json'
+    case 'date':
+      return 'timestamp'
+    case 'relationship':
+      return 'uuid'
+    default:
+      return 'text'
   }
 }
 

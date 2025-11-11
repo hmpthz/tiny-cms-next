@@ -5,7 +5,14 @@
 
 import { Kysely, PostgresDialect, sql, type Insertable } from 'kysely'
 import { Pool, type PoolConfig } from 'pg'
-import type { DatabaseAdapter, FindOptions, FindResult } from '@tiny-cms/core'
+import type {
+  DatabaseAdapter,
+  FindOptions,
+  FindResult,
+  TableColumn,
+  TableChanges,
+  Collection,
+} from '@tiny-cms/core'
 
 // Database table type (generic to support any collection)
 type AnyTable = Record<string, unknown>
@@ -34,22 +41,6 @@ export class KyselyPostgresAdapter implements DatabaseAdapter {
         pool: this.pool,
       }),
     })
-  }
-
-  /**
-   * Get the underlying Kysely instance
-   * Useful for better-auth integration or advanced queries
-   */
-  getKysely(): Kysely<Record<string, AnyTable>> {
-    return this.db
-  }
-
-  /**
-   * Get the underlying pg Pool
-   * Useful for better-auth integration
-   */
-  getPool(): Pool {
-    return this.pool
   }
 
   /**
@@ -377,6 +368,249 @@ export class KyselyPostgresAdapter implements DatabaseAdapter {
       ON ${sql.raw(tableName)}
       USING ${sql.raw(type)} (${sql.raw(fieldList)})
     `.execute(this.db)
+  }
+
+  /**
+   * Schema operations for database management
+   */
+  schema = {
+    /**
+     * Create a table with columns
+     */
+    createTable: async (tableName: string, columns: TableColumn[]): Promise<void> => {
+      const fullTableName = this.getTableName(tableName)
+
+      // Build CREATE TABLE statement
+      let createTableQuery = `CREATE TABLE IF NOT EXISTS ${fullTableName} (`
+
+      const columnDefinitions = columns.map((col) => {
+        const snakeName = this.toSnakeCase(col.name)
+        let def = `${snakeName} ${this.mapColumnType(col.type)}`
+
+        if (col.primaryKey) def += ' PRIMARY KEY'
+        if (col.notNull) def += ' NOT NULL'
+        if (col.unique) def += ' UNIQUE'
+        if (col.defaultValue !== undefined) {
+          if (col.type === 'text' && typeof col.defaultValue === 'string') {
+            def += ` DEFAULT '${col.defaultValue}'`
+          } else if (col.type === 'timestamp' && col.defaultValue === 'now') {
+            def += ` DEFAULT CURRENT_TIMESTAMP`
+          } else {
+            def += ` DEFAULT ${col.defaultValue}`
+          }
+        }
+        if (col.references) {
+          const refTable = this.getTableName(col.references.table)
+          const refCol = this.toSnakeCase(col.references.column)
+          def += ` REFERENCES ${refTable}(${refCol})`
+        }
+
+        return def
+      })
+
+      createTableQuery += columnDefinitions.join(', ') + ')'
+
+      await sql.raw(createTableQuery).execute(this.db)
+    },
+
+    /**
+     * Drop a table
+     */
+    dropTable: async (tableName: string): Promise<void> => {
+      const fullTableName = this.getTableName(tableName)
+      await sql.raw(`DROP TABLE IF EXISTS ${fullTableName} CASCADE`).execute(this.db)
+    },
+
+    /**
+     * Check if a table exists
+     */
+    tableExists: async (tableName: string): Promise<boolean> => {
+      const fullTableName = this.getTableName(tableName)
+
+      const result = await sql<{ exists: boolean }>`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables
+          WHERE table_name = ${fullTableName}
+        ) as exists
+      `.execute(this.db)
+
+      return result.rows[0]?.exists || false
+    },
+
+    /**
+     * Alter table (add/drop columns, change types, etc.)
+     */
+    alterTable: async (tableName: string, changes: TableChanges): Promise<void> => {
+      const fullTableName = this.getTableName(tableName)
+
+      // Add columns
+      if (changes.addColumns) {
+        for (const col of changes.addColumns) {
+          const snakeName = this.toSnakeCase(col.name)
+          let alterQuery = `ALTER TABLE ${fullTableName} ADD COLUMN IF NOT EXISTS ${snakeName} ${this.mapColumnType(col.type)}`
+
+          if (col.notNull) alterQuery += ' NOT NULL'
+          if (col.unique) alterQuery += ' UNIQUE'
+          if (col.defaultValue !== undefined) {
+            if (col.type === 'text' && typeof col.defaultValue === 'string') {
+              alterQuery += ` DEFAULT '${col.defaultValue}'`
+            } else if (col.type === 'timestamp' && col.defaultValue === 'now') {
+              alterQuery += ` DEFAULT CURRENT_TIMESTAMP`
+            } else {
+              alterQuery += ` DEFAULT ${col.defaultValue}`
+            }
+          }
+
+          await sql.raw(alterQuery).execute(this.db)
+        }
+      }
+
+      // Drop columns
+      if (changes.dropColumns) {
+        for (const colName of changes.dropColumns) {
+          const snakeName = this.toSnakeCase(colName)
+          await sql
+            .raw(`ALTER TABLE ${fullTableName} DROP COLUMN IF EXISTS ${snakeName}`)
+            .execute(this.db)
+        }
+      }
+
+      // Rename columns
+      if (changes.renameColumns) {
+        for (const rename of changes.renameColumns) {
+          const fromSnake = this.toSnakeCase(rename.from)
+          const toSnake = this.toSnakeCase(rename.to)
+          await sql
+            .raw(`ALTER TABLE ${fullTableName} RENAME COLUMN ${fromSnake} TO ${toSnake}`)
+            .execute(this.db)
+        }
+      }
+
+      // Alter columns (change type, constraints, etc.)
+      if (changes.alterColumns) {
+        for (const col of changes.alterColumns) {
+          const snakeName = this.toSnakeCase(col.name)
+
+          // Change type
+          await sql
+            .raw(
+              `ALTER TABLE ${fullTableName} ALTER COLUMN ${snakeName} TYPE ${this.mapColumnType(col.type)}`,
+            )
+            .execute(this.db)
+
+          // Change NULL constraint
+          if (col.notNull) {
+            await sql
+              .raw(`ALTER TABLE ${fullTableName} ALTER COLUMN ${snakeName} SET NOT NULL`)
+              .execute(this.db)
+          } else {
+            await sql
+              .raw(`ALTER TABLE ${fullTableName} ALTER COLUMN ${snakeName} DROP NOT NULL`)
+              .execute(this.db)
+          }
+        }
+      }
+    },
+
+    /**
+     * Run raw migration SQL
+     */
+    runMigration: async (sqlQuery: string): Promise<void> => {
+      await sql.raw(sqlQuery).execute(this.db)
+    },
+
+    /**
+     * Create tables for collections based on config
+     */
+    setupCollectionTables: async (collections: Collection[]): Promise<void> => {
+      for (const collection of collections) {
+        const tableName = collection.slug || collection.name
+
+        // Basic columns that every collection should have
+        const columns: TableColumn[] = [
+          { name: 'id', type: 'uuid', primaryKey: true, defaultValue: 'gen_random_uuid()' },
+          { name: 'createdAt', type: 'timestamp', notNull: true, defaultValue: 'now' },
+          { name: 'updatedAt', type: 'timestamp', notNull: true, defaultValue: 'now' },
+        ]
+
+        // Add fields from collection definition
+        for (const field of collection.fields) {
+          const column: TableColumn = {
+            name: field.name,
+            type: this.mapFieldTypeToColumnType(field.type),
+            notNull: field.required || false,
+          }
+
+          if (field.unique) {
+            column.unique = true
+          }
+
+          columns.push(column)
+        }
+
+        // Create the table
+        await this.schema.createTable(tableName, columns)
+
+        // Create indexes if specified
+        if (collection.indexes) {
+          for (const index of collection.indexes) {
+            await this.createIndex(tableName, index.fields, index.type || 'btree')
+          }
+        }
+      }
+    },
+  }
+
+  /**
+   * Map our column types to PostgreSQL types
+   */
+  private mapColumnType(type: TableColumn['type']): string {
+    switch (type) {
+      case 'text':
+        return 'TEXT'
+      case 'integer':
+        return 'INTEGER'
+      case 'boolean':
+        return 'BOOLEAN'
+      case 'json':
+        return 'JSONB'
+      case 'timestamp':
+        return 'TIMESTAMP'
+      case 'uuid':
+        return 'UUID'
+      case 'decimal':
+        return 'DECIMAL'
+      default:
+        return 'TEXT'
+    }
+  }
+
+  /**
+   * Map field types to column types
+   */
+  private mapFieldTypeToColumnType(fieldType: string): TableColumn['type'] {
+    switch (fieldType) {
+      case 'text':
+      case 'richText':
+      case 'email':
+      case 'select':
+      case 'radio':
+        return 'text'
+      case 'number':
+        return 'decimal'
+      case 'checkbox':
+        return 'boolean'
+      case 'json':
+      case 'array':
+      case 'blocks':
+        return 'json'
+      case 'date':
+        return 'timestamp'
+      case 'relationship':
+        return 'uuid'
+      default:
+        return 'text'
+    }
   }
 }
 

@@ -5,19 +5,22 @@
 
 import { createCMS, createAuth, defineConfig } from '@tiny-cms/core'
 import { postgresAdapter } from '@tiny-cms/db-postgres'
-import { storagePlugin, createSupabaseAdapter } from '@tiny-cms/storage'
+import { storagePlugin, createSupabaseAdapter } from '@tiny-cms/plugin-storage'
 
-// Create database adapter (shared between CMS and auth)
+// Database connection config
+const dbConfig = {
+  connectionString: process.env.DATABASE_URL!,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
+}
+
+// Create database adapter
 const dbAdapter = postgresAdapter({
-  pool: {
-    connectionString: process.env.DATABASE_URL!,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
-  },
+  pool: dbConfig,
 })
 
 // Create auth operations using better-auth (now encapsulated in core)
 const authOperations = createAuth({
-  database: dbAdapter.getPool(), // Share database connection
+  database: dbConfig, // Pass the same config to auth
   secret: process.env.AUTH_SECRET!,
   trustedOrigins: [process.env.NEXTAUTH_URL || 'http://localhost:3000'],
   baseURL: process.env.NEXTAUTH_URL || 'http://localhost:3000',
@@ -196,6 +199,10 @@ export const cmsConfig = defineConfig({
   ],
 })
 
-// Initialize CMS instance (exported as promise)
-// Use getCMS() to get the singleton instance after initialization
-export const cms = createCMS(cmsConfig)
+// Initialize CMS instance (synchronous now)
+const cms = createCMS(cmsConfig)
+
+// Export a getter function for the CMS instance
+export function getCMS() {
+  return cms
+}

@@ -1,16 +1,16 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { cms } from '../../../lib/cms'
+import { getCMS } from '../../../lib/cms'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@tiny-cms/ui'
 
-interface Category {
+interface Category extends Record<string, unknown> {
   id: string
   name: string
   slug: string
   description?: string
 }
 
-interface Post {
+interface Post extends Record<string, unknown> {
   id: string
   title: string
   slug: string
@@ -22,14 +22,11 @@ interface Post {
   }
 }
 
-export default async function CategoryPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>
-}) {
+export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
 
   // Find category by slug
+  const cms = getCMS()
   const categoryResult = await cms.find<Category>('categories', {
     where: { slug },
     limit: 1,
@@ -121,6 +118,7 @@ export default async function CategoryPage({
 
 // Generate static params for all categories
 export async function generateStaticParams() {
+  const cms = getCMS()
   const result = await cms.find<Category>('categories', {})
 
   return result.docs.map((category) => ({

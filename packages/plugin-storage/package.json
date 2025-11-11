@@ -1,5 +1,5 @@
 {
-  "name": "@tiny-cms/storage",
+  "name": "@tiny-cms/plugin-storage",
   "version": "0.1.0",
   "description": "Storage adapter for tiny-cms with Supabase support",
   "type": "module",
@@ -27,8 +27,13 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@tiny-cms/core": "workspace:*",
     "@supabase/storage-js": "^2.80.0"
   },
-  "devDependencies": {}
+  "peerDependencies": {
+    "@tiny-cms/core": "^0.1.0",
+    "hono": "^4.5.0"
+  },
+  "devDependencies": {
+    "@tiny-cms/core": "workspace:*"
+  }
 }

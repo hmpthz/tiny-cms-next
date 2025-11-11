@@ -101,10 +101,8 @@ export function createSupabaseAdapter(config: SupabaseAdapterConfig): StorageAda
           // Supabase image transformation URL format
           // Uses /render/image/ endpoint for transformations
           const baseUrl = data.publicUrl
-          const transformUrl = baseUrl.replace(
-            '/object/public/',
-            '/render/image/public/'
-          ) + `?${params.toString()}`
+          const transformUrl =
+            baseUrl.replace('/object/public/', '/render/image/public/') + `?${params.toString()}`
 
           return transformUrl
         }

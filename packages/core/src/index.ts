@@ -5,6 +5,7 @@
 
 // Main CMS class
 export { TinyCMS, createCMS, getCMS } from './cms'
+export type { CMSVariables } from './cms'
 
 // Types
 export type * from './types'

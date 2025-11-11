@@ -34,7 +34,13 @@ export function RichTextField({
   disabled,
 }: RichTextFieldProps) {
   return (
-    <FieldWrapper label={label} name={name} required={required} error={error} description={description}>
+    <FieldWrapper
+      label={label}
+      name={name}
+      required={required}
+      error={error}
+      description={description}
+    >
       <div className={disabled ? 'pointer-events-none opacity-50' : ''}>
         <MarkdownEditor
           value={value}

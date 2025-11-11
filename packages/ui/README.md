@@ -52,28 +52,11 @@ function MyForm() {
 
   return (
     <div>
-      <TextField
-        name="name"
-        label="Name"
-        value={name}
-        onChange={setName}
-        required
-      />
+      <TextField name="name" label="Name" value={name} onChange={setName} required />
 
-      <NumberField
-        name="age"
-        label="Age"
-        value={age}
-        onChange={setAge}
-        min={0}
-        max={150}
-      />
+      <NumberField name="age" label="Age" value={age} onChange={setAge} min={0} max={150} />
 
-      <EmailField
-        name="email"
-        label="Email"
-        required
-      />
+      <EmailField name="email" label="Email" required />
     </div>
   )
 }
@@ -89,11 +72,7 @@ function BlogPost() {
 
   return (
     <div>
-      <MarkdownEditor
-        value={content}
-        onChange={setContent}
-        height={400}
-      />
+      <MarkdownEditor value={content} onChange={setContent} height={400} />
 
       <MarkdownRenderer content={content} />
     </div>
@@ -124,6 +103,7 @@ function Dashboard() {
 ## Available Components
 
 ### UI Components
+
 - Button
 - Input
 - Label
@@ -134,6 +114,7 @@ function Dashboard() {
 - Table (with Header, Body, Footer, Row, Cell)
 
 ### Field Components
+
 - TextField - Single/multiline text input
 - NumberField - Numeric input with min/max
 - EmailField - Email input with validation
@@ -144,6 +125,7 @@ function Dashboard() {
 - RichTextField - Markdown editor
 
 ### Markdown Components
+
 - MarkdownEditor - Split-pane markdown editor with live preview
 - MarkdownRenderer - Renders markdown with GitHub Flavored Markdown support
 
@@ -152,9 +134,7 @@ function Dashboard() {
 All components accept a `className` prop for custom styling:
 
 ```tsx
-<Button className="bg-blue-500 hover:bg-blue-600">
-  Custom Button
-</Button>
+<Button className="bg-blue-500 hover:bg-blue-600">Custom Button</Button>
 ```
 
 Use the `cn()` utility for merging classes:
@@ -162,9 +142,7 @@ Use the `cn()` utility for merging classes:
 ```tsx
 import { cn } from '@tiny-cms/ui'
 
-<div className={cn('base-class', condition && 'conditional-class')}>
-  Content
-</div>
+;<div className={cn('base-class', condition && 'conditional-class')}>Content</div>
 ```
 
 ## TypeScript

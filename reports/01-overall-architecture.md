@@ -2073,7 +2073,7 @@ export class TinyCMS {
 // cms.config.ts
 import { defineConfig } from '@tiny-cms/core'
 import { postgresAdapter } from '@tiny-cms/db'
-import { s3Adapter } from '@tiny-cms/storage'
+import { s3Adapter } from '@tiny-cms/plugin-storage'
 import { searchPlugin } from '@tiny-cms/plugin-search'
 
 export default defineConfig({

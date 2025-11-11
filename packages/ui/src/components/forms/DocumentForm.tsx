@@ -6,7 +6,11 @@
 'use client'
 
 import { useForm } from 'react-hook-form'
-import type { Field, SelectField as SelectFieldType, RelationField as RelationFieldType } from '@tiny-cms/core'
+import type {
+  Field,
+  SelectField as SelectFieldType,
+  RelationField as RelationFieldType,
+} from '@tiny-cms/core'
 import { Button } from '../ui/button'
 import { TextField } from '../fields/TextField'
 import { NumberField } from '../fields/NumberField'
@@ -93,7 +97,7 @@ export function DocumentForm({
         const selectField = field as SelectFieldType
         // Normalize options to SelectOption format
         const options = (selectField.options || []).map((opt) =>
-          typeof opt === 'string' ? { label: opt, value: opt } : opt
+          typeof opt === 'string' ? { label: opt, value: opt } : opt,
         ) as SelectOption[]
 
         return (
