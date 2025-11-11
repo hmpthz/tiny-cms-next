@@ -14,3 +14,7 @@ Step 1: Inspect example blog project, you'll see it has dependencies like better
 1. Integrate better-auth into core package properly, make sure external projects don't have to call better-auth directly. And you may expose zod as schema validator.
 2. Redesign and overhaul core package, db package. Put generic database adapter into core package, then create a "db-postgres" package that implements the adapter, using kysely and pg. Also search plugin package should depend on generic database adapter from core package, not explicitly using kysely and pg. So you MUST carefully design the interface to support it.
 3. Also, I think storage and search plugin packages needs to implement `Config` or `Plugin` interface from core package. Try to research reports and source code to understand how they're designed and integrated.
+
+Step 2: Inspect example blog project to understand how it works with packages of current codebase. Then run type check and you'll see some errors, which lead to several things to fix here.
+
+1. I've put sdk package into core package, which is just a wrapper of api requests.

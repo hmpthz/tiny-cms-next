@@ -3,7 +3,7 @@
  */
 
 // Main SDK class
-export { TinyCMSSDK } from './sdk'
+export { TinyCmsSDK } from './sdk'
 
 // Types
 export type {

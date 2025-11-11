@@ -6,7 +6,7 @@
 import { createCMS, createAuth, defineConfig } from '@tiny-cms/core'
 import { postgresAdapter } from '@tiny-cms/db-postgres'
 import { storagePlugin, createSupabaseAdapter } from '@tiny-cms/storage'
-import { searchPlugin } from '@tiny-cms/search'
+import { searchPlugin } from '@tiny-cms/plugin-search'
 
 // Create database adapter (shared between CMS and auth)
 const dbAdapter = postgresAdapter({

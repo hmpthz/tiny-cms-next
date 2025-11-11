@@ -78,14 +78,7 @@ export interface Config {
     config: AuthConfig
   }
 
-  /** Storage adapter (optional) */
-  storage?: StorageAdapter
-
-  /** Secret for encryption/JWT */
-  secret?: string
-
-  /** Server URL */
-  serverURL?: string
+  baseApiPath?: string
 }
 
 /**

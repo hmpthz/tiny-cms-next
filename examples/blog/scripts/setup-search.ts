@@ -3,7 +3,7 @@
  * Run this after creating your collections to enable search functionality
  */
 
-import { setupCollectionSearch } from '@tiny-cms/search'
+import { setupCollectionSearch } from '@tiny-cms/plugin-search'
 import { Pool } from 'pg'
 import { Kysely, PostgresDialect } from 'kysely'
 

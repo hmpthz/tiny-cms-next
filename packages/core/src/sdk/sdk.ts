@@ -23,7 +23,7 @@ import { SDKError } from './types'
 /**
  * Main SDK class for interacting with tiny-cms API
  */
-export class TinyCMSSDK {
+export class TinyCmsSDK {
   private readonly baseUrl: string
   private readonly apiPrefix: string
   private readonly defaultHeaders: Record<string, string>
@@ -41,7 +41,7 @@ export class TinyCMSSDK {
    * Find documents in a collection
    */
   async find<C extends string>(
-    options: FindOptions & { collection: C }
+    options: FindOptions & { collection: C },
   ): Promise<FindResult<GetCollectionDocument<C>>> {
     const { collection, where, sort, limit, offset } = options
 
@@ -61,9 +61,7 @@ export class TinyCMSSDK {
   /**
    * Find a document by ID
    */
-  async findById<C extends string>(
-    options: FindByIdOptions
-  ): Promise<GetCollectionDocument<C>> {
+  async findById<C extends string>(options: FindByIdOptions): Promise<GetCollectionDocument<C>> {
     const { collection, id } = options
 
     return this.request<GetCollectionDocument<C>>({
@@ -76,7 +74,7 @@ export class TinyCMSSDK {
    * Create a new document
    */
   async create<C extends string>(
-    options: CreateOptions<GetCollectionDocument<C>>
+    options: CreateOptions<GetCollectionDocument<C>>,
   ): Promise<GetCollectionDocument<C>> {
     const { collection, data, file } = options
 
@@ -92,7 +90,7 @@ export class TinyCMSSDK {
    * Update a document by ID
    */
   async update<C extends string>(
-    options: UpdateOptions<GetCollectionDocument<C>>
+    options: UpdateOptions<GetCollectionDocument<C>>,
   ): Promise<GetCollectionDocument<C>> {
     const { collection, id, data, file } = options
 
@@ -135,9 +133,7 @@ export class TinyCMSSDK {
   /**
    * Login with email and password
    */
-  async login<C extends string>(
-    options: LoginOptions
-  ): Promise<GetCollectionDocument<C>> {
+  async login<C extends string>(options: LoginOptions): Promise<GetCollectionDocument<C>> {
     const { collection, data } = options
 
     return this.request<GetCollectionDocument<C>>({
@@ -163,7 +159,7 @@ export class TinyCMSSDK {
    * Refresh authentication token
    */
   async refreshToken<C extends string>(
-    options: RefreshTokenOptions
+    options: RefreshTokenOptions,
   ): Promise<GetCollectionDocument<C>> {
     const { collection } = options
 

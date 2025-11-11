@@ -1,5 +1,5 @@
 {
-  "name": "@tiny-cms/search",
+  "name": "@tiny-cms/plugin-search",
   "version": "0.1.0",
   "description": "PostgreSQL full-text search for tiny-cms",
   "type": "module",
@@ -27,12 +27,13 @@
   ],
   "author": "",
   "license": "MIT",
-  "dependencies": {
-    "@tiny-cms/core": "workspace:*"
-  },
-  "devDependencies": {},
+  "dependencies": {},
   "peerDependencies": {
+    "@tiny-cms/core": "^0.1.0",
     "kysely": "^0.27.0",
     "pg": "^8.0.0"
+  },
+  "devDependencies": {
+    "@tiny-cms/core": "workspace:*"
   }
 }

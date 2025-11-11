@@ -27,11 +27,14 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@tiny-cms/core": "workspace:*",
     "kysely": "^0.27.4",
     "pg": "^8.13.1"
   },
+  "peerDependencies": {
+    "@tiny-cms/core": "^0.1.0"
+  },
   "devDependencies": {
+    "@tiny-cms/core": "workspace:*",
     "@types/pg": "^8.11.10"
   }
 }

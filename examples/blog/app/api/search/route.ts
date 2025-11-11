@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { searchMultipleCollections } from '@tiny-cms/search'
+import { searchMultipleCollections } from '@tiny-cms/plugin-search'
 import { cms } from '@/lib/cms'
 
 export async function GET(request: NextRequest) {
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     console.error('Search error:', error)
     return NextResponse.json(
       { error: 'Search failed', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

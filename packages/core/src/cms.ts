@@ -3,14 +3,15 @@
  * Provides CRUD operations with hooks, validation, and access control
  */
 
-import type {
-  Config,
-  Collection,
-  Document,
-  FindOptions,
-  FindResult,
-  HookContext,
-  AccessContext,
+import {
+  type Config,
+  type Collection,
+  type Document,
+  type FindOptions,
+  type FindResult,
+  type HookContext,
+  type AccessContext,
+  buildConfig,
 } from './types'
 import { validateData } from './validation/field-validation'
 
@@ -365,9 +366,6 @@ let cmsInstance: TinyCMS | null = null
  * Applies plugins via buildConfig before creating the CMS
  */
 export async function createCMS(config: Config): Promise<TinyCMS> {
-  // Import buildConfig here to avoid circular dependency
-  const { buildConfig } = await import('./types/config')
-
   // Apply plugins to config
   const finalConfig = buildConfig(config)
 
@@ -386,9 +384,7 @@ export async function createCMS(config: Config): Promise<TinyCMS> {
  */
 export function getCMS(): TinyCMS {
   if (!cmsInstance) {
-    throw new Error(
-      'CMS instance not initialized. Call createCMS() first to initialize the CMS.',
-    )
+    throw new Error('CMS instance not initialized. Call createCMS() first to initialize the CMS.')
   }
   return cmsInstance
 }

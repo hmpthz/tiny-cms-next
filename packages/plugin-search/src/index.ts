@@ -1,5 +1,5 @@
 /**
- * @tiny-cms/search
+ * @tiny-cms/plugin-search
  * PostgreSQL full-text search for tiny-cms
  */
 
