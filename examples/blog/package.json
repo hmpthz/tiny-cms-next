@@ -8,15 +8,13 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
-    "db:push": "tsx scripts/push-schema.ts",
-    "search:setup": "tsx scripts/setup-search.ts"
+    "db:push": "tsx scripts/push-schema.ts"
   },
   "dependencies": {
     "@tiny-cms/core": "workspace:*",
     "@tiny-cms/db-postgres": "workspace:*",
     "@tiny-cms/next": "workspace:*",
     "@tiny-cms/storage": "workspace:*",
-    "@tiny-cms/plugin-search": "workspace:*",
     "@tiny-cms/ui": "workspace:*",
     "next": "^15.1.3",
     "react": "^19.0.0",

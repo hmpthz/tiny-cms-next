@@ -47,12 +47,6 @@ importers:
       '@tiny-cms/next':
         specifier: workspace:*
         version: link:../../packages/next
-      '@tiny-cms/plugin-search':
-        specifier: workspace:*
-        version: link:../../packages/plugin-search
-      '@tiny-cms/sdk':
-        specifier: workspace:*
-        version: link:../../packages/sdk
       '@tiny-cms/storage':
         specifier: workspace:*
         version: link:../../packages/storage
@@ -151,25 +145,6 @@ importers:
       react:
         specifier: ^19.0.0
         version: 19.2.0
-    devDependencies:
-      '@tiny-cms/core':
-        specifier: workspace:*
-        version: link:../core
-
-  packages/plugin-search:
-    dependencies:
-      kysely:
-        specifier: ^0.27.0
-        version: 0.27.6
-      pg:
-        specifier: ^8.0.0
-        version: 8.16.3
-    devDependencies:
-      '@tiny-cms/core':
-        specifier: workspace:*
-        version: link:../core
-
-  packages/sdk:
     devDependencies:
       '@tiny-cms/core':
         specifier: workspace:*

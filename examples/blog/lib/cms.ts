@@ -6,7 +6,6 @@
 import { createCMS, createAuth, defineConfig } from '@tiny-cms/core'
 import { postgresAdapter } from '@tiny-cms/db-postgres'
 import { storagePlugin, createSupabaseAdapter } from '@tiny-cms/storage'
-import { searchPlugin } from '@tiny-cms/plugin-search'
 
 // Create database adapter (shared between CMS and auth)
 const dbAdapter = postgresAdapter({
@@ -56,22 +55,6 @@ export const cmsConfig = defineConfig({
         bucket: process.env.SUPABASE_BUCKET || 'tiny-cms',
         isPublic: true,
       }),
-    }),
-
-    // Search plugin for full-text search
-    searchPlugin({
-      collections: [
-        {
-          name: 'posts',
-          searchFields: ['title', 'excerpt', 'content'],
-          language: 'english',
-        },
-        {
-          name: 'categories',
-          searchFields: ['name', 'description'],
-          language: 'english',
-        },
-      ],
     }),
   ],
 
