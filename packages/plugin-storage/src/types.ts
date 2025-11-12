@@ -59,7 +59,7 @@ export interface SignedURLResult {
   /** Expiration timestamp */
   expiresAt: Date
   /** Additional fields (e.g., token for Supabase) */
-  fields?: Record<string, any>
+  fields?: Record<string, unknown>
 }
 
 /**

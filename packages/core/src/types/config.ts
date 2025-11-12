@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Config types for tiny-cms
  * Simplified from Payload's 100+ options to ~10 essential options

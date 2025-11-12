@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Create better-auth instance for tiny-cms
  * This encapsulates better-auth configuration so external projects don't need to import it

@@ -28,5 +28,8 @@ jobs:
       - name: Run lint
         run: pnpm lint
 
+      - name: Build packages
+        run: pnpm -F @tiny-cms/* build
+
       - name: Run type check
         run: pnpm type-check

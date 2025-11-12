@@ -35,7 +35,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
         remarkPlugins={[remarkGfm]}
         components={{
           // Customize link behavior (open external links in new tab)
-          a: ({ node, ...props }) => {
+          a: (props) => {
             const href = props.href || ''
             const isExternal = href.startsWith('http')
             return (
