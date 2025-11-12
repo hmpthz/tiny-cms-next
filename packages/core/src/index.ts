@@ -4,12 +4,12 @@
  */
 
 // Main CMS class
-export { TinyCMS, createCMS, getCMS } from './cms'
-export type { CMSVariables } from './cms'
+export { TinyCMS } from './cms'
+export type { TinyCmsHonoEnv } from './cms'
 
 // Types
 export type * from './types'
-export { defineConfig, buildConfig } from './types'
+export { defineConfig } from './types/config'
 
 // Auth types and utilities
 export type * from './auth'
@@ -21,9 +21,6 @@ export {
   collectionToZodSchema,
   validateData,
 } from './validation/field-validation'
-
-// SDK
-export * as SDK from './sdk'
 
 // Re-export zod for external schema validation
 export { z } from 'zod'

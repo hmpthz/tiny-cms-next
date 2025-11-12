@@ -170,9 +170,9 @@ export class TinyCmsSDK {
   }
 
   /**
-   * Internal method to make HTTP requests
+   * Public method to make HTTP requests
    */
-  private async request<T>(options: RequestOptions): Promise<T> {
+  public async request<T>(options: RequestOptions): Promise<T> {
     const { method, path, query, body, file } = options
 
     // Build URL with query parameters

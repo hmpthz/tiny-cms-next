@@ -1,6 +1,7 @@
 {
   "permissions": {
     "allow": [
+      "Read(**/*)",
       "Bash(mkdir:*)",
       "Bash(mv:*)",
       "Bash(ls:*)",
@@ -18,9 +19,9 @@
       "Bash(pnpm install:*)",
       "Bash(pnpm ls:*)",
       "Bash(pnpm build:*)",
+      "Bash(pnpm run build:*)",
       "mcp__exa-code__get_code_context_exa",
-      "mcp__exa-code__web_search_exa",
-      "Bash(pnpm run build:*)"
+      "mcp__exa-code__web_search_exa"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

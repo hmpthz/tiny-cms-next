@@ -13,30 +13,38 @@ import {
   type FindResult,
   type HookContext,
   type AccessContext,
-  buildConfig,
 } from './types'
+import { buildConfig } from './types/config'
 import { validateData } from './validation/field-validation'
+import { registerRoutes } from './routes'
 
 // Define context variables for Hono app
-export type CMSVariables = {
-  cms: TinyCMS
+export type TinyCmsHonoEnv = {
+  Variables: { cms: TinyCMS }
 }
 
 export class TinyCMS {
   private config: Config
   private collections: Map<string, Collection>
-  private _app: Hono<{ Variables: CMSVariables }>
+  private _app: Hono<TinyCmsHonoEnv>
   private isInitialized: boolean = false
 
-  constructor(config: Config, app?: Hono<{ Variables: CMSVariables }>) {
-    this.config = config
+  constructor(config: Config) {
+    // Create Hono app with proper Variables typing
+    const app = new Hono<TinyCmsHonoEnv>().basePath(config.baseApiPath || '/')
+    // Apply plugins to config and register routes
+    const finalConfig = buildConfig(config, app)
+
+    this.config = finalConfig
     this.collections = new Map()
-    this._app = app || new Hono<{ Variables: CMSVariables }>()
+    this._app = app
 
     // Index collections by name
     for (const collection of config.collections) {
       this.collections.set(collection.name, collection)
     }
+
+    setupHonoApp(app, this)
   }
 
   /**
@@ -66,7 +74,7 @@ export class TinyCMS {
   /**
    * Get Hono app instance for route handling
    */
-  get app(): Hono<{ Variables: CMSVariables }> {
+  get app(): Hono<TinyCmsHonoEnv> {
     return this._app
   }
 
@@ -396,47 +404,10 @@ export class TinyCMS {
   }
 }
 
-// Singleton CMS instance
-let cmsInstance: TinyCMS | null = null
-
-/**
- * Factory function to create a CMS instance (synchronous)
- * Applies plugins via buildConfig before creating the CMS
- * Database initialization happens lazily on first request
- */
-export function createCMS(config: Config): TinyCMS {
-  // Create Hono app with proper Variables typing
-  const app = new Hono<{ Variables: CMSVariables }>()
-
-  // Apply plugins to config and register routes
-  const finalConfig = buildConfig(config, app)
-
-  const cms = new TinyCMS(finalConfig, app)
-
-  // Setup middleware and routes
-  setupHonoApp(app, cms)
-
-  // Store as singleton
-  cmsInstance = cms
-
-  return cms
-}
-
-/**
- * Get the singleton CMS instance
- * Throws if CMS hasn't been initialized with createCMS yet
- */
-export function getCMS(): TinyCMS {
-  if (!cmsInstance) {
-    throw new Error('CMS instance not initialized. Call createCMS() first to initialize the CMS.')
-  }
-  return cmsInstance
-}
-
 /**
  * Setup Hono app with middleware and routes
  */
-function setupHonoApp(app: Hono<{ Variables: CMSVariables }>, cms: TinyCMS) {
+function setupHonoApp(app: Hono<TinyCmsHonoEnv>, cms: TinyCMS) {
   // Add CORS middleware
   app.use('*', cors())
 
@@ -452,138 +423,6 @@ function setupHonoApp(app: Hono<{ Variables: CMSVariables }>, cms: TinyCMS) {
     await next()
   })
 
-  // Setup API routes
-  setupAPIRoutes(app, cms)
-}
-
-/**
- * Setup API routes for collections
- */
-function setupAPIRoutes(app: Hono<{ Variables: CMSVariables }>, cms: TinyCMS) {
-  const basePath = cms.getConfig().baseApiPath || '/api'
-
-  // Health check
-  app.get(`${basePath}/health`, (c) => {
-    return c.json({ status: 'ok', version: '0.1.0' })
-  })
-
-  // Collection routes
-  app.get(`${basePath}/collections/:collection`, async (c) => {
-    const collection = c.req.param('collection')
-    const query = c.req.query()
-
-    // Parse query parameters
-    const options: FindOptions = {
-      limit: query.limit ? parseInt(query.limit) : 10,
-      offset: query.offset ? parseInt(query.offset) : 0,
-    }
-
-    if (query.where) {
-      try {
-        options.where = JSON.parse(query.where)
-      } catch {
-        return c.json({ error: 'Invalid where clause' }, 400)
-      }
-    }
-
-    if (query.orderBy) {
-      try {
-        options.orderBy = JSON.parse(query.orderBy)
-      } catch {
-        return c.json({ error: 'Invalid orderBy clause' }, 400)
-      }
-    }
-
-    try {
-      // TODO: Get user from auth middleware
-      const result = await cms.find(collection, options)
-      return c.json(result)
-    } catch (error) {
-      return c.json({ error: (error as Error).message }, 500)
-    }
-  })
-
-  app.post(`${basePath}/collections/:collection`, async (c) => {
-    const collection = c.req.param('collection')
-    const data = await c.req.json()
-
-    try {
-      // TODO: Get user from auth middleware
-      const doc = await cms.create(collection, data)
-      return c.json(doc, 201)
-    } catch (error) {
-      return c.json({ error: (error as Error).message }, 500)
-    }
-  })
-
-  app.get(`${basePath}/collections/:collection/count`, async (c) => {
-    const collection = c.req.param('collection')
-    const query = c.req.query()
-
-    const options: FindOptions = {}
-    if (query.where) {
-      try {
-        options.where = JSON.parse(query.where)
-      } catch {
-        return c.json({ error: 'Invalid where clause' }, 400)
-      }
-    }
-
-    try {
-      // TODO: Get user from auth middleware
-      const count = await cms.count(collection, options)
-      return c.json({ count })
-    } catch (error) {
-      return c.json({ error: (error as Error).message }, 500)
-    }
-  })
-
-  app.get(`${basePath}/collections/:collection/:id`, async (c) => {
-    const collection = c.req.param('collection')
-    const id = c.req.param('id')
-
-    try {
-      // TODO: Get user from auth middleware
-      const doc = await cms.findById(collection, id)
-      if (!doc) {
-        return c.json({ error: 'Document not found' }, 404)
-      }
-      return c.json(doc)
-    } catch (error) {
-      return c.json({ error: (error as Error).message }, 500)
-    }
-  })
-
-  app.patch(`${basePath}/collections/:collection/:id`, async (c) => {
-    const collection = c.req.param('collection')
-    const id = c.req.param('id')
-    const data = await c.req.json()
-
-    try {
-      // TODO: Get user from auth middleware
-      const doc = await cms.update(collection, id, data)
-      return c.json(doc)
-    } catch (error) {
-      return c.json({ error: (error as Error).message }, 500)
-    }
-  })
-
-  app.delete(`${basePath}/collections/:collection/:id`, async (c) => {
-    const collection = c.req.param('collection')
-    const id = c.req.param('id')
-
-    try {
-      // TODO: Get user from auth middleware
-      await cms.delete(collection, id)
-      return c.json({ success: true })
-    } catch (error) {
-      return c.json({ error: (error as Error).message }, 500)
-    }
-  })
-
-  // Auth routes (if configured)
-  if (cms.getConfig().auth) {
-    // TODO: Setup auth routes using better-auth
-    // These will be delegated to the auth operations
-  }
+  // Register API routes (now without base path prefix)
+  registerRoutes(app, cms)
 }

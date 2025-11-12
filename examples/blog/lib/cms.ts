@@ -3,7 +3,7 @@
  * Demonstrates: Collections, Fields, Access Control, Hooks, Auth Integration, Plugins
  */
 
-import { createCMS, createAuth, defineConfig } from '@tiny-cms/core'
+import { createAuth, defineConfig, TinyCMS } from '@tiny-cms/core'
 import { postgresAdapter } from '@tiny-cms/db-postgres'
 import { storagePlugin, createSupabaseAdapter } from '@tiny-cms/plugin-storage'
 
@@ -200,7 +200,7 @@ export const cmsConfig = defineConfig({
 })
 
 // Initialize CMS instance (synchronous now)
-const cms = createCMS(cmsConfig)
+const cms = new TinyCMS(cmsConfig)
 
 // Export a getter function for the CMS instance
 export function getCMS() {

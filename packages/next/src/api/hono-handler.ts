@@ -4,7 +4,7 @@
  */
 
 import { handle } from 'hono/vercel'
-import type { TinyCMS, CMSVariables } from '@tiny-cms/core'
+import type { TinyCMS, TinyCmsHonoEnv } from '@tiny-cms/core'
 import type { Hono } from 'hono'
 
 /**
@@ -33,7 +33,7 @@ import type { Hono } from 'hono'
  * export default createHonoHandler(getCMS())
  */
 export function createHonoHandler(cms: TinyCMS) {
-  const app = cms.app as Hono<{ Variables: CMSVariables }>
+  const app = cms.app as Hono<TinyCmsHonoEnv>
 
   // CMS instance is already set in the app via middleware in core package
   // No need to set it again here
@@ -59,9 +59,9 @@ export function createHonoHandler(cms: TinyCMS) {
  */
 export function createCustomHonoHandler(
   cms: TinyCMS,
-  customize?: (app: Hono<{ Variables: CMSVariables }>, cms: TinyCMS) => void,
+  customize?: (app: Hono<TinyCmsHonoEnv>, cms: TinyCMS) => void,
 ) {
-  const app = cms.app as Hono<{ Variables: CMSVariables }>
+  const app = cms.app as Hono<TinyCmsHonoEnv>
 
   // CMS instance is already set in the app via middleware in core package
   // No need to set it again here

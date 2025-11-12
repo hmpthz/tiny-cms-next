@@ -122,18 +122,24 @@ export function createSupabaseAdapter(config: SupabaseAdapterConfig): StorageAda
       const filePath = prefix ? `${prefix}/${filename}` : filename
 
       // Create signed URL for upload (PUT operation)
-      // Note: Supabase doesn't have a direct createSignedUploadUrl method
-      // This is a simplified implementation that generates a signed URL for download
-      // For upload, you would typically use the service role key on the server
-      const { data, error } = await storage.createSignedUrl(filePath, expiresIn)
+      // Using createSignedUploadUrl for direct client-side uploads
+      const { data, error } = await storage.createSignedUploadUrl(filePath, {
+        upsert: false // Don't overwrite existing files by default
+      })
 
       if (error || !data) {
-        throw new Error(`Failed to generate signed URL: ${error?.message || 'Unknown error'}`)
+        throw new Error(`Failed to generate signed upload URL: ${error?.message || 'Unknown error'}`)
       }
 
+      // Return the signed upload URL and token
+      // The token can be used with uploadToSignedUrl method
       return {
         url: data.signedUrl,
         expiresAt: new Date(Date.now() + expiresIn * 1000),
+        fields: {
+          token: data.token,
+          path: data.path,
+        }
       }
     },
   }

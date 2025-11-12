@@ -22,3 +22,11 @@ Step 2: Inspect example blog project to understand how it works with packages of
 3. For nextjs integration package, create nextjs request handler by 'hono/vercel' so that nextjs itself only has a '/api/rest' route, its requests will all be handled by hono. Try to wrap as many logics as possible into core package hono or next package. You must achieve the goal that example blog project can write as little code as possible, the logics are all wrapped internally.
 4. Read example blog project, you'll see it still uses `kysely` and `pg`, which should be avoided. The database adapter interface should be enough to perform all sorts of operations, including schema setup. If the current design is not able to support it, you must have an overhaul.
 5. When you finish all changes, update their README accordingly. For core package specifically, you split README into multiple files in `docs/` folder, README becomes a table of contents, also api descriptions, sdk usage, and other new things.
+
+Step 3: Better organize the codebase
+
+1. When you create hono app instance, use `basePath()` method, remove all api prefixes from routes across core and plugin packages. There's should be no more things like `/api` since it's set in base path.
+2. For core package and plugin storage package, extract the route handler logics into a separate file, each api endpoint must be a separate function.
+3. Overhaul plugin storage in this way:
+   - We do not need an upload api route, uploading should be done on client side. The backend api only create a signed url.
+   - Because this plugin adds new api routes (including upload, although it's not sent to our backend), we need to extend client-side `TinyCmsSDK` to support these new api routes. You first extend interface by declaration merging, then assign new methods to prototype.

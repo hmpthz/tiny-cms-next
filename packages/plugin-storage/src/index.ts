@@ -21,3 +21,6 @@ export type { SupabaseAdapterConfig } from './adapters/supabase'
 
 // Export plugin
 export { storagePlugin, type StoragePluginOptions } from './plugin'
+
+// Export SDK extensions
+export { extendSDK, uploadFile, type SignedUrlOptions, type SignedUrlResult } from './sdk'

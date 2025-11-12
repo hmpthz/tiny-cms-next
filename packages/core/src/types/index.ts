@@ -50,5 +50,3 @@ export type {
   TableColumn,
   TableChanges,
 } from './config'
-
-export { defineConfig, buildConfig } from './config'
