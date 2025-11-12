@@ -3,29 +3,48 @@
  * Provides CRUD operations with hooks, validation, and access control
  */
 
-import type {
-  Config,
-  Collection,
-  Document,
-  FindOptions,
-  FindResult,
-  HookContext,
-  AccessContext,
+import { Hono } from 'hono'
+import { cors } from 'hono/cors'
+import {
+  type Config,
+  type Collection,
+  type Document,
+  type FindOptions,
+  type FindResult,
+  type HookContext,
+  type AccessContext,
 } from './types'
+import { buildConfig } from './types/config'
 import { validateData } from './validation/field-validation'
+import { registerRoutes } from './routes'
+
+// Define context variables for Hono app
+export type TinyCmsHonoEnv = {
+  Variables: { cms: TinyCMS }
+}
 
 export class TinyCMS {
   private config: Config
   private collections: Map<string, Collection>
+  private _app: Hono<TinyCmsHonoEnv>
+  private isInitialized: boolean = false
 
   constructor(config: Config) {
-    this.config = config
+    // Create Hono app with proper Variables typing
+    const app = new Hono<TinyCmsHonoEnv>().basePath(config.baseApiPath || '/')
+    // Apply plugins to config and register routes
+    const finalConfig = buildConfig(config, app)
+
+    this.config = finalConfig
     this.collections = new Map()
+    this._app = app
 
     // Index collections by name
     for (const collection of config.collections) {
       this.collections.set(collection.name, collection)
     }
+
+    setupHonoApp(app, this)
   }
 
   /**
@@ -53,10 +72,32 @@ export class TinyCMS {
   }
 
   /**
+   * Get Hono app instance for route handling
+   */
+  get app(): Hono<TinyCmsHonoEnv> {
+    return this._app
+  }
+
+  /**
    * Initialize the CMS (connect to database)
+   * Called lazily on first request if not already initialized
    */
   async init(): Promise<void> {
+    if (this.isInitialized) {
+      return
+    }
+
     await this.config.db.connect()
+    this.isInitialized = true
+  }
+
+  /**
+   * Ensure the CMS is initialized before operations
+   */
+  private async ensureInitialized(): Promise<void> {
+    if (!this.isInitialized) {
+      await this.init()
+    }
   }
 
   /**
@@ -106,6 +147,7 @@ export class TinyCMS {
     data: Omit<T, 'id' | 'createdAt' | 'updatedAt'>,
     user?: AccessContext['user'],
   ): Promise<T> {
+    await this.ensureInitialized()
     const collection = this.getCollection(collectionName)
 
     // Create hook context
@@ -158,6 +200,7 @@ export class TinyCMS {
     options: FindOptions = {},
     user?: AccessContext['user'],
   ): Promise<FindResult<T>> {
+    await this.ensureInitialized()
     const collection = this.getCollection(collectionName)
 
     // Check access control
@@ -202,6 +245,7 @@ export class TinyCMS {
     id: string,
     user?: AccessContext['user'],
   ): Promise<T | null> {
+    await this.ensureInitialized()
     const collection = this.getCollection(collectionName)
 
     // Check access control
@@ -249,6 +293,7 @@ export class TinyCMS {
     data: Partial<Omit<T, 'id' | 'createdAt' | 'updatedAt'>>,
     user?: AccessContext['user'],
   ): Promise<T> {
+    await this.ensureInitialized()
     const collection = this.getCollection(collectionName)
 
     // Get existing document
@@ -312,6 +357,7 @@ export class TinyCMS {
    * Delete a document
    */
   async delete(collectionName: string, id: string, user?: AccessContext['user']): Promise<void> {
+    await this.ensureInitialized()
     const collection = this.getCollection(collectionName)
 
     // Get existing document
@@ -341,6 +387,7 @@ export class TinyCMS {
     options: FindOptions = {},
     user?: AccessContext['user'],
   ): Promise<number> {
+    await this.ensureInitialized()
     const collection = this.getCollection(collectionName)
 
     // Check access control
@@ -358,10 +405,24 @@ export class TinyCMS {
 }
 
 /**
- * Factory function to create a CMS instance
+ * Setup Hono app with middleware and routes
  */
-export async function createCMS(config: Config): Promise<TinyCMS> {
-  const cms = new TinyCMS(config)
-  await cms.init()
-  return cms
+function setupHonoApp(app: Hono<TinyCmsHonoEnv>, cms: TinyCMS) {
+  // Add CORS middleware
+  app.use('*', cors())
+
+  // Add CMS instance to context variables
+  app.use('*', async (c, next) => {
+    c.set('cms', cms)
+    await next()
+  })
+
+  // Add lazy initialization middleware
+  app.use('*', async (_c, next) => {
+    await cms.init()
+    await next()
+  })
+
+  // Register API routes (now without base path prefix)
+  registerRoutes(app, cms)
 }

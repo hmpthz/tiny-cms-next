@@ -1,5 +1,5 @@
 import { RootPage } from '@tiny-cms/next'
-import { cms } from '../../../lib/cms'
+import { getCMS } from '../../../lib/cms'
 
 export default async function AdminPage({
   params,
@@ -10,6 +10,7 @@ export default async function AdminPage({
 }) {
   const { slug } = await params
   const search = await searchParams
+  const cms = getCMS()
 
   return <RootPage cms={cms} segments={slug || []} searchParams={search} />
 }

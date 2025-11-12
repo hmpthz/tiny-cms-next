@@ -1,8 +1,8 @@
 import Link from 'next/link'
-import { cms } from '../../lib/cms'
+import { getCMS } from '../../lib/cms'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@tiny-cms/ui'
 
-interface Post {
+interface Post extends Record<string, unknown> {
   id: string
   title: string
   slug: string
@@ -20,6 +20,7 @@ interface Post {
 }
 
 export default async function PostsPage() {
+  const cms = getCMS()
   const result = await cms.find<Post>('posts', {
     orderBy: { publishedAt: 'desc' },
     where: { published: true },

@@ -15,7 +15,9 @@ export async function EditView({ context, collection, id }: EditViewProps) {
   const { cms } = context
 
   // Find the collection config
-  const collectionConfig = cms.getConfig().collections.find((c: { name: string }) => c.name === collection)
+  const collectionConfig = cms
+    .getConfig()
+    .collections.find((c: { name: string }) => c.name === collection)
 
   if (!collectionConfig) {
     return (
@@ -33,7 +35,9 @@ export async function EditView({ context, collection, id }: EditViewProps) {
     return (
       <div>
         <h1>Document not found</h1>
-        <p>Document with ID "{id}" not found in collection "{collection}".</p>
+        <p>
+          Document with ID "{id}" not found in collection "{collection}".
+        </p>
       </div>
     )
   }

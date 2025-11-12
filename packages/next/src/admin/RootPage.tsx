@@ -38,7 +38,9 @@ export async function RootPage({ cms, segments, searchParams }: RootPageProps) {
       if (!route.collection) {
         return <Dashboard context={context} />
       }
-      return <ListView context={context} collection={route.collection} limit={limit} offset={offset} />
+      return (
+        <ListView context={context} collection={route.collection} limit={limit} offset={offset} />
+      )
 
     case 'create':
       if (!route.collection) {

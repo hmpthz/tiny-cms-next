@@ -1,9 +1,9 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { cms } from '../../../lib/cms'
+import { getCMS } from '../../../lib/cms'
 import { MarkdownRenderer } from '@tiny-cms/ui'
 
-interface Post {
+interface Post extends Record<string, unknown> {
   id: string
   title: string
   slug: string
@@ -20,14 +20,11 @@ interface Post {
   }
 }
 
-export default async function PostPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>
-}) {
+export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
 
   // Find post by slug
+  const cms = getCMS()
   const result = await cms.find<Post>('posts', {
     where: {
       slug,
@@ -68,11 +65,12 @@ export default async function PostPage({
           <header className="mb-8">
             <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
             <div className="text-muted-foreground">
-              {post.publishedAt && new Date(post.publishedAt).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
+              {post.publishedAt &&
+                new Date(post.publishedAt).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
               {post.author && ` • By ${post.author.name}`}
             </div>
             {post.category && (
@@ -106,6 +104,7 @@ export default async function PostPage({
 
 // Generate static params for all posts
 export async function generateStaticParams() {
+  const cms = getCMS()
   const result = await cms.find<Post>('posts', {
     where: { published: true },
   })

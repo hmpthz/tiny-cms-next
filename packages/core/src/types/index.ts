@@ -42,6 +42,11 @@ export type {
 } from './hooks'
 
 // Config types
-export type { DatabaseAdapter, StorageAdapter, Config } from './config'
-
-export { defineConfig } from './config'
+export type {
+  DatabaseAdapter,
+  StorageAdapter,
+  Config,
+  Plugin,
+  TableColumn,
+  TableChanges,
+} from './config'

@@ -3,9 +3,12 @@
  * Next.js integration for tiny-cms
  */
 
-// API route handlers
+// API route handlers (legacy)
 export { createCollectionHandlers, createDocumentHandlers } from './api/route-handlers'
 export type { RouteContext } from './api/route-handlers'
+
+// Hono API handler (recommended)
+export { createHonoHandler, createCustomHonoHandler } from './api/hono-handler'
 
 // Middleware
 export {

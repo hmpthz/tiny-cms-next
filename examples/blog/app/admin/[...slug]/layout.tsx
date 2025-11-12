@@ -1,10 +1,7 @@
 import { RootLayout } from '@tiny-cms/next'
-import { cms } from '../../../lib/cms'
+import { getCMS } from '../../../lib/cms'
 
-export default async function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const cms = getCMS()
   return <RootLayout cms={cms}>{children}</RootLayout>
 }

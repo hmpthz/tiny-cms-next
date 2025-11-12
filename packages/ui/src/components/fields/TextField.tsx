@@ -43,7 +43,13 @@ export function TextField({
   }
 
   return (
-    <FieldWrapper label={label} name={name} required={required} error={error} description={description}>
+    <FieldWrapper
+      label={label}
+      name={name}
+      required={required}
+      error={error}
+      description={description}
+    >
       {multiline ? (
         <Textarea
           id={name}

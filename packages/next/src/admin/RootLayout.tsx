@@ -39,13 +39,15 @@ export async function RootLayout({ cms, children }: RootLayoutProps) {
               <strong>Collections</strong>
             </li>
 
-            {cms.getConfig().collections.map((collection: { name: string; labels?: { plural?: string } }) => (
-              <li key={collection.name} style={{ marginBottom: '5px', paddingLeft: '10px' }}>
-                <a href={`/admin/${collection.name}`}>
-                  {collection.labels?.plural || collection.name}
-                </a>
-              </li>
-            ))}
+            {cms
+              .getConfig()
+              .collections.map((collection: { name: string; labels?: { plural?: string } }) => (
+                <li key={collection.name} style={{ marginBottom: '5px', paddingLeft: '10px' }}>
+                  <a href={`/admin/${collection.name}`}>
+                    {collection.labels?.plural || collection.name}
+                  </a>
+                </li>
+              ))}
           </ul>
         </nav>
 

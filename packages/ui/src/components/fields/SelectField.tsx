@@ -52,7 +52,13 @@ export function SelectField({
   const selectValue = Array.isArray(value) ? value : value ? [value] : []
 
   return (
-    <FieldWrapper label={label} name={name} required={required} error={error} description={description}>
+    <FieldWrapper
+      label={label}
+      name={name}
+      required={required}
+      error={error}
+      description={description}
+    >
       <Select
         id={name}
         name={name}

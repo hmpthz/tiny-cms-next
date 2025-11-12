@@ -1,8 +1,16 @@
 import Link from 'next/link'
-import { cms } from '../lib/cms'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, MarkdownRenderer } from '@tiny-cms/ui'
+import { getCMS } from '../lib/cms'
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  MarkdownRenderer,
+} from '@tiny-cms/ui'
+import type { Document } from '@tiny-cms/core'
 
-interface Post {
+interface Post extends Omit<Document, 'id'> {
   id: string
   title: string
   slug: string
@@ -22,6 +30,7 @@ interface Post {
 
 export default async function HomePage() {
   // Fetch recent posts
+  const cms = getCMS()
   const result = await cms.find<Post>('posts', {
     limit: 5,
     orderBy: { publishedAt: 'desc' },
@@ -57,7 +66,9 @@ export default async function HomePage() {
           <h2 className="text-2xl font-semibold mb-8">Recent Posts</h2>
 
           {posts.length === 0 ? (
-            <p className="text-muted-foreground">No posts found. Create your first post in the admin panel.</p>
+            <p className="text-muted-foreground">
+              No posts found. Create your first post in the admin panel.
+            </p>
           ) : (
             <div className="space-y-6">
               {posts.map((post) => (
