@@ -1,4 +1,8 @@
-# payload-cms
+**Plan mode**: When you're asked to make a plan, write a plan in markdown file under @.claude/ folder. It should be detailed but concise, not verbose.
+
+# Project Overview
+
+## payload-cms
 
 At @payload-main/ this is Payload CMS monorepo, an industry-level, production-ready headless CMS built with Next.js. It's powerful, flexible, fully customizable, and supports many plugins.
 Imagine you're a senior dev who's going to mentor me on how to design and write a CMS from scratch. Payload CMS is way too complex for single devs to understand. Because it's designed for plugins and customizations, there are many bloated design decisions that is not necessary for a simple CMS.
@@ -21,8 +25,6 @@ Requirements:
 - Minimal UI using Tailwind CSS and `shadcn/ui` components.
 - There are lots of config files for various tools at root directory and package directories. Keep most of them, but anything about path should be changed since we'll remove, rename or simplify them.
 
-# Project Overview
-
 # Development Guidelines
 
 ## Technical Instructions
@@ -43,11 +45,13 @@ Requirements:
 - Comments and documentations should be clear, concise and informative, but not too verbose.
 - Only write necessary comments. For example, no need to comment on a function parameter if the function description or signature is clear enough.
 
-### What to do when Stuck
+# General Rules
+
+## What to do when Stuck
 
 1. **Try different angle**:
-   - Remove abstraction instead of adding?
-   - Different architectural pattern?
+   - Appropriate level of abstractions?
+   - Different design?
    - Different library/framework feature?
 2. **Question fundamentals**:
    - Can this be split into smaller problems?
@@ -59,13 +63,13 @@ Requirements:
 
 ## Philosophy
 
-### KISS (Keep It Simple, Stupid)
+**KISS (Keep It Simple, Stupid)**
 
 - Encourages Claude to write straightforward, uncomplicated solutions
 - Avoids over-engineering and unnecessary complexity
 - Results in more readable and maintainable code
 
-### YAGNI (You Aren't Gonna Need It)
+**YAGNI (You Aren't Gonna Need It)**
 
 - Prevents Claude from adding speculative features
 - Focuses on implementing only what's currently needed

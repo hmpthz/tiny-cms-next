@@ -17,8 +17,8 @@ export interface RequestContext {
 }
 
 /**
- * Initialize request context for admin routes
- * This should be called in Server Components to get the authenticated user
+ * Initialize request context and authorize for admin routes
+ * This should be called in Server Components or server actions to get the authenticated user
  *
  * @throws Error if user is not authenticated
  */

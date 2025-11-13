@@ -1,4 +1,4 @@
-import { RootPage } from '@tiny-cms/next'
+import { RootPage } from '@tiny-cms/next/admin'
 import { getCMS } from '../../../lib/cms'
 
 export default async function AdminPage({
