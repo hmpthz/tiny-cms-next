@@ -5,7 +5,7 @@
 
 import type { ReactNode } from 'react'
 import type { TinyCMS } from '@tiny-cms/core'
-import { initReq } from './initReq'
+import { authorize } from '../handlers/auth'
 
 export interface RootLayoutProps {
   cms: TinyCMS
@@ -14,7 +14,7 @@ export interface RootLayoutProps {
 
 export async function RootLayout({ cms, children }: RootLayoutProps) {
   // Initialize request context
-  const context = await initReq(cms)
+  const context = await authorize(cms)
   const { user } = context
 
   return (

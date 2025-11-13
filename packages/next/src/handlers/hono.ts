@@ -41,36 +41,3 @@ export function createHonoHandler(cms: TinyCMS) {
   // Return the Vercel handler
   return handle(app)
 }
-
-/**
- * Create a custom Hono handler with additional configuration
- * Allows adding custom middleware or routes before returning the handler
- *
- * @example
- * const handler = createCustomHonoHandler(getCMS(), (app, cms) => {
- *   // Add custom middleware
- *   app.use('*', logger())
- *
- *   // Add custom routes
- *   app.get('/api/custom', (c) => {
- *     return c.json({ message: 'Custom route' })
- *   })
- * })
- */
-export function createCustomHonoHandler(
-  cms: TinyCMS,
-  customize?: (app: Hono<TinyCmsHonoEnv>, cms: TinyCMS) => void,
-) {
-  const app = cms.app as Hono<TinyCmsHonoEnv>
-
-  // CMS instance is already set in the app via middleware in core package
-  // No need to set it again here
-
-  // Apply custom configuration if provided
-  if (customize) {
-    customize(app, cms)
-  }
-
-  // Return the Vercel handler
-  return handle(app)
-}

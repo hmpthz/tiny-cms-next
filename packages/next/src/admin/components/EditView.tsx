@@ -3,7 +3,7 @@
  * Server Component (for initial data loading)
  */
 
-import type { RequestContext } from '../initReq'
+import type { RequestContext } from '../../handlers/auth'
 
 export interface EditViewProps {
   context: RequestContext

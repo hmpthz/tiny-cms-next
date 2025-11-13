@@ -3,7 +3,7 @@
  * Server Component
  */
 
-import type { RequestContext } from '../initReq'
+import type { RequestContext } from '../../handlers/auth'
 
 export interface ListViewProps {
   context: RequestContext
