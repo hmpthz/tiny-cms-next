@@ -12,6 +12,7 @@ A complete blog application demonstrating tiny-cms features including authentica
 - ✅ **Relationship Fields**: Post → Author, Post → Category
 - ✅ **Access Control Patterns**: Public reads, role-based writes
 - ✅ **API Routes**: Full CRUD operations
+- ✅ **Plugin-Ready**: Optional plugins can add API routes and SDK methods (e.g., `@tiny-cms/plugin-storage` adds `/storage/*` and client upload helpers)
 
 ## Quick Start
 
@@ -87,7 +88,7 @@ Open http://localhost:3000
 
 ## Project Structure
 
-```
+````
 examples/blog/
 ├─ app/
 │  ├─ api/
@@ -121,7 +122,7 @@ examples/blog/
     delete: ({ user }) => user?.role === 'admin',
   },
 }
-```
+````
 
 ### Posts Collection
 
@@ -346,7 +347,7 @@ beforeChange: async ({ data, context }) => {
 pnpm install
 
 # Build packages
-pnpm -r build
+pnpm build
 
 # Run dev server
 pnpm dev
@@ -418,7 +419,7 @@ Error: Table does not exist
 ## Next Steps
 
 1. **Add Admin UI**: Build an admin panel with shadcn/ui components
-2. **Add File Uploads**: Integrate @supabase/storage-js for images
+2. **Add File Uploads**: Enable `@tiny-cms/plugin-storage` (S3‑compatible). The bundled Supabase adapter is one implementation.
 3. **Add Search**: Implement PostgreSQL full-text search
 4. **Add Rich Text Editor**: Integrate a markdown or WYSIWYG editor
 5. **Add Email**: Configure better-auth email verification

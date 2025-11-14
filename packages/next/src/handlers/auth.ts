@@ -15,17 +15,8 @@ export interface RequestContext {
   cms: TinyCMS
 }
 
-/** Build a cookie header string from Next cookies() store */
-function buildCookieHeader(): string | undefined {
-  const store = cookies()
-  if (!store) return undefined
-  const all = store.getAll()
-  if (!all || all.length === 0) return undefined
-  return all.map((c) => `${c.name}=${encodeURIComponent(c.value)}`).join('; ')
-}
-
 export async function getServerAuth(cms: TinyCMS) {
-  const cookie = buildCookieHeader()
+  const cookie = (await cookies()).toString()
   const headersObj = new Headers()
   if (cookie) headersObj.set('cookie', cookie)
   const session = await cms.auth.getSession(headersObj)

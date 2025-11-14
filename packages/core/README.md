@@ -1,16 +1,16 @@
 # @tiny-cms/core
 
-Core package for Tiny CMS - a lightweight, type-safe headless CMS for Next.js applications.
+Core package for Tiny CMS — the lightweight, type-safe headless CMS runtime for Next.js applications. Core owns the runtime (collections, CRUD, hooks, access control), defines the adapter and plugin interfaces, and exposes the Hono API app used by integrations like `@tiny-cms/next`.
 
 ## Features
 
-- 🚀 **Lightweight & Fast** - Minimal dependencies, optimized for performance
-- 🔐 **Built-in Auth** - Powered by better-auth
-- 📝 **Type-safe** - Full TypeScript support with type inference
-- 🎯 **RESTful API** - Built with Hono.js
-- 🔌 **Plugin System** - Extensible architecture
-- 🎨 **PostgreSQL Only** - Backed by Kysely + pg
-- ⚡ **Serverless Ready** - Optimized for edge functions
+- 🚀 **Lightweight & Fast** — Minimal deps, optimized runtime
+- 🔐 **Built-in Auth** — Better-auth integration (cookies only)
+- 📝 **Type-safe** — Strict TypeScript with inference
+- 🎯 **RESTful API** — Hono app with route registration
+- 🔌 **Extensible Plugins** — Plugins can extend config, register API routes, and augment the client SDK
+- 🧩 **Adapter Interfaces** — Core defines a database adapter interface; `@tiny-cms/db-postgres` is the official PostgreSQL implementation
+- ⚡ **Serverless Ready** — Edge-friendly design
 
 ## Installation
 
@@ -66,8 +66,8 @@ export const GET = cms.app.fetch
 
 - [Hooks](./docs/hooks.md) - Lifecycle hooks for data manipulation
 - [Access Control](./docs/access-control.md) - Fine-grained permissions
-- [Plugins](./docs/plugins.md) - Extending CMS functionality
-- [Database Adapters](./docs/database-adapters.md) - Database integration
+- [Plugins](./docs/plugins.md) - Extend CMS by contributing config, API routes (mounted into the Hono app), and optional SDK methods
+- [Database Adapters](./docs/database-adapters.md) - Core adapter interface; `db-postgres` is one implementation (official)
 
 ### Integration
 
@@ -124,21 +124,14 @@ export default async function PostsPage() {
 
 ## Architecture
 
-The CMS follows a modular architecture:
+Tiny‑CMS core is modular with clear extension points:
 
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Next.js   │────▶│  Hono App   │────▶│     CMS     │
-│   Routes    │     │  (Router)   │     │   (Core)    │
-└─────────────┘     └─────────────┘     └─────────────┘
-                            │                    │
-                            ▼                    ▼
-                    ┌─────────────┐     ┌─────────────┐
-                    │   Plugins   │     │   Database  │
-                    │  (Storage,  │     │   Adapter   │
-                    │   Search)   │     │ (PostgreSQL)│
-                    └─────────────┘     └─────────────┘
-```
+- Core Runtime: Owns collections, CRUD, validation, hooks, and access control.
+- Hono API App: The HTTP surface for all core and plugin routes. Next.js uses this via `@tiny-cms/next`.
+- Database Adapter: A narrow interface consumed by core. `@tiny-cms/db-postgres` is the official implementation using Kysely/pg.
+- Plugin System: Plugins can extend config, register additional API routes in the Hono app, and optionally augment the client SDK.
+
+In Next.js, `@tiny-cms/next` forwards all requests to the core Hono app. Any routes contributed by plugins (e.g., storage) are automatically available under your `/api/*` catch‑all route.
 
 ## TypeScript Support
 

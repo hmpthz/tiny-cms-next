@@ -1,6 +1,6 @@
 # @tiny-cms/next
 
-Next.js integration for tiny-cms. Provides a catch-all Hono handler for API routes and cookie-only auth helpers for Server Components and server actions.
+Next.js integration for tiny-cms. Thin wrapper over the core Hono app with a catch‑all API route and cookie‑only auth helpers for Server Components and server actions. Any API routes registered by core or plugins (e.g., storage) are automatically available under your Next.js `/api/*` handler.
 
 ## Installation
 
@@ -87,21 +87,21 @@ export const savePost = withServerAuth(getCMS(), async ({ user }, id: string, da
 
 ## API Endpoints
 
-When auth is configured, the Hono app exposes:
+When auth is configured, the core Hono app exposes:
 
 - `POST /auth/sign-in`
 - `POST /auth/sign-up`
 - `POST /auth/sign-out` and `GET /auth/signout`
 - `GET /auth/session`
 
-These are available under `/api/*` when using `createHonoHandler` in App Router.
+These are available under `/api/*` when using `createHonoHandler` in App Router. Plugins may add additional routes (for example, `@tiny-cms/plugin-storage` contributes `/storage/*`).
 
 ## Notes
 
-- Use cookies only; no custom auth headers.
-- Business logic stays in `@tiny-cms/core`. The Next package is a thin integration.
+- Cookies only; no custom auth headers.
+- Business logic stays in `@tiny-cms/core`.
+- This package stays thin: it forwards requests to the core Hono app, which can be extended by plugins, and works with SDK extensions exposed by those plugins on the client.
 
 ## License
 
 MIT
-

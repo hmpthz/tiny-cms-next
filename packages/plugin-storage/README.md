@@ -1,14 +1,14 @@
 # @tiny-cms/plugin-storage
 
-Storage plugin for Tiny CMS that provides client-side file upload capabilities using signed URLs.
+Storage plugin for Tiny CMS that enables client‑side file uploads via signed URLs and adds storage routes to the core Hono app. The plugin ships with an S3‑compatible adapter interface — the bundled Supabase implementation is one adapter built on `@supabase/storage-js`.
 
 ## Features
 
-- **Client-side uploads**: Direct uploads from browser to storage provider
-- **Signed URLs**: Secure, time-limited upload URLs
-- **Supabase support**: Built-in adapter for Supabase Storage
-- **SDK extensions**: Extends the Tiny CMS SDK with storage methods
-- **File deletion**: Support for removing files from storage
+- Client‑side uploads (direct to storage)
+- Signed URLs (secure, time‑limited)
+- S3‑compatible adapter interface; Supabase Storage is one implementation
+- SDK extensions (adds storage methods to `TinyCmsSDK`)
+- File deletion APIs
 
 ## Installation
 
@@ -108,14 +108,14 @@ await sdk.deleteFromStorage('image.jpg', 'avatars')
 
 ## API Routes
 
-The storage plugin adds the following routes to your CMS:
+The plugin contributes routes to the core Hono app and they are exposed under your Next.js `/api/*` handler:
 
 - `POST /storage/signed-url` - Generate a signed URL for upload
 - `DELETE /storage/delete` - Delete a file from storage
 
 ## Storage Adapters
 
-### Supabase Adapter
+### Supabase (S3‑compatible) Adapter
 
 The built-in Supabase adapter supports:
 - Direct client-side uploads using signed URLs
@@ -134,7 +134,7 @@ const adapter = createSupabaseAdapter({
 
 ### Custom Adapters
 
-You can create custom storage adapters by implementing the `StorageAdapter` interface:
+Implement the `StorageAdapter` interface to add your own S3‑compatible provider or a custom backend. Adapters can drive both upload and delete flows and can generate signed URLs consumed directly by the browser.
 
 ```typescript
 import type { StorageAdapter } from '@tiny-cms/plugin-storage'

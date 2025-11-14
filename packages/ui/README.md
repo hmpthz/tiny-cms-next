@@ -1,6 +1,6 @@
 # @tiny-cms/ui
 
-UI components for tiny-cms admin interface. Provides a minimal, black and white design with all essential components for building admin panels.
+UI components for the tiny-cms admin interface. Minimal, black‑and‑white design with essential components for building admin panels. Components are schema‑driven and designed to compose with core collections and optional plugins (e.g., storage/upload flows).
 
 ## Features
 

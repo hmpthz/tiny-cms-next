@@ -2,7 +2,7 @@
 
 **A simplified, production-ready headless CMS built with Next.js, TypeScript, and PostgreSQL.**
 
-Tiny-CMS is inspired by Payload CMS but drastically simplified - **98.5% less code** (4K vs 276K lines) while maintaining essential CMS functionality.
+Tiny-CMS is inspired by Payload CMS but drastically simplified - while maintaining essential CMS functionality.
 
 ## Features
 
@@ -21,11 +21,13 @@ Tiny-CMS is inspired by Payload CMS but drastically simplified - **98.5% less co
 ```
 tiny-cms/
 ├── packages/
-│   ├── core/          # Core CMS logic (~1,200 LOC)
-│   ├── db/            # Kysely PostgreSQL adapter (~500 LOC)
-│   └── next/          # Next.js integration (~400 LOC)
+│   ├── core/           # Core CMS Implementations and interfaces
+│   ├── db-postgres/    # Kysely PostgreSQL adapter
+│   ├── next/           # Next.js integration
+│   ├── plugin-storage/ # Storage plugin adapter
+│   └── ui/             # Minimal UI components
 └── examples/
-    └── blog/          # Full blog example
+    └── blog/           # Full blog example
 ```
 
 ## Quick Start
@@ -205,6 +207,7 @@ PostgreSQL database adapter using Kysely ORM.
 - `SchemaBuilder` - Schema generation from collections
 
 [Read full documentation →](./packages/db-postgres/README.md)
+
 ### @tiny-cms/next
 
 Next.js integration with the core Hono app and cookie-only auth helpers.
@@ -218,44 +221,6 @@ Next.js integration with the core Hono app and cookie-only auth helpers.
 - `withServerAuth()` - Wrapper for server actions
 
 [Read full documentation →](./packages/next/README.md)
-## Comparison to Payload CMS
-
-| Aspect            | Payload CMS | Tiny-CMS | Reduction |
-| ----------------- | ----------- | -------- | --------- |
-| **Total LOC**     | ~276,672    | ~2,100   | **98.5%** |
-| **Packages**      | 41          | 3        | 93%       |
-| **Field Types**   | 30+         | 8        | 73%       |
-| **Hook Points**   | 10+         | 3        | 70%       |
-| **DB Operations** | 30+         | 6        | 80%       |
-| **Dependencies**  | 50+         | ~10      | 80%       |
-
-### What We Kept
-
-- Collection-based architecture
-- Field system
-- Access control pattern
-- Basic hooks (3 instead of 10+)
-- Type generation capability
-- Database adapter pattern
-
-### What We Simplified
-
-- **Authentication**: Use better-auth instead of custom implementation
-- **Admin UI**: Build custom with shadcn/ui instead of 40K LOC built-in
-- **Database Schema**: 1 table per collection (JSONB for arrays) instead of 5+ tables
-- **Field Types**: 8 essential types instead of 30+
-- **Hooks**: 3 hooks instead of 10+ execution points
-
-### What We Removed
-
-- Versions & Drafts
-- Localization (can use next-intl)
-- GraphQL (REST only)
-- Job Queue
-- Email System (better-auth handles it)
-- Multiple Storage/Database support
-- Plugin System (direct code integration)
-- Live Preview
 
 ## Example: Blog Application
 
@@ -277,18 +242,15 @@ The `examples/blog` directory contains a complete blog application demonstrating
 ```bash
 # Install dependencies
 pnpm install
-
 # Build all packages
-pnpm -r build
-
-# Run builds in watch mode
-pnpm -r dev
-
+pnpm run build
 # Lint
-pnpm -r lint
-
+pnpm run lint
 # Type check
-pnpm -r type-check
+pnpm run type-check
+# Develop example
+pnpm -F @examples/blog run dev
+
 ```
 
 ## Tech Stack
@@ -300,20 +262,6 @@ pnpm -r type-check
 - **Better-Auth 1.1**: Modern authentication
 - **Zod 3.24**: Runtime validation
 - **pnpm**: Package manager
-
-## Philosophy
-
-### KISS (Keep It Simple, Stupid)
-
-- Straightforward, uncomplicated solutions
-- No over-engineering
-- Readable and maintainable code
-
-### YAGNI (You Aren't Gonna Need It)
-
-- Implement only what's currently needed
-- No speculative features
-- Minimal code bloat
 
 ## License
 

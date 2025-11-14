@@ -1,6 +1,6 @@
 # @tiny-cms/db-postgres
 
-PostgreSQL database adapter for tiny-cms using Kysely ORM.
+Official PostgreSQL database adapter for tiny-cms using Kysely. This package implements the core database adapter interface consumed by `@tiny-cms/core`. While tiny-cms standardizes on PostgreSQL in official packages, the adapter boundary keeps the core runtime decoupled and enables alternative implementations if needed.
 
 ## Installation
 
@@ -33,7 +33,7 @@ const config = defineConfig({
 
 ### postgresAdapter(options)
 
-Creates a Kysely PostgreSQL database adapter.
+Creates a Kysely‑backed PostgreSQL adapter that satisfies the core DB adapter interface.
 
 ```typescript
 const adapter = postgresAdapter({
@@ -55,7 +55,7 @@ const adapter = postgresAdapter({
 
 ## Schema Builder
 
-Generate PostgreSQL tables from collection definitions:
+Generate PostgreSQL tables from collection definitions. The builder operates on core collection types and can be reused by other PostgreSQL‑flavored adapters if you create one.
 
 ```typescript
 import { Kysely, PostgresDialect } from 'kysely'
@@ -336,6 +336,11 @@ Error: Connection terminated unexpectedly
 ### Type Errors
 
 Kysely is strictly typed. If you get type errors, ensure your collection definitions match your actual database schema.
+
+## Adapter Interface Notes
+
+- Core talks to persistence via a narrow adapter interface (CRUD, filtering, pagination, transactions). This package provides the Postgres implementation using Kysely and `pg`.
+- If you implement another adapter, mirror the semantics and result shapes expected by core so collections, access control, and hooks continue to work unchanged.
 
 ## License
 
