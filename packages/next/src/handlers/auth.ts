@@ -1,9 +1,8 @@
 /**
- * Request initialization utility for admin routes
- * Server-side only - initializes auth and CMS context
+ * Next.js server-side auth helpers (cookies-only)
  */
 
-import { headers } from 'next/headers'
+import { cookies } from 'next/headers'
 import type { TinyCMS } from '@tiny-cms/core'
 
 export interface RequestContext {
@@ -16,24 +15,41 @@ export interface RequestContext {
   cms: TinyCMS
 }
 
-/**
- * Initialize request context and authorize for admin routes
- * This should be called in Server Components or server actions to get the authenticated user
- *
- * @throws Error if user is not authenticated
- */
+/** Build a cookie header string from Next cookies() store */
+function buildCookieHeader(): string | undefined {
+  const store = cookies()
+  if (!store) return undefined
+  const all = store.getAll()
+  if (!all || all.length === 0) return undefined
+  return all.map((c) => `${c.name}=${encodeURIComponent(c.value)}`).join('; ')
+}
+
+export async function getServerAuth(cms: TinyCMS) {
+  const cookie = buildCookieHeader()
+  const headersObj = new Headers()
+  if (cookie) headersObj.set('cookie', cookie)
+  const session = await cms.auth.getSession(headersObj)
+  if (!session || !session.user) return null
+  return { user: session.user, session: session.session }
+}
+
+export async function requireServerAuth(cms: TinyCMS): Promise<RequestContext> {
+  const auth = await getServerAuth(cms)
+  if (!auth) throw new Error('Unauthorized: No active session')
+  return { user: auth.user, cms }
+}
+
 export async function authorize(cms: TinyCMS): Promise<RequestContext> {
-  const headersList = await headers()
+  // Backward-compatible alias
+  return requireServerAuth(cms)
+}
 
-  // Get session from headers
-  const session = await cms.auth.getSession(headersList)
-
-  if (!session || !session.user) {
-    throw new Error('Unauthorized: No active session')
-  }
-
-  return {
-    user: session.user,
-    cms,
+export function withServerAuth<T extends unknown[], R = unknown>(
+  cms: TinyCMS,
+  handler: (ctx: RequestContext, ...args: T) => Promise<R> | R,
+) {
+  return async (...args: T) => {
+    const ctx = await requireServerAuth(cms)
+    return handler(ctx, ...args)
   }
 }

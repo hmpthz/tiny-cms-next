@@ -89,23 +89,20 @@ Open http://localhost:3000
 
 ```
 examples/blog/
-├── app/
-│   ├── api/
-│   │   └── collections/
-│   │       └── [collection]/
-│   │           ├── route.ts          # List & Create
-│   │           └── [id]/route.ts     # Get, Update, Delete
-│   └── layout.tsx
-├── lib/
-│   └── cms.ts                         # CMS configuration
-├── scripts/
-│   └── push-schema.ts                 # Database schema setup
-├── .env.example
-├── package.json
-└── README.md
-```
-
-## Collections
+├─ app/
+│  ├─ api/
+│  │  └─ [[...route]]/route.ts   # Catch-all API → Hono app
+│  ├─ admin/[...slug]/           # Admin UI routes
+│  ├─ posts/[slug]/page.tsx      # Post page
+│  └─ page.tsx                   # Home page
+├─ lib/
+│  └─ cms.ts                     # CMS configuration (TinyCMS + auth)
+├─ scripts/
+│  └─ push-schema.ts             # Database schema setup
+├─ .env.example
+├─ package.json
+└─ README.md
+```## Collections
 
 ### Users Collection
 
@@ -430,7 +427,7 @@ Error: Table does not exist
 
 - [Tiny-CMS Documentation](../../README.md)
 - [@tiny-cms/core](../../packages/core/README.md)
-- [@tiny-cms/db](../../packages/db/README.md)
+- [@tiny-cms/db-postgres](../../packages/db-postgres/README.md)
 - [@tiny-cms/next](../../packages/next/README.md)
 - [Better-Auth Documentation](https://better-auth.com)
 - [Kysely Documentation](https://kysely.dev)

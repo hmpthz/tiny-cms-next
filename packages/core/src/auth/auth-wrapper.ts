@@ -3,7 +3,15 @@
  * Provides a simplified interface around better-auth operations
  */
 
-import type { AuthSession, AuthUser, AuthOperations, AuthHooks } from './types'
+import type {
+  AuthSession,
+  AuthUser,
+  AuthOperations,
+  AuthHooks,
+  AuthResult,
+  AuthActionResult,
+  AuthRequestHeaders,
+} from './types'
 
 // Type for better-auth instance (we don't import to avoid dependency)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -15,87 +23,151 @@ export class AuthWrapper implements AuthOperations {
     private hooks?: AuthHooks,
   ) {}
 
+  private extractCookies(headers?: Headers): string[] | undefined {
+    if (!headers) {
+      return undefined
+    }
+
+    const maybeGetSetCookie = (headers as Headers & { getSetCookie?: () => string[] }).getSetCookie
+    if (typeof maybeGetSetCookie === 'function') {
+      const values = maybeGetSetCookie.call(headers)
+      if (values?.length) {
+        return values
+      }
+    }
+
+    const single = headers.get('set-cookie')
+    if (single) {
+      return [single]
+    }
+
+    return undefined
+  }
+
+  private async parseResponse(response: any): Promise<{ payload: any; cookies?: string[] }> {
+    let payload: any
+    try {
+      payload = await response.json()
+    } catch {
+      payload = undefined
+    }
+
+    if (!response.ok || payload?.error) {
+      throw new Error(payload?.error?.message || 'Authentication request failed')
+    }
+
+    return {
+      payload,
+      cookies: this.extractCookies(response.headers),
+    }
+  }
+
   /**
    * Sign in with email and password
    */
-  async signIn(email: string, password: string): Promise<AuthSession> {
-    // Run beforeLogin hook
+  async signIn(
+    email: string,
+    password: string,
+    headers?: AuthRequestHeaders,
+  ): Promise<AuthResult<AuthSession>> {
     if (this.hooks?.beforeLogin) {
       await this.hooks.beforeLogin({ email })
     }
 
-    // Call better-auth signIn
     const response = await this.betterAuth.api.signInEmail({
       body: {
         email,
         password,
       },
+      headers,
+      asResponse: true,
+      returnHeaders: true,
     })
 
-    if (!response || response.error) {
-      throw new Error(response?.error?.message || 'Sign in failed')
-    }
+    const { payload, cookies } = await this.parseResponse(response)
 
     const session: AuthSession = {
-      user: response.user as AuthUser,
-      session: response.session,
+      user: payload.user as AuthUser,
+      session: payload.session,
     }
 
-    // Run afterLogin hook
     if (this.hooks?.afterLogin) {
       await this.hooks.afterLogin({ user: session.user, session })
     }
 
-    return session
+    return { data: session, cookies }
   }
 
   /**
    * Sign up with email and password
    */
-  async signUp(email: string, password: string, name: string): Promise<AuthSession> {
+  async signUp(
+    email: string,
+    password: string,
+    name: string,
+    headers?: AuthRequestHeaders,
+  ): Promise<AuthResult<AuthSession>> {
     const response = await this.betterAuth.api.signUpEmail({
       body: {
         email,
         password,
         name,
       },
+      headers,
+      asResponse: true,
+      returnHeaders: true,
     })
 
-    if (!response || response.error) {
-      throw new Error(response?.error?.message || 'Sign up failed')
-    }
+    const { payload, cookies } = await this.parseResponse(response)
 
     const session: AuthSession = {
-      user: response.user as AuthUser,
-      session: response.session,
+      user: payload.user as AuthUser,
+      session: payload.session,
     }
 
-    // Run afterLogin hook for new registrations too
     if (this.hooks?.afterLogin) {
       await this.hooks.afterLogin({ user: session.user, session })
     }
 
-    return session
+    return { data: session, cookies }
   }
 
   /**
    * Sign out
    */
-  async signOut(): Promise<void> {
-    const session = await this.betterAuth.api.getSession()
+  async signOut(headers?: AuthRequestHeaders): Promise<AuthActionResult> {
+    const session = await this.betterAuth.api.getSession({ headers })
 
-    await this.betterAuth.api.signOut()
+    const response = await this.betterAuth.api.signOut({
+      headers,
+      asResponse: true,
+      returnHeaders: true,
+    })
 
-    // Run afterLogout hook
+    const cookies = this.extractCookies(response.headers)
+
+    if (!response.ok) {
+      let message = 'Sign out failed'
+      try {
+        const payload = await response.json()
+        message = payload?.error?.message || message
+      } catch {
+        // ignore
+      }
+      throw new Error(message)
+    }
+
     if (this.hooks?.afterLogout && session?.user) {
       await this.hooks.afterLogout({ userId: session.user.id })
     }
+
+    return { success: true, cookies }
   }
 
   /**
    * Get current session from request headers
    */
-  async getSession(headers: Headers): Promise<AuthSession | null> {
+  async getSession(headers: AuthRequestHeaders): Promise<AuthSession | null> {
     const session = await this.betterAuth.api.getSession({
       headers,
     })

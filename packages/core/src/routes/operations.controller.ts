@@ -1,6 +1,7 @@
 import type { Context } from 'hono'
 import type { TinyCmsHonoEnv } from '../cms'
 import type { FindOptions } from '../types'
+import { honoOptionalAuth } from './auth.middleware'
 
 // ============================================================================
 // Health Check
@@ -18,6 +19,7 @@ export async function findHandler(c: Context<TinyCmsHonoEnv>) {
   const cms = c.get('cms')
   const collection = c.req.param('collection')
   const query = c.req.query()
+  const { user } = await honoOptionalAuth(c)
 
   // Parse query parameters
   const options: FindOptions = {
@@ -42,8 +44,7 @@ export async function findHandler(c: Context<TinyCmsHonoEnv>) {
   }
 
   try {
-    // TODO: Get user from auth middleware
-    const result = await cms.find(collection, options)
+    const result = await cms.find(collection, options, user)
     return c.json(result)
   } catch (error) {
     return c.json({ error: (error as Error).message }, 500)
@@ -56,8 +57,9 @@ export async function createHandler(c: Context<TinyCmsHonoEnv>) {
   const data = await c.req.json()
 
   try {
-    // TODO: Get user from auth middleware
-    const doc = await cms.create(collection, data)
+    const ctx = await honoOptionalAuth(c)
+    if (!ctx.user) return c.json({ error: 'Unauthorized' }, 401)
+    const doc = await cms.create(collection, data, ctx.user)
     return c.json(doc, 201)
   } catch (error) {
     return c.json({ error: (error as Error).message }, 500)
@@ -68,6 +70,7 @@ export async function countHandler(c: Context<TinyCmsHonoEnv>) {
   const cms = c.get('cms')
   const collection = c.req.param('collection')
   const query = c.req.query()
+  const { user } = await honoOptionalAuth(c)
 
   const options: FindOptions = {}
   if (query.where) {
@@ -79,8 +82,7 @@ export async function countHandler(c: Context<TinyCmsHonoEnv>) {
   }
 
   try {
-    // TODO: Get user from auth middleware
-    const count = await cms.count(collection, options)
+    const count = await cms.count(collection, options, user)
     return c.json({ count })
   } catch (error) {
     return c.json({ error: (error as Error).message }, 500)
@@ -91,10 +93,10 @@ export async function findByIdHandler(c: Context<TinyCmsHonoEnv>) {
   const cms = c.get('cms')
   const collection = c.req.param('collection')
   const id = c.req.param('id')
+  const { user } = await honoOptionalAuth(c)
 
   try {
-    // TODO: Get user from auth middleware
-    const doc = await cms.findById(collection, id)
+    const doc = await cms.findById(collection, id, user)
     if (!doc) {
       return c.json({ error: 'Document not found' }, 404)
     }
@@ -111,8 +113,9 @@ export async function updateHandler(c: Context<TinyCmsHonoEnv>) {
   const data = await c.req.json()
 
   try {
-    // TODO: Get user from auth middleware
-    const doc = await cms.update(collection, id, data)
+    const ctx = await honoOptionalAuth(c)
+    if (!ctx.user) return c.json({ error: 'Unauthorized' }, 401)
+    const doc = await cms.update(collection, id, data, ctx.user)
     return c.json(doc)
   } catch (error) {
     return c.json({ error: (error as Error).message }, 500)
@@ -125,8 +128,9 @@ export async function deleteHandler(c: Context<TinyCmsHonoEnv>) {
   const id = c.req.param('id')
 
   try {
-    // TODO: Get user from auth middleware
-    await cms.delete(collection, id)
+    const ctx = await honoOptionalAuth(c)
+    if (!ctx.user) return c.json({ error: 'Unauthorized' }, 401)
+    await cms.delete(collection, id, ctx.user)
     return c.json({ success: true })
   } catch (error) {
     return c.json({ error: (error as Error).message }, 500)

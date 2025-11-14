@@ -9,7 +9,7 @@ Core package for Tiny CMS - a lightweight, type-safe headless CMS for Next.js ap
 - 📝 **Type-safe** - Full TypeScript support with type inference
 - 🎯 **RESTful API** - Built with Hono.js
 - 🔌 **Plugin System** - Extensible architecture
-- 🎨 **Database Agnostic** - Support for PostgreSQL (more coming)
+- 🎨 **PostgreSQL Only** - Backed by Kysely + pg
 - ⚡ **Serverless Ready** - Optimized for edge functions
 
 ## Installation
@@ -21,7 +21,7 @@ pnpm add @tiny-cms/core
 ## Quick Start
 
 ```typescript
-import { createCMS, defineConfig } from '@tiny-cms/core'
+import { TinyCMS, defineConfig } from '@tiny-cms/core'
 import { postgresAdapter } from '@tiny-cms/db-postgres'
 
 const config = defineConfig({
@@ -41,7 +41,7 @@ const config = defineConfig({
 })
 
 // Create CMS instance (synchronous - lazy DB initialization)
-const cms = createCMS(config)
+const cms = new TinyCMS(config)
 
 // Use in your API routes
 export const GET = cms.app.fetch
@@ -80,21 +80,24 @@ export const GET = cms.app.fetch
 
 ```typescript
 // app/api/[[...route]]/route.ts
-import { createCMS } from '@tiny-cms/core'
+import { TinyCMS } from '@tiny-cms/core'
 import { createHonoHandler } from '@tiny-cms/next'
 import { config } from '@/cms.config'
 
-const cms = createCMS(config)
+const cms = new TinyCMS(config)
 const handler = createHonoHandler(cms)
 
-export const { GET, POST, PATCH, DELETE } = handler
+export const GET = handler
+export const POST = handler
+export const PATCH = handler
+export const DELETE = handler
 ```
 
 ### Client Usage
 
 ```typescript
 // app/posts/page.tsx
-import { TinyCmsSDK } from '@tiny-cms/core'
+import { TinyCmsSDK } from '@tiny-cms/core/sdk'
 
 const sdk = new TinyCmsSDK({
   baseUrl: process.env.NEXT_PUBLIC_APP_URL,

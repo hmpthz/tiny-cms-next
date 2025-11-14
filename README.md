@@ -128,18 +128,20 @@ const config = defineConfig({
 
 ### API Routes
 
-Create CRUD endpoints with one file:
+Catch-all API route that proxies to the Hono app:
 
 ```typescript
-// app/api/collections/[collection]/route.ts
-import { createCollectionHandlers } from '@tiny-cms/next'
+// app/api/[[...route]]/route.ts
+import { createHonoHandler } from '@tiny-cms/next'
+import { getCMS } from '@/lib/cms'
 
-export async function GET(request, context) {
-  const cms = await getCMS()
-  const params = await context.params
-  const handlers = createCollectionHandlers(cms, params.collection)
-  return handlers.GET(request)
-}
+const handler = createHonoHandler(getCMS())
+export const GET = handler
+export const POST = handler
+export const PUT = handler
+export const PATCH = handler
+export const DELETE = handler
+export const OPTIONS = handler
 ```
 
 ### Access Control
@@ -188,13 +190,12 @@ Core CMS logic with collections, CRUD, validation, hooks, and auth integration.
 **Key Exports:**
 
 - `TinyCMS` - Main CMS class
-- `createCMS()` - Factory function
 - `defineConfig()` - Config helper
-- `createAuthWrapper()` - Better-auth integration
+- `createAuth()` - Better-auth integration wrapper
 
 [Read full documentation →](./packages/core/README.md)
 
-### @tiny-cms/db
+### @tiny-cms/db-postgres
 
 PostgreSQL database adapter using Kysely ORM.
 
@@ -203,20 +204,20 @@ PostgreSQL database adapter using Kysely ORM.
 - `postgresAdapter()` - Kysely adapter factory
 - `SchemaBuilder` - Schema generation from collections
 
-[Read full documentation →](./packages/db/README.md)
-
+[Read full documentation →](./packages/db-postgres/README.md)
 ### @tiny-cms/next
 
-Next.js integration with API route handlers and middleware.
+Next.js integration with the core Hono app and cookie-only auth helpers.
 
 **Key Exports:**
 
-- `createCollectionHandlers()` - CRUD route handlers
-- `createAuthMiddleware()` - Auth middleware
-- `requireUser()` - Server action helpers
+- `createHonoHandler()` - Catch-all API handler that delegates to the CMS Hono app
+- `authorize()` - Get the authenticated user (throws on unauthenticated)
+- `getServerAuth()` - Returns `{ user, session } | null` (cookies only)
+- `requireServerAuth()` - Throws if unauthenticated
+- `withServerAuth()` - Wrapper for server actions
 
 [Read full documentation →](./packages/next/README.md)
-
 ## Comparison to Payload CMS
 
 | Aspect            | Payload CMS | Tiny-CMS | Reduction |

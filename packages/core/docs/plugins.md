@@ -45,11 +45,11 @@ interface Plugin {
 Add plugins to your CMS configuration:
 
 ```typescript
-import { createCMS } from '@tiny-cms/core'
+import { TinyCMS } from '@tiny-cms/core'
 import { storagePlugin } from '@tiny-cms/plugin-storage'
 import { searchPlugin } from '@tiny-cms/plugin-search'
 
-const cms = createCMS({
+const cms = new TinyCMS({
   // ... config
   plugins: [
     storagePlugin({ adapter: storageAdapter }),

@@ -9,6 +9,7 @@ import {
   updateHandler,
   deleteHandler,
 } from './operations.controller'
+import { registerAuthRoutes } from './auth.controller'
 
 /**
  * Register all API routes with the Hono app
@@ -27,7 +28,6 @@ export function registerRoutes(app: Hono<TinyCmsHonoEnv>, cms: TinyCMS) {
 
   // Auth routes (if configured)
   if (cms.getConfig().auth) {
-    // TODO: Setup auth routes using better-auth
-    // These will be delegated to the auth operations
+    registerAuthRoutes(app)
   }
 }

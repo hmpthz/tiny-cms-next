@@ -4,11 +4,11 @@ The Tiny CMS core package provides a RESTful API built with Hono.js for managing
 
 ## Base Path
 
-All API routes are prefixed with a base path (default: `/api`). This can be configured in your CMS config:
+The Hono app mounts at `/` by default. In Next.js you typically expose routes under `/api/*` via the catch-all handler. You can change the internal base path with `baseApiPath` if needed:
 
 ```typescript
 const config = {
-  baseApiPath: '/api', // default
+  baseApiPath: '/', // default; use catch-all /api in Next
   // ... other config
 }
 ```
@@ -158,4 +158,12 @@ HTTP status codes:
 
 ## Authentication
 
-Authentication routes are automatically registered when auth is configured. See the [Authentication documentation](./auth.md) for details.
+Authentication routes are automatically registered when auth is configured. See the [Authentication documentation](./auth.md) for details. Key endpoints include:
+
+```
+POST /auth/sign-in
+POST /auth/sign-up
+POST /auth/sign-out
+GET  /auth/signout
+GET  /auth/session
+```

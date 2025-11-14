@@ -21,7 +21,7 @@ pnpm add @tiny-cms/plugin-storage
 ### Server-side Setup
 
 ```typescript
-import { createCMS } from '@tiny-cms/core'
+import { TinyCMS } from '@tiny-cms/core'
 import { storagePlugin, createSupabaseAdapter } from '@tiny-cms/plugin-storage'
 
 // Create storage adapter
@@ -33,7 +33,7 @@ const storageAdapter = createSupabaseAdapter({
 })
 
 // Configure CMS with storage plugin
-const cms = createCMS({
+const cms = new TinyCMS({
   // ... other config
   plugins: [
     storagePlugin({
@@ -46,7 +46,7 @@ const cms = createCMS({
 ### Client-side Setup
 
 ```typescript
-import { TinyCmsSDK } from '@tiny-cms/core'
+import { TinyCmsSDK } from '@tiny-cms/core/sdk'
 import { extendSDK, uploadFile } from '@tiny-cms/plugin-storage'
 
 // Extend the SDK with storage methods
@@ -176,7 +176,7 @@ const customAdapter: StorageAdapter = {
 The plugin extends the Tiny CMS SDK types automatically when you import it:
 
 ```typescript
-import { TinyCmsSDK } from '@tiny-cms/core'
+import { TinyCmsSDK } from '@tiny-cms/core/sdk'
 import '@tiny-cms/plugin-storage' // This adds the storage methods to TinyCmsSDK
 
 const sdk = new TinyCmsSDK({...})

@@ -1,18 +1,18 @@
-# @tiny-cms/db
+# @tiny-cms/db-postgres
 
 PostgreSQL database adapter for tiny-cms using Kysely ORM.
 
 ## Installation
 
 ```bash
-pnpm add @tiny-cms/db kysely pg
+pnpm add @tiny-cms/db-postgres kysely pg
 pnpm add -D @types/pg
 ```
 
 ## Quick Start
 
 ```typescript
-import { postgresAdapter, SchemaBuilder } from '@tiny-cms/db'
+import { postgresAdapter, SchemaBuilder } from '@tiny-cms/db-postgres'
 import { defineConfig } from '@tiny-cms/core'
 
 const config = defineConfig({
@@ -60,7 +60,7 @@ Generate PostgreSQL tables from collection definitions:
 ```typescript
 import { Kysely, PostgresDialect } from 'kysely'
 import { Pool } from 'pg'
-import { SchemaBuilder } from '@tiny-cms/db'
+import { SchemaBuilder } from '@tiny-cms/db-postgres'
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL })
 const db = new Kysely({ dialect: new PostgresDialect({ pool }) })
@@ -195,7 +195,7 @@ Using the schema builder (recommended):
 
 ```typescript
 // scripts/push-schema.ts
-import { SchemaBuilder } from '@tiny-cms/db'
+import { SchemaBuilder } from '@tiny-cms/db-postgres'
 import { Kysely, PostgresDialect } from 'kysely'
 import { Pool } from 'pg'
 import { cmsConfig } from './lib/cms'
