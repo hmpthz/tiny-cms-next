@@ -5,5 +5,5 @@
 
 // Hono API handler
 export { createHonoHandler } from './handlers/hono'
-export { authorize, getServerAuth, requireServerAuth, withServerAuth } from './handlers/auth'
+export { getServerAuth, requireServerAuth, withServerAuth } from './handlers/auth'
 export type { RequestContext } from './handlers/auth'

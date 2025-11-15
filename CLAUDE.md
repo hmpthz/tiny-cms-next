@@ -1,4 +1,4 @@
-**Plan mode**: When asked to make a plan, write it under `.claude/` as a markdown file. The plan must have actual implementation details with code snippets. So that agents can follow it straight away.
+Plan mode: If user **explicitly** asked to make a plan, write it under `.claude/` as a markdown file. The plan must have actual implementation details with code snippets. So that agents can follow it straight away.
 
 # Project Structure
 
@@ -13,7 +13,7 @@ Monorepo managed by pnpm workspaces. Packages are designed to be composed and us
 
 - packages/next
   - Thin Next.js integration over the core Hono app with catch-all API routing
-  - Cookie-only auth helpers: `authorize`, `getServerAuth`, `requireServerAuth`, `withServerAuth`
+  - Cookie-only auth helpers: `getServerAuth`, `requireServerAuth`, `withServerAuth`
   - Minimal Admin UI server components (routing helpers and views)
   - Exposes any API routes contributed by plugins
 

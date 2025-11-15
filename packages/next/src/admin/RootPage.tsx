@@ -5,7 +5,7 @@
  */
 
 import type { TinyCMS } from '@tiny-cms/core'
-import { authorize } from '../handlers/auth'
+import { requireServerAuth } from '../handlers/auth'
 import { parseRoute } from './routing'
 import { Dashboard } from './components/Dashboard'
 import { ListView } from './components/ListView'
@@ -20,7 +20,7 @@ export interface RootPageProps {
 
 export async function RootPage({ cms, segments, searchParams }: RootPageProps) {
   // Initialize request context
-  const context = await authorize(cms)
+  const context = await requireServerAuth(cms)
 
   // Parse the route
   const route = parseRoute(segments)

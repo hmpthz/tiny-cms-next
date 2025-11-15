@@ -140,6 +140,9 @@ importers:
       '@tiny-cms/core':
         specifier: workspace:*
         version: link:../core
+      '@tiny-cms/ui':
+        specifier: workspace:*
+        version: link:../ui
 
   packages/plugin-storage:
     dependencies:

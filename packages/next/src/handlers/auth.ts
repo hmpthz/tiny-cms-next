@@ -30,11 +30,6 @@ export async function requireServerAuth(cms: TinyCMS): Promise<RequestContext> {
   return { user: auth.user, cms }
 }
 
-export async function authorize(cms: TinyCMS): Promise<RequestContext> {
-  // Backward-compatible alias
-  return requireServerAuth(cms)
-}
-
 export function withServerAuth<T extends unknown[], R = unknown>(
   cms: TinyCMS,
   handler: (ctx: RequestContext, ...args: T) => Promise<R> | R,

@@ -3,6 +3,7 @@ STAGE 5 Task:
 Rules:
 
 - DO NOT simply read all reports into your memory as there're too many words, understand them one by one just like how you read source code.
+- Remember to update README and AGENTS.md accordingly.
 
 Step 1: Auth module needs a big overhaul, fix problems and complete the missing parts. There are 3 projects involved in auth: core package, next package and example blog project. All 3 of them must be carefully inspected and fixed.
 
@@ -11,3 +12,7 @@ Step 1: Auth module needs a big overhaul, fix problems and complete the missing 
 - Auth-related code in these 3 projects have many unused legacy code, try your best to find and remove them. And rewrite other things to meet the requirements above.
 - Dependency path: core -> next -> example blog. You MUST put as many logics as possible into core package. The hono route handlers and next integration are only responsible for passing request information to the generic middleware. That's it, no more other code!
 - Use exa-code to help you with `better-auth`.
+
+Step2: Thoroughly examine the current state of next package, ui package and example blog project, complete the missing parts of admin ui, and maybe redesign some of the structures. The admin ui has basic CRUD operations for collections and docs, also include simple account settings and sign in page.
+
+-

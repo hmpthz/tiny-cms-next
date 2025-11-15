@@ -215,7 +215,6 @@ Next.js integration with the core Hono app and cookie-only auth helpers.
 **Key Exports:**
 
 - `createHonoHandler()` - Catch-all API handler that delegates to the CMS Hono app
-- `authorize()` - Get the authenticated user (throws on unauthenticated)
 - `getServerAuth()` - Returns `{ user, session } | null` (cookies only)
 - `requireServerAuth()` - Throws if unauthenticated
 - `withServerAuth()` - Wrapper for server actions

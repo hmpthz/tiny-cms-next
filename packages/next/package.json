@@ -34,11 +34,13 @@
   },
   "peerDependencies": {
     "@tiny-cms/core": "^0.1.0",
+    "@tiny-cms/ui": "^0.1.0",
     "@types/react": "^19.0.0",
     "next": "^15.2.3",
     "react": "^19.0.0"
   },
   "devDependencies": {
-    "@tiny-cms/core": "workspace:*"
+    "@tiny-cms/core": "workspace:*",
+    "@tiny-cms/ui": "workspace:*"
   }
 }

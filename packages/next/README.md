@@ -74,10 +74,10 @@ export default async function AdminPage({ params, searchParams }: { params: Prom
 ## Auth Helpers (cookies-only)
 
 ```ts
-import { authorize, getServerAuth, requireServerAuth, withServerAuth } from '@tiny-cms/next'
+import { getServerAuth, requireServerAuth, withServerAuth } from '@tiny-cms/next'
 
 // Server Component
-const { user } = await authorize(getCMS())
+const { user } = await requireServerAuth(getCMS())
 
 // Server action wrapper
 export const savePost = withServerAuth(getCMS(), async ({ user }, id: string, data: any) => {
