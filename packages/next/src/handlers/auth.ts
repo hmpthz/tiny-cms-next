@@ -30,11 +30,13 @@ export async function requireServerAuth(cms: TinyCMS): Promise<RequestContext> {
   return { user: auth.user, cms }
 }
 
+/** Create a server action that requires auth */
 export function withServerAuth<T extends unknown[], R = unknown>(
   cms: TinyCMS,
   handler: (ctx: RequestContext, ...args: T) => Promise<R> | R,
 ) {
   return async (...args: T) => {
+    'use server'
     const ctx = await requireServerAuth(cms)
     return handler(ctx, ...args)
   }

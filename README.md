@@ -43,7 +43,7 @@ cd tiny-cms-next
 pnpm install
 
 # Build packages
-pnpm -r build
+pnpm run build
 ```
 
 ### 2. Set Up Example Blog

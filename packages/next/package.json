@@ -33,14 +33,14 @@
     "hono": "^4.5.0"
   },
   "peerDependencies": {
+    "@tiny-cms/admin-ui": "^0.1.0",
     "@tiny-cms/core": "^0.1.0",
-    "@tiny-cms/ui": "^0.1.0",
-    "@types/react": "^19.0.0",
     "next": "^15.2.3",
     "react": "^19.0.0"
   },
   "devDependencies": {
+    "@tiny-cms/admin-ui": "workspace:*",
     "@tiny-cms/core": "workspace:*",
-    "@tiny-cms/ui": "workspace:*"
+    "@types/react": "^19.0.0"
   }
 }
