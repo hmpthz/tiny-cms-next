@@ -3,8 +3,9 @@
 import type { ReactNode } from 'react'
 import { createContext, useContext } from 'react'
 import useSWR from 'swr'
+import Link from 'next/link'
 import { AdminLayout } from '../components/AdminLayout'
-import { useAdminSdk } from '../sdk-context'
+import { useSdkClient } from '../sdk-context'
 import type { DashboardCollectionInfo, DashboardInitialData } from '../types'
 
 export interface AdminDashboardPageProps {
@@ -27,7 +28,7 @@ function DashboardProvider({
   initialData: DashboardInitialData
   children: ReactNode
 }) {
-  const sdk = useAdminSdk()
+  const sdk = useSdkClient()
 
   const { data, isLoading, error, mutate } = useSWR(
     ['admin', 'dashboard'],
@@ -119,12 +120,12 @@ function DashboardContent() {
                 )}
               </div>
               <div className="mt-4">
-                <a
+                <Link
                   href={`/admin/${collection.name}`}
                   className="text-sm font-medium text-primary hover:underline"
                 >
                   View documents
-                </a>
+                </Link>
               </div>
             </div>
           ))}

@@ -1,4 +1,4 @@
-export { AdminSdkProvider, useAdminSdk } from './sdk-context'
+export { SdkClientProvider, useSdkClient } from './sdk-context'
 
 export type {
   AdminRouteParams,
@@ -35,4 +35,3 @@ export type { SignInPageProps } from './pages/SignInPage'
 
 export { AccountPage } from './pages/AccountPage'
 export type { AccountPageProps } from './pages/AccountPage'
-

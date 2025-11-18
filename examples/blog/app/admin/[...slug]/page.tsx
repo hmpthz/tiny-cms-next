@@ -1,5 +1,5 @@
 import { RootAdminPage } from '@tiny-cms/next/admin'
-import { AdminSdkProvider } from '@tiny-cms/admin-ui'
+import { SdkClientProvider } from '@tiny-cms/admin-ui'
 import { TinyCmsSDK } from '@tiny-cms/core/sdk'
 import { getCMS } from '../../../lib/cms'
 
@@ -15,7 +15,7 @@ function createSdk() {
 
 function RootProvider({ children }: { children: React.ReactNode }) {
   const sdk = createSdk()
-  return <AdminSdkProvider sdk={sdk}>{children}</AdminSdkProvider>
+  return <SdkClientProvider sdk={sdk}>{children}</SdkClientProvider>
 }
 
 export default async function AdminPage({

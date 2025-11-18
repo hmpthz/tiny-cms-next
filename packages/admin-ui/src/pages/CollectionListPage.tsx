@@ -3,9 +3,10 @@
 import type { ReactNode } from 'react'
 import { createContext, useContext } from 'react'
 import useSWR from 'swr'
+import Link from 'next/link'
 import type { FindResult } from '@tiny-cms/core'
 import { AdminLayout } from '../components/AdminLayout'
-import { useAdminSdk } from '../sdk-context'
+import { useSdkClient } from '../sdk-context'
 import type {
   CollectionListInitialData,
   DashboardCollectionInfo,
@@ -38,7 +39,7 @@ function CollectionListProvider({
   serverActions: CollectionListPageProps['serverActions']
   children: ReactNode
 }) {
-  const sdk = useAdminSdk()
+  const sdk = useSdkClient()
   const { collection, result } = initialData
 
   const { data, isLoading, mutate } = useSWR<FindResult>(
@@ -104,12 +105,12 @@ function CollectionListContent({ collectionName }: { collectionName: string }) {
             Basic list view with pagination. Use the actions to edit or delete documents.
           </p>
         </div>
-        <a
+        <Link
           href={`/admin/${collectionName}/create`}
           className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90"
         >
           Create new
-        </a>
+        </Link>
       </div>
 
       {isLoading && (
@@ -137,17 +138,15 @@ function CollectionListContent({ collectionName }: { collectionName: string }) {
                     {String(doc.id).slice(0, 8)}
                   </td>
                   <td className="px-3 py-2 align-top text-xs text-muted-foreground">
-                    {doc.createdAt
-                      ? new Date(doc.createdAt as string).toLocaleString()
-                      : 'Unknown'}
+                    {doc.createdAt ? new Date(doc.createdAt as string).toLocaleString() : 'Unknown'}
                   </td>
                   <td className="px-3 py-2 align-top space-x-2">
-                    <a
+                    <Link
                       href={`/admin/${collectionName}/${String(doc.id)}`}
                       className="inline-flex items-center rounded-md border border-input bg-background px-2 py-1 text-xs font-medium hover:bg-muted"
                     >
                       Edit
-                    </a>
+                    </Link>
                     <button
                       type="button"
                       className="inline-flex items-center rounded-md border border-destructive/60 bg-destructive/10 px-2 py-1 text-xs font-medium text-destructive hover:bg-destructive/15"
@@ -171,30 +170,28 @@ function CollectionListContent({ collectionName }: { collectionName: string }) {
 
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <div>
-          Showing {result.offset + 1}–
-          {Math.min(result.offset + result.limit, result.totalDocs)} of {result.totalDocs}{' '}
-          documents
+          Showing {result.offset + 1}–{Math.min(result.offset + result.limit, result.totalDocs)} of{' '}
+          {result.totalDocs} documents
         </div>
         <div className="space-x-2">
           {result.hasPrevPage && (
-            <a
+            <Link
               href={`?offset=${Math.max(result.offset - result.limit, 0)}&limit=${result.limit}`}
               className="inline-flex items-center rounded-md border border-input bg-background px-2 py-1 text-xs font-medium hover:bg-muted"
             >
               Previous
-            </a>
+            </Link>
           )}
           {result.hasNextPage && (
-            <a
+            <Link
               href={`?offset=${result.offset + result.limit}&limit=${result.limit}`}
               className="inline-flex items-center rounded-md border border-input bg-background px-2 py-1 text-xs font-medium hover:bg-muted"
             >
               Next
-            </a>
+            </Link>
           )}
         </div>
       </div>
     </div>
   )
 }
-

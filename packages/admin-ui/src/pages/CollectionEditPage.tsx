@@ -5,7 +5,7 @@ import { createContext, useContext } from 'react'
 import useSWR from 'swr'
 import type { Document } from '@tiny-cms/core'
 import { AdminLayout } from '../components/AdminLayout'
-import { useAdminSdk } from '../sdk-context'
+import { useSdkClient } from '../sdk-context'
 import { DocumentForm } from '../components/DocumentForm'
 import type {
   AdminCollectionSummary,
@@ -46,7 +46,7 @@ function CollectionEditProvider({
   serverActions: CollectionEditPageProps['serverActions']
   children: ReactNode
 }) {
-  const sdk = useAdminSdk()
+  const sdk = useSdkClient()
   const { collection, doc } = initialData
 
   const { data, isLoading, mutate } = useSWR<Document>(
@@ -126,9 +126,7 @@ function CollectionEditContent({ collection }: { collection: AdminCollectionSumm
           type="button"
           className="inline-flex items-center rounded-md border border-destructive/60 bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/15"
           onClick={async () => {
-            const confirmed = window.confirm(
-              'Are you sure you want to delete this document?',
-            )
+            const confirmed = window.confirm('Are you sure you want to delete this document?')
             if (!confirmed) return
             await remove()
           }}
@@ -148,4 +146,3 @@ function CollectionEditContent({ collection }: { collection: AdminCollectionSumm
     </div>
   )
 }
-

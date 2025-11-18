@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import { createContext, useContext } from 'react'
 import useSWR from 'swr'
 import { AdminLayout } from '../components/AdminLayout'
-import { useAdminSdk } from '../sdk-context'
+import { useSdkClient } from '../sdk-context'
 import type {
   AdminCollectionSummary,
   CollectionCreateInitialData,
@@ -38,7 +38,7 @@ function CollectionCreateProvider({
   serverActions: CollectionCreatePageProps['serverActions']
   children: ReactNode
 }) {
-  const sdk = useAdminSdk()
+  const sdk = useSdkClient()
 
   // Verify API is reachable; no data is needed here but we keep SWR to
   // follow the same pattern as other pages.
@@ -63,7 +63,9 @@ function CollectionCreateProvider({
     },
   }
 
-  return <CollectionCreateContext.Provider value={value}>{children}</CollectionCreateContext.Provider>
+  return (
+    <CollectionCreateContext.Provider value={value}>{children}</CollectionCreateContext.Provider>
+  )
 }
 
 function useCollectionCreateContext() {

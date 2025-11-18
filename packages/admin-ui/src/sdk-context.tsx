@@ -4,26 +4,25 @@ import type { ReactNode } from 'react'
 import { createContext, useContext } from 'react'
 import type { TinyCmsSDK } from '@tiny-cms/core/sdk'
 
-interface AdminSdkContextValue {
+interface SdkClientContextValue {
   sdk: TinyCmsSDK
 }
 
-const AdminSdkContext = createContext<AdminSdkContextValue | null>(null)
+const SdkClientContext = createContext<SdkClientContextValue | null>(null)
 
-export interface AdminSdkProviderProps {
+export interface SdkClientProviderProps {
   sdk: TinyCmsSDK
   children: ReactNode
 }
 
-export function AdminSdkProvider({ sdk, children }: AdminSdkProviderProps) {
-  return <AdminSdkContext.Provider value={{ sdk }}>{children}</AdminSdkContext.Provider>
+export function SdkClientProvider({ sdk, children }: SdkClientProviderProps) {
+  return <SdkClientContext.Provider value={{ sdk }}>{children}</SdkClientContext.Provider>
 }
 
-export function useAdminSdk(): TinyCmsSDK {
-  const context = useContext(AdminSdkContext)
+export function useSdkClient(): TinyCmsSDK {
+  const context = useContext(SdkClientContext)
   if (!context) {
-    throw new Error('useAdminSdk must be used within an AdminSdkProvider')
+    throw new Error('useSdkClient must be used within an SdkClientProvider')
   }
   return context.sdk
 }
-

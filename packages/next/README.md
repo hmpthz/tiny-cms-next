@@ -60,7 +60,7 @@ The Next.js package is responsible for parsing the catch-all admin route, loadin
 ```ts
 // app/admin/[...slug]/page.tsx
 import { RootAdminPage } from '@tiny-cms/next/admin'
-import { AdminSdkProvider } from '@tiny-cms/admin-ui'
+import { SdkClientProvider } from '@tiny-cms/admin-ui'
 import { TinyCmsSDK } from '@tiny-cms/core/sdk'
 import { getCMS } from '@/lib/cms'
 
@@ -70,7 +70,7 @@ function RootProvider({ children }: { children: React.ReactNode }) {
     apiPrefix: '/api',
   })
 
-  return <AdminSdkProvider sdk={sdk}>{children}</AdminSdkProvider>
+  return <SdkClientProvider sdk={sdk}>{children}</SdkClientProvider>
 }
 
 export default async function AdminPage({
@@ -104,12 +104,9 @@ import { getServerAuth, requireServerAuth, withServerAuth } from '@tiny-cms/next
 const { user } = await requireServerAuth(getCMS())
 
 // Server action wrapper
-export const savePost = withServerAuth(
-  getCMS(),
-  async ({ user }, id: string, data: unknown) => {
-    return getCMS().update('posts', id, data as Record<string, unknown>, user)
-  },
-)
+export const savePost = withServerAuth(getCMS(), async ({ user }, id: string, data: unknown) => {
+  return getCMS().update('posts', id, data as Record<string, unknown>, user)
+})
 ```
 
 ## API Endpoints
@@ -132,4 +129,3 @@ These are available under `/api/*` when using `createHonoHandler` in App Router.
 ## License
 
 MIT
-

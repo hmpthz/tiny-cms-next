@@ -3,6 +3,7 @@
  * Creates all tables for the blog example using the database adapter
  */
 
+import 'dotenv/config'
 import { getCMS } from '../lib/cms'
 
 async function main() {

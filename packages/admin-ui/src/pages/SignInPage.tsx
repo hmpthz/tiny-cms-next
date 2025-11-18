@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState } from 'react'
 import type { SignInInitialData } from '../types'
 
@@ -54,9 +55,9 @@ export function SignInPage({ initialData }: SignInPageProps) {
         {initialData.isAuthenticated && (
           <div className="mt-3 rounded-md border border-muted bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
             You&apos;re already signed in. Continue to{' '}
-            <a href="/admin" className="font-medium text-primary hover:underline">
+            <Link href="/admin" className="font-medium text-primary hover:underline">
               the dashboard
-            </a>
+            </Link>
             .
           </div>
         )}
@@ -110,4 +111,3 @@ export function SignInPage({ initialData }: SignInPageProps) {
     </div>
   )
 }
-

@@ -111,7 +111,7 @@ examples/blog/
 This example wires the core/Next integration to `@tiny-cms/admin-ui`:
 
 - `app/admin/[...slug]/page.tsx` uses `RootAdminPage` from `@tiny-cms/next/admin`.
-- The page creates a `TinyCmsSDK` instance and passes it via `AdminSdkProvider` from `@tiny-cms/admin-ui`.
+- The page creates a `TinyCmsSDK` instance and passes it via `SdkClientProvider` from `@tiny-cms/admin-ui`.
 - `RootAdminPage` runs on the server, parses the admin route, loads initial data with `TinyCMS`, and exposes server actions for CRUD operations.
 - All admin views (dashboard, list, create, edit, account, sign-in) are rendered by `@tiny-cms/admin-ui` client components.
 
@@ -319,4 +319,3 @@ Error: Table does not exist
 ## License
 
 MIT
-

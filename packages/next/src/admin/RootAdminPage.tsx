@@ -33,7 +33,7 @@ export interface RootAdminPageProps {
   /**
    * Root provider wrapping the admin UI.
    * In the app project, this should be a component that renders
-   * <AdminSdkProvider sdk={sdk}>{children}</AdminSdkProvider>.
+   * <SdkClientProvider sdk={sdk}>{children}</SdkClientProvider>.
    */
   RootProvider: (props: { children: ReactNode }) => ReactNode
 }
@@ -97,7 +97,7 @@ export async function RootAdminPage({
 
     return (
       <RootProvider>
-      <AccountPage
+        <AccountPage
           initialData={initialData}
           collections={collectionSummaries}
           currentUser={user}
@@ -110,7 +110,12 @@ export async function RootAdminPage({
                 if (!usersCollection) return
                 if (!authUser?.id) return
 
-                await serverCms.update('users', String(authUser.id), values, authUser as AccessContext['user'])
+                await serverCms.update(
+                  'users',
+                  String(authUser.id),
+                  values,
+                  authUser as AccessContext['user'],
+                )
               },
             ),
           }}
@@ -179,7 +184,10 @@ export async function RootAdminPage({
           serverActions={{
             deleteDocument: withServerAuth(
               cms,
-              async ({ cms: serverCms, user: authUser }, args: { collection: string; id: string }) => {
+              async (
+                { cms: serverCms, user: authUser },
+                args: { collection: string; id: string },
+              ) => {
                 await serverCms.delete(args.collection, args.id, authUser as AccessContext['user'])
               },
             ),
@@ -204,8 +212,15 @@ export async function RootAdminPage({
           serverActions={{
             createDocument: withServerAuth(
               cms,
-              async ({ cms: serverCms, user: authUser }, args: { collection: string; data: Record<string, unknown> }) => {
-                await serverCms.create(args.collection, args.data, authUser as AccessContext['user'])
+              async (
+                { cms: serverCms, user: authUser },
+                args: { collection: string; data: Record<string, unknown> },
+              ) => {
+                await serverCms.create(
+                  args.collection,
+                  args.data,
+                  authUser as AccessContext['user'],
+                )
               },
             ),
           }}
@@ -259,7 +274,10 @@ export async function RootAdminPage({
             ),
             deleteDocument: withServerAuth(
               cms,
-              async ({ cms: serverCms, user: authUser }, args: { collection: string; id: string }) => {
+              async (
+                { cms: serverCms, user: authUser },
+                args: { collection: string; id: string },
+              ) => {
                 await serverCms.delete(args.collection, args.id, authUser as AccessContext['user'])
               },
             ),

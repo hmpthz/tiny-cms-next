@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { useCallback, useState } from 'react'
+import Link from 'next/link'
 import type { DashboardCollectionInfo, DashboardInitialData } from '../types'
 
 export interface AdminLayoutProps {
@@ -44,9 +45,9 @@ export function AdminLayout({ user, collections, children }: AdminLayoutProps) {
         </div>
 
         <nav className="flex-1 px-4 py-4 space-y-2 text-sm">
-          <a href="/admin" className="block rounded px-2 py-1 hover:bg-muted">
+          <Link href="/admin" className="block rounded px-2 py-1 hover:bg-muted">
             Dashboard
-          </a>
+          </Link>
 
           <div className="mt-4 text-xs font-semibold text-muted-foreground uppercase">
             Collections
@@ -54,12 +55,12 @@ export function AdminLayout({ user, collections, children }: AdminLayoutProps) {
           <ul className="mt-2 space-y-1">
             {collections.map((collection) => (
               <li key={collection.name}>
-                <a
+                <Link
                   href={`/admin/${collection.name}`}
                   className="block rounded px-2 py-1 hover:bg-muted"
                 >
                   {collection.labels?.plural || collection.name}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>
@@ -81,4 +82,3 @@ export function AdminLayout({ user, collections, children }: AdminLayoutProps) {
     </div>
   )
 }
-
