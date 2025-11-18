@@ -12,10 +12,12 @@
     }
   },
   "scripts": {
+    "build": "tsc",
     "dev": "tsc --watch",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "echo \"No tests for @tiny-cms/admin-ui\""
   },
   "keywords": [
     "cms",

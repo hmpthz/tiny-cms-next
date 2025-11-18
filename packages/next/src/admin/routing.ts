@@ -3,7 +3,7 @@
  * Parses URL segments to determine which view to render
  */
 
-export type ViewType = 'dashboard' | 'list' | 'edit' | 'create'
+export type ViewType = 'dashboard' | 'list' | 'edit' | 'create' | 'signIn' | 'account'
 
 export interface RouteInfo {
   view: ViewType
@@ -12,17 +12,20 @@ export interface RouteInfo {
 }
 
 /**
- * Parse URL segments to determine the view and params
- *
- * Examples:
- * - [] or ['admin'] → Dashboard
- * - ['admin', 'posts'] → ListView for 'posts'
- * - ['admin', 'posts', 'create'] → CreateView for 'posts'
- * - ['admin', 'posts', '123'] → EditView for 'posts' with id '123'
+ * Parse URL segments to determine the view and params.
  */
 export function parseRoute(segments: string[]): RouteInfo {
-  // Remove 'admin' prefix if present
+  // Remove 'admin' prefix if present (defensive)
   const cleanSegments = segments[0] === 'admin' ? segments.slice(1) : segments
+
+  // Auth and account routes
+  if (cleanSegments[0] === 'sign-in') {
+    return { view: 'signIn' }
+  }
+
+  if (cleanSegments[0] === 'account') {
+    return { view: 'account' }
+  }
 
   // Dashboard: no segments or empty
   if (cleanSegments.length === 0) {
@@ -80,5 +83,14 @@ export function buildPath(route: Partial<RouteInfo>): string {
     return `/admin/${collection}/${id}`
   }
 
+  if (view === 'signIn') {
+    return '/admin/sign-in'
+  }
+
+  if (view === 'account') {
+    return '/admin/account'
+  }
+
   return '/admin'
 }
+

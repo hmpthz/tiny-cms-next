@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { getCMS } from '../../lib/cms'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@tiny-cms/ui'
 
 interface Post extends Record<string, unknown> {
   id: string
@@ -32,12 +31,12 @@ export default async function PostsPage() {
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="container mx-auto px-4 py-6">
-          <div className="flex justify-between items-center">
+          <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold">
               <Link href="/">Tiny CMS Blog</Link>
             </h1>
-            <nav className="space-x-6">
-              <Link href="/posts" className="hover:underline font-semibold">
+            <nav className="flex items-center gap-6 text-sm">
+              <Link href="/posts" className="font-semibold hover:underline">
                 All Posts
               </Link>
               <Link href="/admin" className="hover:underline">
@@ -49,42 +48,52 @@ export default async function PostsPage() {
       </header>
 
       <main className="container mx-auto px-4 py-12">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-semibold mb-8">All Posts</h2>
+        <div className="mx-auto max-w-4xl">
+          <h2 className="mb-8 text-2xl font-semibold">All Posts</h2>
 
           {posts.length === 0 ? (
-            <p className="text-muted-foreground">No posts published yet.</p>
+            <p className="text-sm text-muted-foreground">No posts published yet.</p>
           ) : (
-            <div className="space-y-6">
+            <div className="grid gap-4">
               {posts.map((post) => (
-                <Card key={post.id}>
-                  <CardHeader>
-                    <CardTitle>
+                <article
+                  key={post.id as string}
+                  className="rounded-lg border bg-card p-4 text-sm shadow-sm hover:shadow"
+                >
+                  <header className="space-y-1">
+                    <h2 className="text-lg font-semibold">
                       <Link href={`/posts/${post.slug}`} className="hover:underline">
-                        {post.title}
+                        {post.title as string}
                       </Link>
-                    </CardTitle>
-                    <CardDescription>
-                      {post.publishedAt && new Date(post.publishedAt).toLocaleDateString()}
-                      {post.author && ` • By ${post.author.name}`}
-                    </CardDescription>
-                  </CardHeader>
+                    </h2>
+                    <p className="text-xs text-muted-foreground">
+                      {post.publishedAt &&
+                        new Date(post.publishedAt as string).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      {post.author && ` · By ${(post.author as { name?: string }).name}`}
+                    </p>
+                  </header>
+
                   {post.excerpt && (
-                    <CardContent>
-                      <p className="text-muted-foreground">{post.excerpt}</p>
-                      {post.category && (
-                        <div className="mt-4">
-                          <Link
-                            href={`/categories/${post.category.slug}`}
-                            className="text-sm px-2 py-1 bg-secondary rounded hover:bg-secondary/80"
-                          >
-                            {post.category.name}
-                          </Link>
-                        </div>
-                      )}
-                    </CardContent>
+                    <p className="mt-3 text-sm text-muted-foreground">
+                      {post.excerpt as string}
+                    </p>
                   )}
-                </Card>
+
+                  {post.category && (
+                    <div className="mt-3">
+                      <Link
+                        href={`/categories/${(post.category as { slug: string }).slug}`}
+                        className="inline-flex rounded-full bg-secondary px-3 py-1 text-xs text-secondary-foreground hover:bg-secondary/80"
+                      >
+                        {(post.category as { name: string }).name}
+                      </Link>
+                    </div>
+                  )}
+                </article>
               ))}
             </div>
           )}
@@ -93,3 +102,4 @@ export default async function PostsPage() {
     </div>
   )
 }
+

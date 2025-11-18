@@ -1,6 +1,6 @@
 # @tiny-cms/next
 
-Next.js integration for tiny-cms. Thin wrapper over the core Hono app with a catch‑all API route and cookie‑only auth helpers for Server Components and server actions. Any API routes registered by core or plugins (e.g., storage) are automatically available under your Next.js `/api/*` handler.
+Next.js integration for tiny-cms. Thin wrapper over the core Hono app with a catch-all API route and cookie-only auth helpers for Server Components and server actions. Any API routes registered by core or plugins (e.g., storage) are automatically available under your Next.js `/api/*` handler.
 
 ## Installation
 
@@ -20,14 +20,21 @@ import { postgresAdapter } from '@tiny-cms/db-postgres'
 export const cmsConfig = defineConfig({
   db: postgresAdapter({ pool: { connectionString: process.env.DATABASE_URL! } }),
   auth: {
-    operations: createAuth({ database: { connectionString: process.env.DATABASE_URL! }, secret: process.env.AUTH_SECRET! }),
+    operations: createAuth({
+      database: { connectionString: process.env.DATABASE_URL! },
+      secret: process.env.AUTH_SECRET!,
+    }),
     config: { enabled: true },
   },
-  collections: [/* ... */],
+  collections: [
+    // ...
+  ],
 })
 
 const cms = new TinyCMS(cmsConfig)
-export function getCMS() { return cms }
+export function getCMS() {
+  return cms
+}
 ```
 
 ### 2) Catch-all API route
@@ -48,26 +55,43 @@ export const OPTIONS = handler
 
 ### 3) Admin pages and server actions (cookies-only)
 
-```ts
-// app/admin/[...slug]/layout.tsx
-import { RootLayout } from '@tiny-cms/next/admin'
-import { getCMS } from '@/lib/cms'
-
-export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  return <RootLayout cms={getCMS()}>{children}</RootLayout>
-}
-```
+The Next.js package is responsible for parsing the catch-all admin route, loading initial data from the `TinyCMS` instance, and wiring up auth-protected server actions. UI lives in `@tiny-cms/admin-ui`.
 
 ```ts
 // app/admin/[...slug]/page.tsx
-import { RootPage } from '@tiny-cms/next/admin'
+import { RootAdminPage } from '@tiny-cms/next/admin'
+import { AdminSdkProvider } from '@tiny-cms/admin-ui'
+import { TinyCmsSDK } from '@tiny-cms/core/sdk'
 import { getCMS } from '@/lib/cms'
 
-export default async function AdminPage({ params, searchParams }: { params: Promise<{ slug: string[] }>; searchParams: Promise<Record<string, string>> }) {
-  const cms = getCMS()
+function RootProvider({ children }: { children: React.ReactNode }) {
+  const sdk = new TinyCmsSDK({
+    baseUrl: process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000',
+    apiPrefix: '/api',
+  })
+
+  return <AdminSdkProvider sdk={sdk}>{children}</AdminSdkProvider>
+}
+
+export default async function AdminPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string[] }>
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
   const { slug } = await params
   const search = await searchParams
-  return <RootPage cms={cms} segments={slug || []} searchParams={search} />
+  const cms = getCMS()
+
+  return (
+    <RootAdminPage
+      cms={cms}
+      segments={slug || []}
+      searchParams={search}
+      RootProvider={RootProvider}
+    />
+  )
 }
 ```
 
@@ -80,9 +104,12 @@ import { getServerAuth, requireServerAuth, withServerAuth } from '@tiny-cms/next
 const { user } = await requireServerAuth(getCMS())
 
 // Server action wrapper
-export const savePost = withServerAuth(getCMS(), async ({ user }, id: string, data: any) => {
-  return getCMS().update('posts', id, data, user)
-})
+export const savePost = withServerAuth(
+  getCMS(),
+  async ({ user }, id: string, data: unknown) => {
+    return getCMS().update('posts', id, data as Record<string, unknown>, user)
+  },
+)
 ```
 
 ## API Endpoints
@@ -105,3 +132,4 @@ These are available under `/api/*` when using `createHonoHandler` in App Router.
 ## License
 
 MIT
+

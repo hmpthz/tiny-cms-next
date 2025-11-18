@@ -46,5 +46,6 @@ It has a `RootAdminPage` that:
 
 - Create cms instance for server side, create sdk instance for client side. Wrap sdk instance in "sdk context provider" from admin-ui package. Pass this provider to `RootAdminPage`
 - Apart from admin ui, also completely rewrite non admin pages using base ui and tailwindcss v4. (minimal styling)
+- non admin pages should also fetch initial data in RSC.
 
 Before you finish, fix type check and lint for all packages.

@@ -1,5 +1,22 @@
-import { RootPage } from '@tiny-cms/next/admin'
+import { RootAdminPage } from '@tiny-cms/next/admin'
+import { AdminSdkProvider } from '@tiny-cms/admin-ui'
+import { TinyCmsSDK } from '@tiny-cms/core/sdk'
 import { getCMS } from '../../../lib/cms'
+
+function createSdk() {
+  const baseUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXTAUTH_URL ?? 'http://localhost:3000'
+
+  return new TinyCmsSDK({
+    baseUrl,
+    apiPrefix: '/api',
+  })
+}
+
+function RootProvider({ children }: { children: React.ReactNode }) {
+  const sdk = createSdk()
+  return <AdminSdkProvider sdk={sdk}>{children}</AdminSdkProvider>
+}
 
 export default async function AdminPage({
   params,
@@ -12,5 +29,12 @@ export default async function AdminPage({
   const search = await searchParams
   const cms = getCMS()
 
-  return <RootPage cms={cms} segments={slug || []} searchParams={search} />
+  return (
+    <RootAdminPage
+      cms={cms}
+      segments={slug || []}
+      searchParams={search}
+      RootProvider={RootProvider}
+    />
+  )
 }
