@@ -1,4 +1,4 @@
-Plan mode: If user **explicitly** asked to make a plan, write it under `.claude/` as a markdown file. The plan must have actual implementation details with code snippets. So that agents can follow it straight away.
+Plan mode: If user **explicitly** asked to make a plan, write it under `.claude/` as a markdown file. The plan must have actual implementation details with code snippets, so that agents can follow it straight away.
 
 # Project Structure
 
@@ -14,7 +14,7 @@ Monorepo managed by pnpm workspaces. Packages are designed to be composed and us
 - packages/next
   - Thin Next.js integration over the core Hono app with catch-all API routing
   - Cookie-only auth helpers: `getServerAuth`, `requireServerAuth`, `withServerAuth`
-  - Minimal Admin UI server components (routing helpers and views)
+  - Root admin routing component that wires CMS, admin-ui pages, and server actions
   - Exposes any API routes contributed by plugins
 
 - packages/db-postgres
@@ -26,9 +26,10 @@ Monorepo managed by pnpm workspaces. Packages are designed to be composed and us
   - Bundled Supabase implementation using `@supabase/storage-js`
   - Contributes minimal `/storage/*` routes and SDK extensions
 
-- packages/ui
-  - Minimal UI components (Tailwind/shadcn)
-  - Basic field components and markdown editor/renderer
+- packages/admin-ui
+  - Prefab minimal admin dashboard (client components)
+  - Base UI components and Tailwind CSS v4
+  - Ships SDK context provider, shared layout shell, and minimal document form
 
 - examples/blog
   - Blog template using the packages above
@@ -47,33 +48,34 @@ Goal: build a lean CMS inspired by "Payload CMS" architecture, keeping essential
 - Database: standardizes on PostgreSQL via Kysely in official packages, with a clear adapter interface in core
 - Storage: single S3-compatible adapter interface; Supabase implementation provided
 - Auth: better-auth with cookies only; no custom headers
-- Plugins: minimal but powerful — can extend config, mount API routes in the Hono app, and augment the client SDK. Storage plugin provided; search plugin planned/kept lean
-- UI: Tailwind + shadcn/ui; markdown editor/renderer for rich content
+- Plugins: minimal but powerful – can extend config, mount API routes in the Hono app, and augment the client SDK. Storage plugin provided; search plugin planned/kept lean
+- UI: Base UI + Tailwind CSS v4; textarea-based richtext editing with markdown preview
 
 ## Dependency Relationships
 
-- core → defines adapter + plugin interfaces and owns runtime behavior
-- next → wraps the core Hono app; forwards plugin routes; no business logic
-- db-postgres → official DB adapter consumed by core
-- plugin-storage → optional plugin consumed by core via config (adds routes + SDK)
-- examples/blog → composes core, next, db-postgres, plugin-storage, ui
+- core – defines adapter + plugin interfaces and owns runtime behavior
+- next – wraps the core Hono app; forwards plugin routes; no business logic
+- db-postgres – official DB adapter consumed by core
+- plugin-storage – optional plugin consumed by core via config (adds routes + SDK)
+- admin-ui – prefab admin dashboard that relies on the core SDK and next integration
+- examples/blog – composes core, next, db-postgres, plugin-storage, admin-ui
 
 ## Required Scripts and Conventions
 
 Each package should expose these scripts:
 
-- `build` — typecheck and build the package
-- `dev` — watch mode when applicable
-- `lint` — lint the package (always run before your work is finished)
-- `test` — run tests (if present)
+- `build` – typecheck and build the package
+- `dev` – watch mode when applicable
+- `lint` – lint the package (always run before your work is finished)
+- `test` – run tests (if present)
 
 Packages are designed for composition; respect peer dependencies to avoid duplicate or conflicting versions (especially for core). Other 3rd party libraries may be peer or direct depending on package; always check `package.json`.
 
 ## Coding Standards
 
 - TypeScript strict mode; use `any` only at unavoidable integration boundaries
-- Named exports everywhere except Next.js special files (page/layout)—those use default exports
-- Use `useMemo`, `useCallback`, `React.memo` appropriately to prevent unnecessary re-renders in UI packages
+- Named exports everywhere except Next.js special files (page/layout) – those use default exports
+- Use `useMemo`, `useCallback`, `React.memo` appropriately to prevent unnecessary re-renders for react components.
 
 ## Auth Integration Summary
 
@@ -87,7 +89,8 @@ Packages are designed for composition; respect peer dependencies to avoid duplic
 
 - `README.md` for packages are important references for agents to understand then design. They should be rather technical, not for humans to read.
 - When modifying or adding features, put business logic in core; keep next/example thin
-- Prefer small, incremental patches; **always** update docs (README.md and AGENTS.md) alongside code
+- Prefer small, incremental patches;
+- **Always update docs** alongside code changes (README.md from root and each package, root CLAUDE.md for agents to read).
 
 ## Error Handling
 

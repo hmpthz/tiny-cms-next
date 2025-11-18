@@ -25,7 +25,7 @@ tiny-cms/
 │   ├── db-postgres/    # Kysely PostgreSQL adapter
 │   ├── next/           # Next.js integration
 │   ├── plugin-storage/ # Storage plugin adapter
-│   └── ui/             # Minimal UI components
+│   └── admin-ui/       # Prefab admin dashboard with Base UI + Tailwind CSS v4
 └── examples/
     └── blog/           # Full blog example
 ```
@@ -210,7 +210,7 @@ PostgreSQL database adapter using Kysely ORM.
 
 ### @tiny-cms/next
 
-Next.js integration with the core Hono app and cookie-only auth helpers.
+Next.js integration with the core Hono app, cookie-only auth helpers, and a RootAdminPage that wires admin-ui pages and server actions.
 
 **Key Exports:**
 
@@ -218,8 +218,21 @@ Next.js integration with the core Hono app and cookie-only auth helpers.
 - `getServerAuth()` - Returns `{ user, session } | null` (cookies only)
 - `requireServerAuth()` - Throws if unauthenticated
 - `withServerAuth()` - Wrapper for server actions
+- `RootAdminPage` - Catch-all admin route that parses URL segments, fetches initial data, and connects Next.js to @tiny-cms/admin-ui pages via server actions.
 
 [Read full documentation →](./packages/next/README.md)
+
+### @tiny-cms/admin-ui
+
+Prefab admin dashboard built with Base UI and Tailwind CSS v4.
+
+**Key Features:**
+
+- Minimal admin pages for managing collections and documents
+- Shared layout shell and basic account/auth screens
+- Markdown-based rich text editing with a textarea editor and preview using react-markdown and Base UI Switch.
+
+[Read full documentation ��](./packages/admin-ui/README.md)
 
 ## Example: Blog Application
 
@@ -233,6 +246,7 @@ The `examples/blog` directory contains a complete blog application demonstrating
 - ✅ Rich text content
 - ✅ API routes for CRUD operations
 - ✅ Field validation
+- ✅ Admin and public pages with RSC
 
 [View example →](./examples/blog/README.md)
 
