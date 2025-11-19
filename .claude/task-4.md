@@ -21,7 +21,6 @@ Step 2: Inspect example blog project to understand how it works with packages of
 2. `createCMS` should never be async, it should be a simple function that immediately returns the instance, you perform async init operations later. Utilize the powerful hono middleware system, init database connection if not connected yet everytime it handles a request (for serverless functions). Also try to add auth and other necessary logics into the middleware.
 3. For nextjs integration package, create nextjs request handler by 'hono/vercel' so that nextjs itself only has a '/api/rest' route, its requests will all be handled by hono. Try to wrap as many logics as possible into core package hono or next package. You must achieve the goal that example blog project can write as little code as possible, the logics are all wrapped internally.
 4. Read example blog project, you'll see it still uses `kysely` and `pg`, which should be avoided. The database adapter interface should be enough to perform all sorts of operations, including schema setup. If the current design is not able to support it, you must have an overhaul.
-5. When you finish all changes, update their README accordingly. For core package specifically, you split README into multiple files in `docs/` folder, README becomes a table of contents, also api descriptions, sdk usage, and other new things.
 
 Step 3: Better organize the codebase
 

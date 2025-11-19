@@ -9,6 +9,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./admin": {
+      "types": "./dist/admin/index.d.ts",
+      "import": "./dist/admin/index.js"
     }
   },
   "scripts": {
@@ -29,12 +33,14 @@
     "hono": "^4.5.0"
   },
   "peerDependencies": {
+    "@tiny-cms/admin-ui": "^0.1.0",
     "@tiny-cms/core": "^0.1.0",
-    "@types/react": "^19.0.0",
-    "next": "^15.2.3",
+    "next": "^15.1.0",
     "react": "^19.0.0"
   },
   "devDependencies": {
-    "@tiny-cms/core": "workspace:*"
+    "@tiny-cms/admin-ui": "workspace:*",
+    "@tiny-cms/core": "workspace:*",
+    "@types/react": "^19.0.0"
   }
 }

@@ -11,25 +11,25 @@
     "db:push": "tsx scripts/push-schema.ts"
   },
   "dependencies": {
+    "@base-ui-components/react": "^1.0.0-beta.4",
+    "@tailwindcss/postcss": "^4.1.17",
+    "@tiny-cms/admin-ui": "workspace:*",
     "@tiny-cms/core": "workspace:*",
     "@tiny-cms/db-postgres": "workspace:*",
     "@tiny-cms/next": "workspace:*",
     "@tiny-cms/plugin-storage": "workspace:*",
-    "@tiny-cms/ui": "workspace:*",
-    "next": "^15.1.3",
+    "next": "^15.1.0",
+    "postcss": "^8.5.6",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "swr": "^2.3.6",
+    "tailwindcss": "^4.1.17"
   },
   "devDependencies": {
-    "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "autoprefixer": "^10.4.20",
-    "eslint": "^9",
+    "dotenv": "^17.2.3",
     "eslint-config-next": "^15.1.3",
-    "postcss": "^8.4.49",
-    "tailwindcss": "^3.4.17",
-    "tsx": "^4.19.2",
-    "typescript": "^5"
+    "tsx": "^4.19.2"
   }
 }

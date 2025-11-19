@@ -29,26 +29,43 @@ export interface AuthUser {
 }
 
 // Auth operations
+export type AuthRequestHeaders = Headers | Record<string, string> | Array<[string, string]> | undefined
+
+export interface AuthResult<T> {
+  data: T
+  cookies?: string[]
+}
+
+export interface AuthActionResult {
+  success: boolean
+  cookies?: string[]
+}
+
 export interface AuthOperations {
   /**
    * Sign in with email and password
    */
-  signIn(email: string, password: string): Promise<AuthSession>
+  signIn(email: string, password: string, headers?: AuthRequestHeaders): Promise<AuthResult<AuthSession>>
 
   /**
    * Sign up with email and password
    */
-  signUp(email: string, password: string, name: string): Promise<AuthSession>
+  signUp(
+    email: string,
+    password: string,
+    name: string,
+    headers?: AuthRequestHeaders,
+  ): Promise<AuthResult<AuthSession>>
 
   /**
    * Sign out
    */
-  signOut(): Promise<void>
+  signOut(headers?: AuthRequestHeaders): Promise<AuthActionResult>
 
   /**
    * Get current session from request
    */
-  getSession(headers: Headers): Promise<AuthSession | null>
+  getSession(headers: AuthRequestHeaders): Promise<AuthSession | null>
 
   /**
    * Verify email with token

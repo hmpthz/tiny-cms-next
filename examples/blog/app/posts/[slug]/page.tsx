@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { MarkdownPreview } from '@tiny-cms/admin-ui'
 import { getCMS } from '../../../lib/cms'
-import { MarkdownRenderer } from '@tiny-cms/ui'
 
 interface Post extends Record<string, unknown> {
   id: string
@@ -23,7 +23,6 @@ interface Post extends Record<string, unknown> {
 export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
 
-  // Find post by slug
   const cms = getCMS()
   const result = await cms.find<Post>('posts', {
     where: {
@@ -43,11 +42,11 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="container mx-auto px-4 py-6">
-          <div className="flex justify-between items-center">
+          <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold">
               <Link href="/">Tiny CMS Blog</Link>
             </h1>
-            <nav className="space-x-6">
+            <nav className="flex items-center gap-6 text-sm">
               <Link href="/posts" className="hover:underline">
                 All Posts
               </Link>
@@ -60,39 +59,36 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
       </header>
 
       <main className="container mx-auto px-4 py-12">
-        <article className="max-w-3xl mx-auto">
-          {/* Article Header */}
+        <article className="mx-auto max-w-3xl">
           <header className="mb-8">
-            <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
-            <div className="text-muted-foreground">
+            <h1 className="mb-4 text-4xl font-bold">{post.title as string}</h1>
+            <div className="text-sm text-muted-foreground">
               {post.publishedAt &&
-                new Date(post.publishedAt).toLocaleDateString('en-US', {
+                new Date(post.publishedAt as string).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',
                 })}
-              {post.author && ` • By ${post.author.name}`}
+              {post.author && ` · By ${(post.author as { name?: string }).name}`}
             </div>
             {post.category && (
               <div className="mt-4">
                 <Link
-                  href={`/categories/${post.category.slug}`}
-                  className="text-sm px-3 py-1 bg-secondary rounded hover:bg-secondary/80"
+                  href={`/categories/${(post.category as { slug: string }).slug}`}
+                  className="rounded-full bg-secondary px-3 py-1 text-xs text-secondary-foreground hover:bg-secondary/80"
                 >
-                  {post.category.name}
+                  {(post.category as { name: string }).name}
                 </Link>
               </div>
             )}
           </header>
 
-          {/* Article Content */}
           <div className="prose prose-lg max-w-none">
-            <MarkdownRenderer content={post.content} />
+            <MarkdownPreview>{post.content as string}</MarkdownPreview>
           </div>
 
-          {/* Back Link */}
-          <div className="mt-12 pt-8 border-t">
-            <Link href="/posts" className="text-primary hover:underline">
+          <div className="mt-12 border-t pt-8">
+            <Link href="/posts" className="text-sm text-primary hover:underline">
               ← Back to all posts
             </Link>
           </div>
@@ -102,7 +98,6 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
   )
 }
 
-// Generate static params for all posts
 export async function generateStaticParams() {
   const cms = getCMS()
   const result = await cms.find<Post>('posts', {

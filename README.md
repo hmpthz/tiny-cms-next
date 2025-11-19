@@ -2,7 +2,7 @@
 
 **A simplified, production-ready headless CMS built with Next.js, TypeScript, and PostgreSQL.**
 
-Tiny-CMS is inspired by Payload CMS but drastically simplified - **98.5% less code** (4K vs 276K lines) while maintaining essential CMS functionality.
+Tiny-CMS is inspired by Payload CMS but drastically simplified - while maintaining essential CMS functionality.
 
 ## Features
 
@@ -21,11 +21,13 @@ Tiny-CMS is inspired by Payload CMS but drastically simplified - **98.5% less co
 ```
 tiny-cms/
 ├── packages/
-│   ├── core/          # Core CMS logic (~1,200 LOC)
-│   ├── db/            # Kysely PostgreSQL adapter (~500 LOC)
-│   └── next/          # Next.js integration (~400 LOC)
+│   ├── core/           # Core CMS Implementations and interfaces
+│   ├── db-postgres/    # Kysely PostgreSQL adapter
+│   ├── next/           # Next.js integration
+│   ├── plugin-storage/ # Storage plugin adapter
+│   └── admin-ui/       # Prefab admin dashboard with Base UI + Tailwind CSS v4
 └── examples/
-    └── blog/          # Full blog example
+    └── blog/           # Full blog example
 ```
 
 ## Quick Start
@@ -41,7 +43,7 @@ cd tiny-cms-next
 pnpm install
 
 # Build packages
-pnpm -r build
+pnpm run build
 ```
 
 ### 2. Set Up Example Blog
@@ -128,18 +130,20 @@ const config = defineConfig({
 
 ### API Routes
 
-Create CRUD endpoints with one file:
+Catch-all API route that proxies to the Hono app:
 
 ```typescript
-// app/api/collections/[collection]/route.ts
-import { createCollectionHandlers } from '@tiny-cms/next'
+// app/api/[[...route]]/route.ts
+import { createHonoHandler } from '@tiny-cms/next'
+import { getCMS } from '@/lib/cms'
 
-export async function GET(request, context) {
-  const cms = await getCMS()
-  const params = await context.params
-  const handlers = createCollectionHandlers(cms, params.collection)
-  return handlers.GET(request)
-}
+const handler = createHonoHandler(getCMS())
+export const GET = handler
+export const POST = handler
+export const PUT = handler
+export const PATCH = handler
+export const DELETE = handler
+export const OPTIONS = handler
 ```
 
 ### Access Control
@@ -188,13 +192,12 @@ Core CMS logic with collections, CRUD, validation, hooks, and auth integration.
 **Key Exports:**
 
 - `TinyCMS` - Main CMS class
-- `createCMS()` - Factory function
 - `defineConfig()` - Config helper
-- `createAuthWrapper()` - Better-auth integration
+- `createAuth()` - Better-auth integration wrapper
 
 [Read full documentation →](./packages/core/README.md)
 
-### @tiny-cms/db
+### @tiny-cms/db-postgres
 
 PostgreSQL database adapter using Kysely ORM.
 
@@ -203,58 +206,33 @@ PostgreSQL database adapter using Kysely ORM.
 - `postgresAdapter()` - Kysely adapter factory
 - `SchemaBuilder` - Schema generation from collections
 
-[Read full documentation →](./packages/db/README.md)
+[Read full documentation →](./packages/db-postgres/README.md)
 
 ### @tiny-cms/next
 
-Next.js integration with API route handlers and middleware.
+Next.js integration with the core Hono app, cookie-only auth helpers, and a RootAdminPage that wires admin-ui pages and server actions.
 
 **Key Exports:**
 
-- `createCollectionHandlers()` - CRUD route handlers
-- `createAuthMiddleware()` - Auth middleware
-- `requireUser()` - Server action helpers
+- `createHonoHandler()` - Catch-all API handler that delegates to the CMS Hono app
+- `getServerAuth()` - Returns `{ user, session } | null` (cookies only)
+- `requireServerAuth()` - Throws if unauthenticated
+- `withServerAuth()` - Wrapper for server actions
+- `RootAdminPage` - Catch-all admin route that parses URL segments, fetches initial data, and connects Next.js to @tiny-cms/admin-ui pages via server actions.
 
 [Read full documentation →](./packages/next/README.md)
 
-## Comparison to Payload CMS
+### @tiny-cms/admin-ui
 
-| Aspect            | Payload CMS | Tiny-CMS | Reduction |
-| ----------------- | ----------- | -------- | --------- |
-| **Total LOC**     | ~276,672    | ~2,100   | **98.5%** |
-| **Packages**      | 41          | 3        | 93%       |
-| **Field Types**   | 30+         | 8        | 73%       |
-| **Hook Points**   | 10+         | 3        | 70%       |
-| **DB Operations** | 30+         | 6        | 80%       |
-| **Dependencies**  | 50+         | ~10      | 80%       |
+Prefab admin dashboard built with Base UI and Tailwind CSS v4.
 
-### What We Kept
+**Key Features:**
 
-- Collection-based architecture
-- Field system
-- Access control pattern
-- Basic hooks (3 instead of 10+)
-- Type generation capability
-- Database adapter pattern
+- Minimal admin pages for managing collections and documents
+- Shared layout shell and basic account/auth screens
+- Markdown-based rich text editing with a textarea editor and preview using the MarkdownPreview wrapper (react-markdown + remark-gfm) and Base UI Switch.
 
-### What We Simplified
-
-- **Authentication**: Use better-auth instead of custom implementation
-- **Admin UI**: Build custom with shadcn/ui instead of 40K LOC built-in
-- **Database Schema**: 1 table per collection (JSONB for arrays) instead of 5+ tables
-- **Field Types**: 8 essential types instead of 30+
-- **Hooks**: 3 hooks instead of 10+ execution points
-
-### What We Removed
-
-- Versions & Drafts
-- Localization (can use next-intl)
-- GraphQL (REST only)
-- Job Queue
-- Email System (better-auth handles it)
-- Multiple Storage/Database support
-- Plugin System (direct code integration)
-- Live Preview
+[Read full documentation ��](./packages/admin-ui/README.md)
 
 ## Example: Blog Application
 
@@ -268,6 +246,7 @@ The `examples/blog` directory contains a complete blog application demonstrating
 - ✅ Rich text content
 - ✅ API routes for CRUD operations
 - ✅ Field validation
+- ✅ Admin and public pages with RSC
 
 [View example →](./examples/blog/README.md)
 
@@ -276,18 +255,15 @@ The `examples/blog` directory contains a complete blog application demonstrating
 ```bash
 # Install dependencies
 pnpm install
-
 # Build all packages
-pnpm -r build
-
-# Run builds in watch mode
-pnpm -r dev
-
+pnpm run build
 # Lint
-pnpm -r lint
-
+pnpm run lint
 # Type check
-pnpm -r type-check
+pnpm run type-check
+# Develop example
+pnpm -F @examples/blog run dev
+
 ```
 
 ## Tech Stack
@@ -299,20 +275,6 @@ pnpm -r type-check
 - **Better-Auth 1.1**: Modern authentication
 - **Zod 3.24**: Runtime validation
 - **pnpm**: Package manager
-
-## Philosophy
-
-### KISS (Keep It Simple, Stupid)
-
-- Straightforward, uncomplicated solutions
-- No over-engineering
-- Readable and maintainable code
-
-### YAGNI (You Aren't Gonna Need It)
-
-- Implement only what's currently needed
-- No speculative features
-- Minimal code bloat
 
 ## License
 

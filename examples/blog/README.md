@@ -5,13 +5,14 @@ A complete blog application demonstrating tiny-cms features including authentica
 ## Features Demonstrated
 
 - ✅ **Three Collections**: users, posts, categories
-- ✅ **Better-Auth Integration**: Email/password authentication
+- ✅ **Better-Auth Integration**: email/password authentication
 - ✅ **Role-Based Access Control**: admin, author, user roles
 - ✅ **Field Types**: text, email, select, checkbox, date, relation, richtext
-- ✅ **Hooks**: Auto-slug generation, auto-set author, publish date handling
+- ✅ **Hooks**: auto-slug generation, auto-set author, publish date handling
 - ✅ **Relationship Fields**: Post → Author, Post → Category
-- ✅ **Access Control Patterns**: Public reads, role-based writes
-- ✅ **API Routes**: Full CRUD operations
+- ✅ **Access Control Patterns**: public reads, role-based writes
+- ✅ **API Routes**: full CRUD operations via the Hono app
+- ✅ **Plugin-Ready**: optional plugins can add API routes and SDK methods (e.g., `@tiny-cms/plugin-storage` adds `/storage/*` and client upload helpers)
 
 ## Quick Start
 
@@ -60,11 +61,10 @@ AUTH_SECRET=your-super-secret-key-here
 
 # Next.js URL
 NEXTAUTH_URL=http://localhost:3000
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
 ### 5. Create Schema
-
-The schema builder will create all necessary tables:
 
 ```bash
 pnpm db:push
@@ -87,35 +87,57 @@ Open http://localhost:3000
 
 ## Project Structure
 
-```
+```text
 examples/blog/
-├── app/
-│   ├── api/
-│   │   └── collections/
-│   │       └── [collection]/
-│   │           ├── route.ts          # List & Create
-│   │           └── [id]/route.ts     # Get, Update, Delete
-│   └── layout.tsx
-├── lib/
-│   └── cms.ts                         # CMS configuration
-├── scripts/
-│   └── push-schema.ts                 # Database schema setup
-├── .env.example
-├── package.json
-└── README.md
+  app/
+    api/[[...route]]/route.ts   # Catch-all API → Hono app
+    admin/[...slug]/page.tsx    # Admin UI entry (RootAdminPage)
+    posts/[slug]/page.tsx       # Post page
+    posts/page.tsx              # All posts listing
+    categories/[slug]/page.tsx  # Category page
+    sign-in/page.tsx            # Standalone sign-in route
+    page.tsx                    # Home page
+  lib/
+    cms.ts                      # CMS configuration (TinyCMS + auth)
+  scripts/
+    push-schema.ts              # Database schema setup
+  .env.example
+  package.json
+  README.md
 ```
+
+## Admin UI and Auth
+
+This example wires the core/Next integration to `@tiny-cms/admin-ui`:
+
+- `app/admin/[...slug]/page.tsx` uses `RootAdminPage` from `@tiny-cms/next/admin`.
+- The page creates a `TinyCmsSDK` instance and passes it via `SdkClientProvider` from `@tiny-cms/admin-ui`.
+- `RootAdminPage` runs on the server, parses the admin route, loads initial data with `TinyCMS`, and exposes server actions for CRUD operations.
+- All admin views (dashboard, list, create, edit, account, sign-in) are rendered by `@tiny-cms/admin-ui` client components.
+
+Authentication is cookie-only via better-auth:
+
+- `/api/*` is backed by the Hono app created by `TinyCMS` (auth routes live under `/auth/*`).
+- `@tiny-cms/next` exports `getServerAuth`, `requireServerAuth`, and `withServerAuth` to use cookies in server components and actions.
+- `/sign-in` is a standalone sign-in page that:
+  - Redirects to `/admin` (or `?redirect=/path`) if the user is already signed in.
+  - Otherwise renders `SignInPage` from `@tiny-cms/admin-ui`, which posts to `/api/auth/sign-in` and relies on cookies set by the Hono auth controller.
 
 ## Collections
 
 ### Users Collection
 
-```typescript
+```ts
 {
   name: 'users',
   fields: [
     { name: 'email', type: 'email', required: true, unique: true },
     { name: 'name', type: 'text', required: true },
-    { name: 'role', type: 'select', options: ['admin', 'author', 'user'] },
+    {
+      name: 'role',
+      type: 'select',
+      options: ['admin', 'author', 'user'],
+    },
   ],
   access: {
     read: () => true,
@@ -128,7 +150,7 @@ examples/blog/
 
 ### Posts Collection
 
-```typescript
+```ts
 {
   name: 'posts',
   fields: [
@@ -136,40 +158,31 @@ examples/blog/
     { name: 'slug', type: 'text', required: true, unique: true },
     { name: 'excerpt', type: 'text' },
     { name: 'content', type: 'richtext', required: true },
+    { name: 'featuredImage', type: 'relation', to: 'media' },
     { name: 'author', type: 'relation', to: 'users', required: true },
     { name: 'category', type: 'relation', to: 'categories' },
+    { name: 'tags', type: 'select', options: [], multiple: true },
     { name: 'published', type: 'checkbox', defaultValue: false },
     { name: 'publishedAt', type: 'date' },
   ],
   access: {
-    read: ({ user }) => user ? true : { published: true },
-    create: ({ user }) => ['admin', 'author'].includes(user?.role || ''),
-    update: ({ user, doc }) => user?.role === 'admin' || user?.id === doc?.author,
-    delete: ({ user }) => user?.role === 'admin',
-  },
-  hooks: {
-    beforeChange: async ({ data, context }) => {
-      // Auto-generate slug
-      if (!data.slug && data.title) {
-        data.slug = slugify(data.title)
-      }
-      // Set publishedAt on publish
-      if (data.published && !data.publishedAt) {
-        data.publishedAt = new Date()
-      }
-      // Auto-set author
-      if (context.operation === 'create' && context.user) {
-        data.author = context.user.id
-      }
-      return data
+    read: ({ user }) => {
+      if (user) return true
+      return { published: true }
     },
+    create: ({ user }) => ['admin', 'author'].includes(user?.role || ''),
+    update: ({ user, doc }) => {
+      if (user?.role === 'admin') return true
+      return user?.id === doc?.author
+    },
+    delete: ({ user }) => user?.role === 'admin',
   },
 }
 ```
 
 ### Categories Collection
 
-```typescript
+```ts
 {
   name: 'categories',
   fields: [
@@ -186,143 +199,14 @@ examples/blog/
 }
 ```
 
-## API Endpoints
-
-### Authentication
-
-Better-auth automatically provides these endpoints:
-
-- `POST /api/auth/sign-in` - Sign in
-- `POST /api/auth/sign-up` - Sign up
-- `POST /api/auth/sign-out` - Sign out
-- `GET /api/auth/session` - Get session
-
-### Collections
-
-**Posts:**
-
-- `GET /api/collections/posts` - List posts
-- `POST /api/collections/posts` - Create post
-- `GET /api/collections/posts/:id` - Get post
-- `PATCH /api/collections/posts/:id` - Update post
-- `DELETE /api/collections/posts/:id` - Delete post
-
-**Categories:**
-
-- `GET /api/collections/categories` - List categories
-- `POST /api/collections/categories` - Create category
-- `GET /api/collections/categories/:id` - Get category
-- `PATCH /api/collections/categories/:id` - Update category
-- `DELETE /api/collections/categories/:id` - Delete category
-
-**Users:**
-
-- `GET /api/collections/users` - List users
-- `GET /api/collections/users/:id` - Get user
-- `PATCH /api/collections/users/:id` - Update user
-
-## Example API Usage
-
-### Create a Post
-
-```bash
-# Sign up first
-curl -X POST http://localhost:3000/api/auth/sign-up \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "author@example.com",
-    "password": "password123",
-    "name": "John Doe"
-  }'
-
-# Create a post
-curl -X POST http://localhost:3000/api/collections/posts \
-  -H "Content-Type: application/json" \
-  -H "Cookie: session=..." \
-  -d '{
-    "title": "My First Post",
-    "content": "This is the content",
-    "published": true
-  }'
-```
-
-### List Published Posts
-
-```bash
-curl "http://localhost:3000/api/collections/posts?where=%7B%22published%22%3Atrue%7D&limit=10"
-```
-
-### Update a Post
-
-```bash
-curl -X PATCH http://localhost:3000/api/collections/posts/UUID \
-  -H "Content-Type: application/json" \
-  -H "Cookie: session=..." \
-  -d '{
-    "title": "Updated Title",
-    "published": true
-  }'
-```
-
-## Database Schema
-
-### Posts Table
-
-```sql
-CREATE TABLE posts (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  title TEXT NOT NULL,
-  slug TEXT NOT NULL UNIQUE,
-  excerpt TEXT,
-  content TEXT NOT NULL,
-  author UUID NOT NULL,
-  category UUID,
-  tags JSONB,
-  published BOOLEAN NOT NULL DEFAULT false,
-  published_at TIMESTAMP,
-  created_at TIMESTAMP NOT NULL DEFAULT now(),
-  updated_at TIMESTAMP NOT NULL DEFAULT now()
-);
-
-CREATE INDEX idx_posts_published ON posts(published);
-CREATE INDEX idx_posts_author ON posts(author);
-CREATE INDEX idx_posts_category ON posts(category);
-```
-
-## Access Control Examples
-
-### Public Can Read Published Posts
-
-```typescript
-read: ({ user }) => {
-  if (user) return true // Authenticated sees all
-  return { published: true } // Public sees only published
-}
-```
-
-### Authors Can Edit Their Own Posts
-
-```typescript
-update: ({ user, doc }) => {
-  if (user?.role === 'admin') return true
-  return user?.id === doc?.author
-}
-```
-
-### Only Admins Can Delete
-
-```typescript
-delete: ({ user }) => user?.role === 'admin'
-```
-
 ## Hooks Examples
 
 ### Auto-Generate Slug
 
-```typescript
+```ts
 beforeChange: async ({ data }) => {
   if (!data.slug && data.title) {
-    data.slug = data.title
+    data.slug = (data.title as string)
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '')
@@ -333,7 +217,7 @@ beforeChange: async ({ data }) => {
 
 ### Auto-Set Author on Create
 
-```typescript
+```ts
 beforeChange: async ({ data, context }) => {
   if (context.operation === 'create' && context.user && !data.author) {
     data.author = context.user.id
@@ -349,7 +233,7 @@ beforeChange: async ({ data, context }) => {
 pnpm install
 
 # Build packages
-pnpm -r build
+pnpm build
 
 # Run dev server
 pnpm dev
@@ -368,18 +252,15 @@ pnpm lint
 
 ### Environment Variables
 
-Set these in your production environment:
-
 ```bash
 DATABASE_URL=postgresql://user:password@host:5432/database?ssl=true
 AUTH_SECRET=your-production-secret-32-chars-minimum
 NEXTAUTH_URL=https://yourdomain.com
+NEXT_PUBLIC_SITE_URL=https://yourdomain.com
 NODE_ENV=production
 ```
 
 ### Database Migration
-
-Run schema builder in production:
 
 ```bash
 NODE_ENV=production pnpm db:push
@@ -396,23 +277,23 @@ pnpm start
 
 ### Database Connection Errors
 
-```
+```text
 Error: Connection terminated unexpectedly
 ```
 
-**Solution:** Check your DATABASE_URL and ensure PostgreSQL is running.
+**Solution:** Check your `DATABASE_URL` and ensure PostgreSQL is running.
 
 ### Auth Errors
 
-```
+```text
 Error: Authentication is not configured
 ```
 
-**Solution:** Ensure AUTH_SECRET is set and better-auth is properly configured.
+**Solution:** Ensure `AUTH_SECRET` is set and better-auth is properly configured.
 
 ### Schema Errors
 
-```
+```text
 Error: Table does not exist
 ```
 
@@ -420,17 +301,17 @@ Error: Table does not exist
 
 ## Next Steps
 
-1. **Add Admin UI**: Build an admin panel with shadcn/ui components
-2. **Add File Uploads**: Integrate @supabase/storage-js for images
-3. **Add Search**: Implement PostgreSQL full-text search
-4. **Add Rich Text Editor**: Integrate a markdown or WYSIWYG editor
-5. **Add Email**: Configure better-auth email verification
+1. **Customize Admin UI**: Replace or extend the prefab `@tiny-cms/admin-ui` pages.
+2. **Add File Uploads**: Enable `@tiny-cms/plugin-storage` (S3-compatible). The bundled Supabase adapter is one implementation.
+3. **Add Search**: Implement PostgreSQL full-text search.
+4. **Enhance Rich Text**: Swap the simple markdown textarea/preview for a richer editor.
+5. **Add Email**: Configure better-auth email verification and password reset flows.
 
 ## Learn More
 
 - [Tiny-CMS Documentation](../../README.md)
 - [@tiny-cms/core](../../packages/core/README.md)
-- [@tiny-cms/db](../../packages/db/README.md)
+- [@tiny-cms/db-postgres](../../packages/db-postgres/README.md)
 - [@tiny-cms/next](../../packages/next/README.md)
 - [Better-Auth Documentation](https://better-auth.com)
 - [Kysely Documentation](https://kysely.dev)
