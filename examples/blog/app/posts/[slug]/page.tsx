@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
+import { MarkdownPreview } from '@tiny-cms/admin-ui'
 import { getCMS } from '../../../lib/cms'
 
 interface Post extends Record<string, unknown> {
@@ -85,7 +84,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
           </header>
 
           <div className="prose prose-lg max-w-none">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content as string}</ReactMarkdown>
+            <MarkdownPreview>{post.content as string}</MarkdownPreview>
           </div>
 
           <div className="mt-12 border-t pt-8">
@@ -109,4 +108,3 @@ export async function generateStaticParams() {
     slug: post.slug,
   }))
 }
-

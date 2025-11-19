@@ -2,9 +2,8 @@
 
 import type { FormEvent } from 'react'
 import { useMemo, useState } from 'react'
-import ReactMarkdown from 'react-markdown'
 import { Switch } from '@base-ui-components/react/switch'
-import remarkGfm from 'remark-gfm'
+import { MarkdownPreview } from './Markdown'
 import type { AdminCollectionSummary } from '../types'
 import type { Field, SelectField } from '@tiny-cms/core'
 
@@ -284,7 +283,7 @@ export function DocumentForm({ collection, initialValues, mode, onSubmit }: Docu
                   />
                 ) : (
                   <div className="prose prose-sm max-w-none rounded-md border border-input bg-background px-3 py-2 text-sm">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{textValue || ''}</ReactMarkdown>
+                    <MarkdownPreview>{textValue || ''}</MarkdownPreview>
                   </div>
                 )}
 
@@ -351,4 +350,3 @@ export function DocumentForm({ collection, initialValues, mode, onSubmit }: Docu
     </form>
   )
 }
-

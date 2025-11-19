@@ -21,6 +21,7 @@ It is intentionally thin and is designed to be wired up by the Next.js integrati
 - `SdkClientProvider`, `useSdkClient` – context for a `TinyCmsSDK` instance.
 - `AdminLayout` – shared shell used by all admin pages (sidebar + header).
 - `DocumentForm` – very small form renderer for collection fields; no validation.
+- `MarkdownPreview` – reusable markdown renderer (react-markdown + remark-gfm) for previews.
 - Pages:
   - `AdminDashboardPage`
   - `CollectionListPage`

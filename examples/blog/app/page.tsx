@@ -1,6 +1,5 @@
 import Link from 'next/link'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
+import { MarkdownPreview } from '@tiny-cms/admin-ui'
 import type { Document } from '@tiny-cms/core'
 import { getCMS } from '../lib/cms'
 
@@ -88,11 +87,11 @@ export default async function HomePage() {
                     {post.excerpt ? (
                       <p>{post.excerpt}</p>
                     ) : (
-                      <div className="prose prose-sm max-w-none line-clamp-3">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {post.content.substring(0, 200) + '...'}
-                        </ReactMarkdown>
-                      </div>
+                    <div className="prose prose-sm max-w-none line-clamp-3">
+                      <MarkdownPreview>
+                        {post.content.substring(0, 200) + '...'}
+                      </MarkdownPreview>
+                    </div>
                     )}
                   </div>
 
@@ -133,4 +132,3 @@ export default async function HomePage() {
     </div>
   )
 }
-

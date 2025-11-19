@@ -230,7 +230,7 @@ Prefab admin dashboard built with Base UI and Tailwind CSS v4.
 
 - Minimal admin pages for managing collections and documents
 - Shared layout shell and basic account/auth screens
-- Markdown-based rich text editing with a textarea editor and preview using react-markdown and Base UI Switch.
+- Markdown-based rich text editing with a textarea editor and preview using the MarkdownPreview wrapper (react-markdown + remark-gfm) and Base UI Switch.
 
 [Read full documentation ��](./packages/admin-ui/README.md)
 

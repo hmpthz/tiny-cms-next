@@ -29,7 +29,7 @@ Monorepo managed by pnpm workspaces. Packages are designed to be composed and us
 - packages/admin-ui
   - Prefab minimal admin dashboard (client components)
   - Base UI components and Tailwind CSS v4
-  - Ships SDK context provider, shared layout shell, and minimal document form
+  - Ships shared layout shell, minimal document form, and a markdown preview component.
 
 - examples/blog
   - Blog template using the packages above

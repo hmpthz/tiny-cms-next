@@ -17,6 +17,7 @@ export { AdminLayout } from './components/AdminLayout'
 
 export { DocumentForm } from './components/DocumentForm'
 export type { DocumentFormProps } from './components/DocumentForm'
+export { MarkdownPreview } from './components/Markdown'
 
 export { AdminDashboardPage } from './pages/AdminDashboardPage'
 export type { AdminDashboardPageProps } from './pages/AdminDashboardPage'
